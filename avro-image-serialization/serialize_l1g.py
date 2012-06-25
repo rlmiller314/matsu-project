@@ -1,4 +1,6 @@
+import sys
 import glob
+import json
 
 import numpy
 from PIL import Image
@@ -8,6 +10,9 @@ from osgeo import gdalconst
 
 gdal.UseExceptions()
 osr.UseExceptions()
+
+import GeoPictureSerializer
+geoPicture = GeoPictureSerializer.GeoPicture()
 
 # BASE_DIRECTORY = "/mnt/pictures-L1G-TIFF/2010/003/EO1H0790732010003110T2_HYP_L1G"
 # BASE_DIRECTORY = "/mnt/pictures-L1G-TIFF/2010/015/EO1H0990612010015110TC_HYP_L1G"
@@ -30,18 +35,39 @@ BASE_DIRECTORY = "/mnt/pictures-L1G-TIFF/2010/084/EO1H1430472010084110PF_HYP_L1G
 # BASE_DIRECTORY = "/mnt/pictures-L1G-TIFF/2011/229/EO1H0440752011229110TD_HYP_L1G"
 # BASE_DIRECTORY = "/mnt/pictures-L1G-TIFF/2011/229/EO1H1320552011229110T2_HYP_L1G"
 
+# convert the NASA-format L1T file into a JSON-formatted string
+l1tFile = open(glob.glob(BASE_DIRECTORY + "/*.L1T")[0])
+l1t = {}
+last = l1t
+stack = []
+for line in l1tFile.xreadlines():
+    if line.rstrip() == "END": break
+    name, value = line.rstrip().lstrip().split(" = ")
+    value = value.rstrip("\"").lstrip("\"")
+    if name == "GROUP":
+        stack.append(last)
+        last = {}
+        l1t[value] = last
+    elif name == "END_GROUP":
+        last = stack.pop()
+    else:
+        last[name] = value
+l1t = json.dumps(l1t)
+
+geoPicture.metadata["L1T"] = l1t
+
 tiffs = glob.glob(BASE_DIRECTORY + "/EO1H*_B[0-9][0-9][0-9]_L1T.TIF")
 
 tiffs = dict((t[-12:-8], gdal.Open(t, gdalconst.GA_ReadOnly)) for t in tiffs)
-
 sampletiff = tiffs.values()[0]
-
-print sampletiff.RasterYSize, sampletiff.RasterXSize, len(tiffs), numpy.empty(1, dtype=numpy.float).itemsize
 
 array = numpy.empty((sampletiff.RasterYSize, sampletiff.RasterXSize, len(tiffs)), dtype=numpy.float)
 
 keys = tiffs.keys()
 keys.sort()
+
+geoPicture.bands = keys
+
 for index, key in enumerate(keys):
     if int(key[1:]) <= 70:
         scaleFactor = 1./40.
@@ -53,7 +79,18 @@ for index, key in enumerate(keys):
 
     print index
 
-print array
+print "done"
+
+geoPicture.picture = array
+
+print "attached"
+
+serialized = geoPicture.serialize()
+# open("/tmp/tmp.txt", "w").write(serialized)
+print len(serialized)
+print serialized[-10:]
+
+print "serialized"
 
 # image = Image.fromarray(array)
 # image.save("/var/www/quick-look/tmp.png", "PNG", option="optimize")
