@@ -145,6 +145,8 @@ static void b64encode(std::istream &in, std::ostream &out) {
   uint8_t i = 0;
   uint8_t j;
 
+  std::cout << "    uno" << std::endl;
+
   while (in.readsome(&buff1[i++], 1)) {
     if (i == 3) {
       out << b64encodeTable[(buff1[0] & 0xfc) >> 2];
@@ -154,6 +156,8 @@ static void b64encode(std::istream &in, std::ostream &out) {
       i = 0;
     }
   }
+
+  std::cout << "    dos" << std::endl;
 
   if (--i) {
     for(j = i;  j < 3;  j++) { buff1[j] = '\0'; }
@@ -167,6 +171,8 @@ static void b64encode(std::istream &in, std::ostream &out) {
 
     while (i++ < 3) { out << '='; }
   }
+
+  std::cout << "    tres" << std::endl;
 }
 
 static void b64decode(std::istream &in, std::ostream &out) {
@@ -232,6 +238,8 @@ static void b64decode(const char *in, std::ostream &out) {
 }
 
 static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_GeoPicture *self) {
+  std::cout << "one" << std::endl;
+
   if (!PyDict_Check(self->metadata)) {
     PyErr_SetString(PyExc_TypeError, "metadata must be a dictionary");
     return NULL;
@@ -276,6 +284,8 @@ static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_
     Py_DECREF(o);
   }
 
+  std::cout << "two" << std::endl;
+
   npy_intp *dims = PyArray_DIMS(self->picture);
   p.height = dims[0];
   p.width = dims[1];
@@ -303,6 +313,8 @@ static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_
     PyErr_SetString(PyExc_TypeError, "the number of bands must be equal to the depth of picture");
     return NULL;
   }
+
+  std::cout << "three" << std::endl;
 
   PyArray_NonzeroFunc *nonzero = PyArray_DESCR(self->picture)->f->nonzero;
 
@@ -351,6 +363,8 @@ static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_
 
   NpyIter_Deallocate(iter);
 
+  std::cout << "four " << p.data.size() << std::endl;
+
   std::stringstream ss;
   std::auto_ptr<avro::OutputStream> out = avro::ostreamOutputStream(ss);
   avro::EncoderPtr e = avro::validatingEncoder(self->validSchema, avro::binaryEncoder());
@@ -358,10 +372,16 @@ static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_
   avro::encode(*e, p);
   out->flush();
 
+  std::cout << "five " << ss << std::endl;
+
   std::ostringstream encoded;
   b64encode(ss, encoded);
 
-  return PyString_FromString(encoded.str().c_str());
+  std::string tmp = encoded.str();
+
+  std::cout << "six " << tmp.size() << std::endl;
+
+  return PyString_FromString(tmp.c_str());
 }
 
 static PyObject *GeoPictureSerializer_deserialize(PyObject *self, PyObject *args) {
