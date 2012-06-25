@@ -1,6 +1,7 @@
 #include "GeoPictureSerializer.h"
 #include <sstream>
 #include <math.h>
+#include <stdio.h>
 
 /*
  * PyVarObject_HEAD_INIT was added in Python 2.6.  Its use is
@@ -51,7 +52,7 @@ static PyMemberDef GeoPictureSerializer_GeoPicture_members[] = {
 };
 
 static PyMethodDef GeoPictureSerializer_GeoPicture_methods[] = {
-  {"serialize", (PyCFunction)(GeoPictureSerializer_GeoPicture_serialize), METH_NOARGS, "Return a serialized string representing the data."},
+  {"serialize", (PyCFunction)(GeoPictureSerializer_GeoPicture_serialize), METH_VARARGS, "Return a serialized string representing the data."},
 
   {NULL}
 };
@@ -145,19 +146,21 @@ static void b64encode(std::istream &in, std::ostream &out) {
   uint8_t i = 0;
   uint8_t j;
 
-  std::cout << "    uno" << std::endl;
+  long tmpcounter = 0;
 
-  while (in.readsome(&buff1[i++], 1)) {
+  std::streambuf *pbuf = in.rdbuf();
+  pbuf->pubseekpos(0);
+
+  while (pbuf->in_avail() > 0) {
+    buff1[i++] = pbuf->sbumpc();
     if (i == 3) {
-      out << b64encodeTable[(buff1[0] & 0xfc) >> 2];
-      out << b64encodeTable[((buff1[0] & 0x03) << 4) + ((buff1[1] & 0xf0) >> 4)];
-      out << b64encodeTable[((buff1[1] & 0x0f) << 2) + ((buff1[2] & 0xc0) >> 6)];
-      out << b64encodeTable[buff1[2] & 0x3f];
+      out << b64encodeTable[(buff1[0] & 0xfc) >> 2];   tmpcounter++;
+      out << b64encodeTable[((buff1[0] & 0x03) << 4) + ((buff1[1] & 0xf0) >> 4)];   tmpcounter++;
+      out << b64encodeTable[((buff1[1] & 0x0f) << 2) + ((buff1[2] & 0xc0) >> 6)];   tmpcounter++;
+      out << b64encodeTable[buff1[2] & 0x3f];   tmpcounter++;
       i = 0;
     }
   }
-
-  std::cout << "    dos" << std::endl;
 
   if (--i) {
     for(j = i;  j < 3;  j++) { buff1[j] = '\0'; }
@@ -167,12 +170,10 @@ static void b64encode(std::istream &in, std::ostream &out) {
     buff2[2] = ((buff1[1] & 0x0f) << 2) + ((buff1[2] & 0xc0) >> 6);
     buff2[3] = buff1[2] & 0x3f;
     
-    for (j = 0;  j < (i+1);  j++) { out << b64encodeTable[(uint8_t)buff2[j]]; }
+    for (j = 0;  j < (i+1);  j++) { out << b64encodeTable[(uint8_t)buff2[j]];    tmpcounter++; }
 
-    while (i++ < 3) { out << '='; }
+    while (i++ < 3) { out << '=';    tmpcounter++; }
   }
-
-  std::cout << "    tres" << std::endl;
 }
 
 static void b64decode(std::istream &in, std::ostream &out) {
@@ -237,8 +238,20 @@ static void b64decode(const char *in, std::ostream &out) {
   }
 }
 
-static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_GeoPicture *self) {
-  std::cout << "one" << std::endl;
+static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_GeoPicture *self, PyObject *args) {
+  PyObject *pyfile = NULL;
+  FILE *file = NULL;
+  if (!PyArg_ParseTuple(args, "|O", &pyfile)) {
+    PyErr_SetString(PyExc_TypeError, "only one (optional) argument: output file object");
+    return NULL;
+  }
+  if (pyfile != NULL) {
+    if (!PyFile_Check(pyfile)) {
+      PyErr_SetString(PyExc_TypeError, "argument must be a file object");
+      return NULL;
+    }
+    file = PyFile_AsFile(pyfile);
+  }
 
   if (!PyDict_Check(self->metadata)) {
     PyErr_SetString(PyExc_TypeError, "metadata must be a dictionary");
@@ -284,8 +297,6 @@ static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_
     Py_DECREF(o);
   }
 
-  std::cout << "two" << std::endl;
-
   npy_intp *dims = PyArray_DIMS(self->picture);
   p.height = dims[0];
   p.width = dims[1];
@@ -313,8 +324,6 @@ static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_
     PyErr_SetString(PyExc_TypeError, "the number of bands must be equal to the depth of picture");
     return NULL;
   }
-
-  std::cout << "three" << std::endl;
 
   PyArray_NonzeroFunc *nonzero = PyArray_DESCR(self->picture)->f->nonzero;
 
@@ -363,25 +372,33 @@ static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_
 
   NpyIter_Deallocate(iter);
 
-  std::cout << "four " << p.data.size() << std::endl;
+  std::stringstream encoded;
+  if (true) {
+    std::stringstream ss;
+    if (true) {
+      std::auto_ptr<avro::OutputStream> out = avro::ostreamOutputStream(ss);
+      avro::EncoderPtr e = avro::validatingEncoder(self->validSchema, avro::binaryEncoder());
+      e->init(*out);
+      avro::encode(*e, p);
+      out->flush();
+    }
 
-  std::stringstream ss;
-  std::auto_ptr<avro::OutputStream> out = avro::ostreamOutputStream(ss);
-  avro::EncoderPtr e = avro::validatingEncoder(self->validSchema, avro::binaryEncoder());
-  e->init(*out);
-  avro::encode(*e, p);
-  out->flush();
+    b64encode(ss, encoded);
+  }
 
-  std::cout << "five " << ss << std::endl;
+  if (file != NULL) {
+    PyFile_IncUseCount((PyFileObject*)pyfile);
 
-  std::ostringstream encoded;
-  b64encode(ss, encoded);
+    std::streambuf *pbuf = encoded.rdbuf();
+    pbuf->pubseekpos(0);
+    while (pbuf->in_avail() > 0) { fputc(pbuf->sbumpc(), file); }
 
-  std::string tmp = encoded.str();
-
-  std::cout << "six " << tmp.size() << std::endl;
-
-  return PyString_FromString(tmp.c_str());
+    PyFile_DecUseCount((PyFileObject*)pyfile);
+    return Py_BuildValue("O", Py_None);
+  }
+  else {
+    return PyString_FromString(encoded.str().c_str());
+  }
 }
 
 static PyObject *GeoPictureSerializer_deserialize(PyObject *self, PyObject *args) {

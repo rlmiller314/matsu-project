@@ -108,7 +108,7 @@ typedef struct {
 } GeoPictureSerializer_GeoPicture;
 
 static int GeoPictureSerializer_GeoPicture_init(GeoPictureSerializer_GeoPicture *self);
-static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_GeoPicture *self);
+static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_GeoPicture *self, PyObject *args);
 static PyObject *GeoPictureSerializer_deserialize(PyObject *args);
 
 #endif // GEOPICTURESERIALIZER_H

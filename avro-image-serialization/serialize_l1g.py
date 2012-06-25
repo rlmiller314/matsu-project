@@ -36,25 +36,23 @@ BASE_DIRECTORY = "/mnt/pictures-L1G-TIFF/2010/084/EO1H1430472010084110PF_HYP_L1G
 # BASE_DIRECTORY = "/mnt/pictures-L1G-TIFF/2011/229/EO1H1320552011229110T2_HYP_L1G"
 
 # convert the NASA-format L1T file into a JSON-formatted string
-l1tFile = open(glob.glob(BASE_DIRECTORY + "/*.L1T")[0])
-l1t = {}
-last = l1t
-stack = []
-for line in l1tFile.xreadlines():
-    if line.rstrip() == "END": break
-    name, value = line.rstrip().lstrip().split(" = ")
-    value = value.rstrip("\"").lstrip("\"")
-    if name == "GROUP":
-        stack.append(last)
-        last = {}
-        l1t[value] = last
-    elif name == "END_GROUP":
-        last = stack.pop()
-    else:
-        last[name] = value
-l1t = json.dumps(l1t)
-
-geoPicture.metadata["L1T"] = l1t
+with open(glob.glob(BASE_DIRECTORY + "/*.L1T")[0]) as l1tFile:
+    l1t = {}
+    last = l1t
+    stack = []
+    for line in l1tFile.xreadlines():
+        if line.rstrip() == "END": break
+        name, value = line.rstrip().lstrip().split(" = ")
+        value = value.rstrip("\"").lstrip("\"")
+        if name == "GROUP":
+            stack.append(last)
+            last = {}
+            l1t[value] = last
+        elif name == "END_GROUP":
+            last = stack.pop()
+        else:
+            last[name] = value
+    geoPicture.metadata["L1T"] = json.dumps(l1t)
 
 tiffs = glob.glob(BASE_DIRECTORY + "/EO1H*_B[0-9][0-9][0-9]_L1T.TIF")
 
@@ -63,12 +61,9 @@ sampletiff = tiffs.values()[0]
 
 array = numpy.empty((sampletiff.RasterYSize, sampletiff.RasterXSize, len(tiffs)), dtype=numpy.float)
 
-keys = tiffs.keys()
-keys.sort()
-
-geoPicture.bands = keys
-
-for index, key in enumerate(keys):
+geoPicture.bands = tiffs.keys()
+geoPicture.bands.sort()
+for index, key in enumerate(geoPicture.bands):
     if int(key[1:]) <= 70:
         scaleFactor = 1./40.
     else:
@@ -77,20 +72,13 @@ for index, key in enumerate(keys):
     band = tiffs[key].GetRasterBand(1).ReadAsArray()
     array[:,:,index] = numpy.multiply(band, scaleFactor)
 
-    print index
-
-print "done"
+del tiffs
+del sampletiff
 
 geoPicture.picture = array
 
-print "attached"
+geoPicture.serialize(open("/tmp/tmp2.txt", "w"))
 
-serialized = geoPicture.serialize()
-# open("/tmp/tmp.txt", "w").write(serialized)
-print len(serialized)
-print serialized[-10:]
-
-print "serialized"
-
+# open("/tmp/tmp.txt", "w").write(geoPicture.serialize())
 # image = Image.fromarray(array)
 # image.save("/var/www/quick-look/tmp.png", "PNG", option="optimize")
