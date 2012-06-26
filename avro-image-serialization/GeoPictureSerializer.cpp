@@ -144,6 +144,7 @@ static const char b64decodeTable[256] = {
 class MyOutputStream : public avro::OutputStream {
 public:
   FILE *file_;
+  std::stringstream alt_;
 
   const size_t chunkSize_;
   uint8_t* data_;
@@ -154,12 +155,8 @@ public:
   char buff1[3];
   uint8_t i;
 
-  size_t next_report;
-
   MyOutputStream(FILE *f, size_t chunkSize) : file_(f), chunkSize_(chunkSize), available_(0), byteCount_(0), written_(true), i(0) {
     data_ = new uint8_t[chunkSize_];
-
-    next_report = 10*1024*1024;
   }
   ~MyOutputStream() {
     delete [] data_;
@@ -176,17 +173,10 @@ public:
     available_ = 0;
     written_ = false;
 
-    if (byteCount_ > next_report) {
-      std::cout << "processed out " << double(byteCount_)/double(1024*1024) << " MB" << std::endl;
-      next_report += 10*1024*1024;
-    }
-
     return true;
   }
   
   void backup(size_t len) {
-    std::cout << "output backup" << std::endl;
-
     available_ += len;
     byteCount_ -= len;
   }
@@ -207,10 +197,18 @@ public:
       for (size_t k = 0;  k < chunkSize_ - available_;  k++) {
 	buff1[i++] = data_[k];
 	if (i == 3) {
-	  fputc(b64encodeTable[(buff1[0] & 0xfc) >> 2], file_);
-	  fputc(b64encodeTable[((buff1[0] & 0x03) << 4) + ((buff1[1] & 0xf0) >> 4)], file_);
-	  fputc(b64encodeTable[((buff1[1] & 0x0f) << 2) + ((buff1[2] & 0xc0) >> 6)], file_);
-	  fputc(b64encodeTable[buff1[2] & 0x3f], file_);
+	  if (file_ != NULL) {
+	    fputc(b64encodeTable[(buff1[0] & 0xfc) >> 2], file_);
+	    fputc(b64encodeTable[((buff1[0] & 0x03) << 4) + ((buff1[1] & 0xf0) >> 4)], file_);
+	    fputc(b64encodeTable[((buff1[1] & 0x0f) << 2) + ((buff1[2] & 0xc0) >> 6)], file_);
+	    fputc(b64encodeTable[buff1[2] & 0x3f], file_);
+	  }
+	  else {
+	    alt_ << b64encodeTable[(buff1[0] & 0xfc) >> 2];
+	    alt_ << b64encodeTable[((buff1[0] & 0x03) << 4) + ((buff1[1] & 0xf0) >> 4)];
+	    alt_ << b64encodeTable[((buff1[1] & 0x0f) << 2) + ((buff1[2] & 0xc0) >> 6)];
+	    alt_ << b64encodeTable[buff1[2] & 0x3f];
+	  }
 	  i = 0;
 	}
       }
@@ -219,13 +217,9 @@ public:
   }
 
   void finishUp() {
-    std::cout << "finishUp " << ((int)(i)) << std::endl;
-
     i--;
     if (i > 0  &&  i < 4) {
       for(uint8_t j = i;  j < 3;  j++) { buff1[j] = '\0'; }
-
-      std::cout << "padded zeros " << ((int)(i)) << std::endl;
 
       char buff2[4];
       buff2[0] = (buff1[0] & 0xfc) >> 2;
@@ -233,24 +227,32 @@ public:
       buff2[2] = ((buff1[1] & 0x0f) << 2) + ((buff1[2] & 0xc0) >> 6);
       buff2[3] = buff1[2] & 0x3f;
 
-      std::cout << "filled buff2 " << ((int)(i)) << std::endl;
-      
-      for (uint8_t j = 0;  j < (i+1);  j++) { fputc(b64encodeTable[(uint8_t)buff2[j]], file_); }
+      for (uint8_t j = 0;  j < (i+1);  j++) {
+	if (file_ != NULL) {
+	  fputc(b64encodeTable[(uint8_t)buff2[j]], file_);
+	}
+	else {
+	  alt_ << b64encodeTable[(uint8_t)buff2[j]];
+	}
+      }
 
-      std::cout << "wrote buff2 " << ((int)(i)) << std::endl;
-      
-      while (i++ < 3) { fputc('=', file_); }
+      while (i++ < 3) {
+	if (file_ != NULL) {
+	  fputc('=', file_);
+	}
+	else {
+	  alt_ << "=";
+	}
+      }
 
-      std::cout << "padded '='" << ((int)(i)) << std::endl;
     }
-
-    std::cout << "finished up finishUp" << std::endl;
   }
 };
 
 class MyInputStream : public avro::InputStream {
 public:
   FILE *file_;
+  std::stringstream alt_;
 
   const size_t chunkSize_;
   uint8_t *rawdata_;
@@ -261,13 +263,9 @@ public:
   uint8_t i;
   bool endProcessed_;
 
-  size_t next_report;
-
   MyInputStream(FILE *f, size_t chunkSize): file_(f), chunkSize_(chunkSize), byteCount_(0), i(0), endProcessed_(false) {
     rawdata_ = new uint8_t[chunkSize_];
     data_ = new uint8_t[chunkSize_];
-
-    next_report = 10*1024*1024;
   }
   ~MyInputStream() {
     delete [] rawdata_;
@@ -276,35 +274,21 @@ public:
 
   bool next(const uint8_t **data, size_t *len) {
     int valid = process();
-
-    if (endProcessed_) { std::cout << "one " << valid << std::endl; }
-
     if (valid == 0) { return false; }
 
     *data = data_;
     *len = valid;
     byteCount_ += valid;
 
-    if (byteCount_ > next_report) {
-      std::cout << "processed in " << double(byteCount_)/double(1024*1024) << " MB" << std::endl;
-      next_report += 10*1024*1024;
-    }
-
-    if (endProcessed_) { std::cout << "two " << valid << std::endl; }
-
     return true;
   }
 
   void backup(size_t len) {
-    std::cout << "input backup" << std::endl;
-
     fseek(file_, -len, SEEK_CUR);
     byteCount_ -= len;
   }
 
   void skip(size_t len) {
-    std::cout << "input skip" << std::endl;
-
     fseek(file_, len, SEEK_CUR);
     byteCount_ += len;
   }
@@ -314,8 +298,13 @@ public:
   }
 
   size_t process() {
-    int valid = fread(rawdata_, sizeof(uint8_t), chunkSize_, file_);
-
+    int valid;
+    if (file_ != NULL) {
+      valid = fread(rawdata_, sizeof(uint8_t), chunkSize_, file_);
+    }
+    else {
+      valid = alt_.readsome((char *)rawdata_, chunkSize_);
+    }
     if (valid == 0) { return endProcess(0); }
 
     int l = 0;
@@ -340,8 +329,6 @@ public:
   size_t endProcess(int l) {
     if (endProcessed_) { return l; }
 
-    std::cout << "endProcess " << ((int)(i)) << std::endl;
-
     if (i) {
       for (uint8_t j = i;  j < 4;  j++) { buff2[j] = '\0'; }
       for (uint8_t j = 0;  j < 4;  j++) { buff2[j] = b64decodeTable[(uint8_t)buff2[j]]; }
@@ -354,8 +341,6 @@ public:
       for (uint8_t j = 0;  j < (i-1);  j++) { data_[l++] = (char)buff1[j]; }
     }
 
-    std::cout << "endProcess ended " << l << std::endl;
-
     endProcessed_ = true;
     return l;
   }
@@ -365,7 +350,7 @@ static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_
   PyObject *pyfile = NULL;
   FILE *file = NULL;
   if (!PyArg_ParseTuple(args, "|O", &pyfile)) {
-    PyErr_SetString(PyExc_TypeError, "only one (optional) argument: output file object");
+    PyErr_SetString(PyExc_TypeError, "input a file object for writing or nothing (to get a string back)");
     return NULL;
   }
   if (pyfile != NULL) {
@@ -495,6 +480,8 @@ static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_
 
   NpyIter_Deallocate(iter);
 
+  if (file != NULL) { PyFile_IncUseCount((PyFileObject*)pyfile); }
+
   std::auto_ptr<MyOutputStream> out = std::auto_ptr<MyOutputStream>(new MyOutputStream(file, 4*1024));
   avro::EncoderPtr e = avro::validatingEncoder(self->validSchema, avro::binaryEncoder());
   e->init(*out);
@@ -502,64 +489,41 @@ static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_
   out->flush();
   out->finishUp();
 
-  std::cout << "done out" << std::endl;
+  if (file != NULL) { PyFile_DecUseCount((PyFileObject*)pyfile); }
 
-  return Py_BuildValue("O", Py_None);
-
-
-  // std::stringstream encoded;
-  // if (true) {
-  //   std::stringstream ss;
-  //   if (true) {
-  //     std::auto_ptr<avro::OutputStream> out = avro::ostreamOutputStream(ss);
-  //     avro::EncoderPtr e = avro::validatingEncoder(self->validSchema, avro::binaryEncoder());
-  //     e->init(*out);
-  //     avro::encode(*e, p);
-  //     out->flush();
-  //   }
-
-  //   std::cout << "ss length is " << ss.str().size() << std::endl;
-
-  //   b64encode(ss, encoded);
-  // }
-
-  // if (file != NULL) {
-  //   PyFile_IncUseCount((PyFileObject*)pyfile);
-
-  //   std::streambuf *pbuf = encoded.rdbuf();
-  //   pbuf->pubseekpos(0);
-  //   while (pbuf->in_avail() > 0) { fputc(pbuf->sbumpc(), file); }
-
-  //   PyFile_DecUseCount((PyFileObject*)pyfile);
-  //   return Py_BuildValue("O", Py_None);
-  // }
-  // else {
-  //   return PyString_FromString(encoded.str().c_str());
-  // }
+  if (file != NULL) {
+    return Py_BuildValue("O", Py_None);
+  }
+  else {
+    return PyString_FromString(out->alt_.str().c_str());
+  }
 }
 
 static PyObject *GeoPictureSerializer_deserialize(PyObject *self, PyObject *args) {
-  std::cout << "starting in" << std::endl;
+  PyObject *pyfile = NULL;
+  FILE *file = NULL;
+  if (!PyArg_ParseTuple(args, "O", &pyfile)) {
+    PyErr_SetString(PyExc_TypeError, "pass a file object for reading or a string");
+    return NULL;
+  }
 
-  const char *encoded;
-  if (!PyArg_ParseTuple(args, "s", &encoded)) {
-    PyErr_SetString(PyExc_TypeError, "pass a string to be decoded");
+  std::auto_ptr<MyInputStream> in;
+
+  if (PyFile_Check(pyfile)) {
+    file = PyFile_AsFile(pyfile);
+    in = std::auto_ptr<MyInputStream>(new MyInputStream(file, 4*1024));
+  }
+  else if (PyString_Check(pyfile)) {
+    in = std::auto_ptr<MyInputStream>(new MyInputStream(file, 4*1024));
+    in->alt_ << PyString_AsString(pyfile);
+  }
+  else {
+    PyErr_SetString(PyExc_TypeError, "argument must be a file object or a string");
     return NULL;
   }
 
   PyObject *output = PyObject_CallObject((PyObject*)(&GeoPictureSerializer_GeoPictureType), NULL);
   GeoPictureSerializer_GeoPicture *coutput = (GeoPictureSerializer_GeoPicture*)output;
-
-  // std::stringstream decoded;
-  // b64decode(encoded, decoded);
-  // decoded.flush();
-
-  //  std::auto_ptr<avro::InputStream> in = avro::istreamInputStream(decoded);
-
-  //  std::auto_ptr<avro::InputStream> in = avro::fileInputStream("/mnt/tmp2.txt");
-
-  FILE *file = fopen("/mnt/tmp2.txt", "rb");
-  std::auto_ptr<MyInputStream> in = std::auto_ptr<MyInputStream>(new MyInputStream(file, 4*1024));
 
   avro::DecoderPtr d = avro::validatingDecoder(coutput->validSchema, avro::binaryDecoder());
   d->init(*in);
@@ -567,17 +531,7 @@ static PyObject *GeoPictureSerializer_deserialize(PyObject *self, PyObject *args
 
   avro::decode(*d, p);
 
-  std::cout << "three" << std::endl;
-
-  fclose(file);
-
-  std::cout << "four" << std::endl;
-
   for (std::map<std::string,std::string>::const_iterator iter = p.metadata.begin();  iter != p.metadata.end();  ++iter) {
-    std::cout << "    metadata" << std::endl;
-    std::cout << "             " << iter->second.c_str() << std::endl;
-    std::cout << "             " << iter->first.c_str() << std::endl;
-
     PyObject *value = PyString_FromString(iter->second.c_str());
 
     if (PyDict_SetItemString(coutput->metadata, iter->first.c_str(), value) != 0) {
@@ -586,14 +540,9 @@ static PyObject *GeoPictureSerializer_deserialize(PyObject *self, PyObject *args
       return NULL;
     }
     Py_DECREF(value);
-
-    std::cout << "             okay" << std::endl;
   }
 
   for (std::vector<std::string>::const_iterator iter = p.bands.begin();  iter != p.bands.end();  ++iter) {
-    std::cout << "    bands" << std::endl;
-    std::cout << "             " << iter->c_str() << std::endl;
-
     PyObject *value = PyString_FromString(iter->c_str());
     if (PyList_Append(coutput->bands, value) != 0) {
       Py_DECREF(value);
@@ -601,16 +550,10 @@ static PyObject *GeoPictureSerializer_deserialize(PyObject *self, PyObject *args
       return NULL;
     }
     Py_DECREF(value);
-
-    std::cout << "          okay" << std::endl;
   }
-
-  std::cout << "five" << std::endl;
 
   Py_DECREF(coutput->picture);
   npy_intp dims[3] = {p.height, p.width, p.depth};
-
-  std::cout << "six " << p.height << " " << p.width << " " << p.depth << std::endl;
 
   coutput->picture = PyArray_EMPTY(3, dims, p.dtype, p.fortran);
 
@@ -619,8 +562,6 @@ static PyObject *GeoPictureSerializer_deserialize(PyObject *self, PyObject *args
     PyErr_Format(PyExc_MemoryError, "could not allocate a %dx%dx%d array", p.height, p.width, p.depth);
     return NULL;
   }
-
-  std::cout << "seven " << coutput->picture << std::endl;
 
   int oldbyteorder, newbyteorder;
   switch (p.byteorder) {
@@ -654,8 +595,6 @@ static PyObject *GeoPictureSerializer_deserialize(PyObject *self, PyObject *args
 
   bool swapbytes = !PyArray_EquivByteorders(oldbyteorder, newbyteorder);
 
-  std::cout << "eight" << std::endl;
-
   PyArrayObject *picture = (PyArrayObject*)(coutput->picture);
   NpyIter *iter = NpyIter_New(picture, NPY_ITER_WRITEONLY | NPY_ITER_EXTERNAL_LOOP, (p.fortran ? NPY_FORTRANORDER : NPY_CORDER), NPY_NO_CASTING, NULL);
   if (iter == NULL) {
@@ -684,8 +623,6 @@ static PyObject *GeoPictureSerializer_deserialize(PyObject *self, PyObject *args
   }
 
   bool filling = false;
-
-  std::cout << "nine" << std::endl;
 
   int64_t index = 0;
   do {
@@ -725,9 +662,6 @@ static PyObject *GeoPictureSerializer_deserialize(PyObject *self, PyObject *args
   } while (iternext(iter));
 
   NpyIter_Deallocate(iter);
-
-  std::cout << "ten" << std::endl;
-
   return output;
 }
 

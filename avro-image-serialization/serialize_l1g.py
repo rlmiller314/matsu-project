@@ -60,12 +60,12 @@ tiffs = dict((t[-12:-8], gdal.Open(t, gdalconst.GA_ReadOnly)) for t in tiffs)
 sampletiff = tiffs.values()[0]
 
 # array = numpy.empty((sampletiff.RasterYSize, sampletiff.RasterXSize, len(tiffs)), dtype=numpy.float)
-array = numpy.empty((sampletiff.RasterYSize, sampletiff.RasterXSize, 100), dtype=numpy.float)
+array = numpy.empty((sampletiff.RasterYSize, sampletiff.RasterXSize, 3), dtype=numpy.float)
 
 geoPicture.bands = tiffs.keys()
 geoPicture.bands.sort()
 
-geoPicture.bands = geoPicture.bands[:100]
+geoPicture.bands = ["B029", "B023", "B016"]
 
 for index, key in enumerate(geoPicture.bands):
     if int(key[1:]) <= 70:
@@ -81,14 +81,18 @@ del sampletiff
 
 geoPicture.picture = array
 
+open("/mnt/tmp.txt", "w").write(geoPicture.serialize())
 geoPicture.serialize(open("/mnt/tmp2.txt", "w"))
-
-print "back in python"
 
 geoPicture.picture[100, 200, 2] = 12.5
 
-g2 = GeoPictureSerializer.deserialize("/mnt/tmp2.txt")
+g2 = GeoPictureSerializer.deserialize(open("/mnt/tmp2.txt", "r"))
 print numpy.nonzero(g2.picture - geoPicture.picture)
+
+g3 = GeoPictureSerializer.deserialize(open("/mnt/tmp.txt", "r").read())
+print numpy.nonzero(g3.picture - geoPicture.picture)
+
+print numpy.nonzero(g2.picture - g3.picture)
 
 # open("/mnt/tmp.txt", "w").write(geoPicture.serialize())
 # image = Image.fromarray(array)
