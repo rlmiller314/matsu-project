@@ -2,6 +2,7 @@
 #include <sstream>
 #include <math.h>
 #include <stdio.h>
+#include <avro/Stream.hh>
 
 /*
  * PyVarObject_HEAD_INIT was added in Python 2.6.  Its use is
@@ -140,27 +141,81 @@ static const char b64decodeTable[256] = {
   ,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
   -1,-1,-1}; 
 
+class MyOutputStream : public avro::OutputStream {
+public:
+  FILE *file_;
+
+  const size_t chunkSize_;
+  uint8_t* data_;
+  size_t available_;
+  size_t byteCount_;
+  bool written_;
+  
+  MyOutputStream(FILE *f, size_t chunkSize) : file_(f), chunkSize_(chunkSize), available_(0), byteCount_(0), written_(true) {
+    data_ = new uint8_t[chunkSize_];
+  }
+  ~MyOutputStream() {
+    delete [] data_;
+  }
+  
+  bool next(uint8_t** data, size_t* len) {
+    if (available_ == 0) {
+      flush();
+      available_ = chunkSize_;
+    }
+    *data = &(data_[chunkSize_ - available_]);
+    *len = available_;
+    byteCount_ += available_;
+    available_ = 0;
+    written_ = false;
+    return true;
+  }
+  
+  void backup(size_t len) {
+    available_ += len;
+    byteCount_ -= len;
+  }
+  
+  uint64_t byteCount() const {
+    return byteCount_;
+  }
+  
+  void flush() {
+    if (!written_) {
+      fwrite(data_, sizeof(uint8_t), chunkSize_ - available_, file_);
+      written_ = true;
+    }
+  }
+};
+
 static void b64encode(std::istream &in, std::ostream &out) {
   char buff1[3];
   char buff2[4];
   uint8_t i = 0;
   uint8_t j;
 
-  long tmpcounter = 0;
-
   std::streambuf *pbuf = in.rdbuf();
   pbuf->pubseekpos(0);
 
+  FILE *checkoutput = fopen("/tmp/checkoutput.bin", "wb");
+  long whatIwrote = 0;
+
   while (pbuf->in_avail() > 0) {
     buff1[i++] = pbuf->sbumpc();
+    fputc(buff1[i-1], checkoutput);
+    whatIwrote++;
+
     if (i == 3) {
-      out << b64encodeTable[(buff1[0] & 0xfc) >> 2];   tmpcounter++;
-      out << b64encodeTable[((buff1[0] & 0x03) << 4) + ((buff1[1] & 0xf0) >> 4)];   tmpcounter++;
-      out << b64encodeTable[((buff1[1] & 0x0f) << 2) + ((buff1[2] & 0xc0) >> 6)];   tmpcounter++;
-      out << b64encodeTable[buff1[2] & 0x3f];   tmpcounter++;
+      out << b64encodeTable[(buff1[0] & 0xfc) >> 2];
+      out << b64encodeTable[((buff1[0] & 0x03) << 4) + ((buff1[1] & 0xf0) >> 4)];
+      out << b64encodeTable[((buff1[1] & 0x0f) << 2) + ((buff1[2] & 0xc0) >> 6)];
+      out << b64encodeTable[buff1[2] & 0x3f];
       i = 0;
     }
   }
+
+  std::cout << "I wrote " << whatIwrote << std::endl;
+  fclose(checkoutput);
 
   if (--i) {
     for(j = i;  j < 3;  j++) { buff1[j] = '\0'; }
@@ -170,11 +225,52 @@ static void b64encode(std::istream &in, std::ostream &out) {
     buff2[2] = ((buff1[1] & 0x0f) << 2) + ((buff1[2] & 0xc0) >> 6);
     buff2[3] = buff1[2] & 0x3f;
     
-    for (j = 0;  j < (i+1);  j++) { out << b64encodeTable[(uint8_t)buff2[j]];    tmpcounter++; }
+    for (j = 0;  j < (i+1);  j++) { out << b64encodeTable[(uint8_t)buff2[j]]; }
 
-    while (i++ < 3) { out << '=';    tmpcounter++; }
+    while (i++ < 3) { out << '='; }
   }
 }
+
+class MyInputStream : public avro::InputStream {
+public:
+  FILE *file_;
+
+  const size_t chunkSize_;
+  uint8_t *data_;
+  size_t byteCount_;
+  
+  MyInputStream(FILE *f, size_t chunkSize): file_(f), chunkSize_(chunkSize), byteCount_(0) {
+    data_ = new uint8_t[chunkSize_];
+  }
+  ~MyInputStream() {
+    delete [] data_;
+  }
+
+  bool next(const uint8_t **data, size_t *len) {
+    int valid = fread(data_, sizeof(uint8_t), chunkSize_, file_);
+    if (valid == 0) { return false; }
+    *data = data_;
+    *len = valid;
+    byteCount_ += valid;
+    return true;
+  }
+
+  void backup(size_t len) {
+    std::cout << "backup " << len << std::endl;
+    fseek(file_, -len, SEEK_CUR);
+    byteCount_ -= len;
+  }
+
+  void skip(size_t len) {
+    std::cout << "skip " << len << std::endl;
+    fseek(file_, len, SEEK_CUR);
+    byteCount_ += len;
+  }
+
+  size_t byteCount() const {
+    return byteCount_;
+  }
+};
 
 static void b64decode(std::istream &in, std::ostream &out) {
   char buff1[4];
@@ -372,33 +468,69 @@ static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_
 
   NpyIter_Deallocate(iter);
 
-  std::stringstream encoded;
-  if (true) {
-    std::stringstream ss;
-    if (true) {
-      std::auto_ptr<avro::OutputStream> out = avro::ostreamOutputStream(ss);
-      avro::EncoderPtr e = avro::validatingEncoder(self->validSchema, avro::binaryEncoder());
-      e->init(*out);
-      avro::encode(*e, p);
-      out->flush();
-    }
+  std::cout << "one" << std::endl;
 
-    b64encode(ss, encoded);
-  }
+  std::auto_ptr<MyOutputStream> out = std::auto_ptr<MyOutputStream>(new MyOutputStream(file, 4*1024));
+  // std::auto_ptr<avro::OutputStream> out = avro::fileOutputStream("/tmp/tmpofficial.bin");
 
-  if (file != NULL) {
-    PyFile_IncUseCount((PyFileObject*)pyfile);
+  std::cout << "two" << std::endl;
 
-    std::streambuf *pbuf = encoded.rdbuf();
-    pbuf->pubseekpos(0);
-    while (pbuf->in_avail() > 0) { fputc(pbuf->sbumpc(), file); }
+  avro::EncoderPtr e = avro::validatingEncoder(self->validSchema, avro::binaryEncoder());
 
-    PyFile_DecUseCount((PyFileObject*)pyfile);
-    return Py_BuildValue("O", Py_None);
-  }
-  else {
-    return PyString_FromString(encoded.str().c_str());
-  }
+  std::cout << "three" << std::endl;
+
+  e->init(*out);
+
+  std::cout << "four" << std::endl;
+
+  avro::encode(*e, p);
+
+  std::cout << "five" << std::endl;
+
+  out->flush();
+
+  std::cout << "six" << std::endl;
+
+
+
+
+
+
+
+
+
+  return Py_BuildValue("O", Py_None);
+
+
+  // std::stringstream encoded;
+  // if (true) {
+  //   std::stringstream ss;
+  //   if (true) {
+  //     std::auto_ptr<avro::OutputStream> out = avro::ostreamOutputStream(ss);
+  //     avro::EncoderPtr e = avro::validatingEncoder(self->validSchema, avro::binaryEncoder());
+  //     e->init(*out);
+  //     avro::encode(*e, p);
+  //     out->flush();
+  //   }
+
+  //   std::cout << "ss length is " << ss.str().size() << std::endl;
+
+  //   b64encode(ss, encoded);
+  // }
+
+  // if (file != NULL) {
+  //   PyFile_IncUseCount((PyFileObject*)pyfile);
+
+  //   std::streambuf *pbuf = encoded.rdbuf();
+  //   pbuf->pubseekpos(0);
+  //   while (pbuf->in_avail() > 0) { fputc(pbuf->sbumpc(), file); }
+
+  //   PyFile_DecUseCount((PyFileObject*)pyfile);
+  //   return Py_BuildValue("O", Py_None);
+  // }
+  // else {
+  //   return PyString_FromString(encoded.str().c_str());
+  // }
 }
 
 static PyObject *GeoPictureSerializer_deserialize(PyObject *self, PyObject *args) {
@@ -411,14 +543,30 @@ static PyObject *GeoPictureSerializer_deserialize(PyObject *self, PyObject *args
   PyObject *output = PyObject_CallObject((PyObject*)(&GeoPictureSerializer_GeoPictureType), NULL);
   GeoPictureSerializer_GeoPicture *coutput = (GeoPictureSerializer_GeoPicture*)output;
 
-  std::stringstream decoded;
-  b64decode(encoded, decoded);
+  // std::stringstream decoded;
+  // b64decode(encoded, decoded);
+  // decoded.flush();
 
-  std::auto_ptr<avro::InputStream> in = avro::istreamInputStream(decoded);
+  // std::cout << "what " << decoded.str().size() << std::endl;
+
+  //  std::auto_ptr<avro::InputStream> in = avro::istreamInputStream(decoded);
+
+  //  std::auto_ptr<avro::InputStream> in = avro::fileInputStream("/tmp/tmp2.txt");
+
+  FILE *file = fopen("/tmp/tmp2.txt", "rb");
+  std::auto_ptr<MyInputStream> in = std::auto_ptr<MyInputStream>(new MyInputStream(file, 4*1024));
+
   avro::DecoderPtr d = avro::validatingDecoder(coutput->validSchema, avro::binaryDecoder());
   d->init(*in);
   gpwm::GeoPictureWithMetadata p;
+
+  std::cout << "really starting" << std::endl;
+
   avro::decode(*d, p);
+
+  std::cout << "really done" << std::endl;
+
+  fclose(file);
 
   for (std::map<std::string,std::string>::const_iterator iter = p.metadata.begin();  iter != p.metadata.end();  ++iter) {
     PyObject *value = PyString_FromString(iter->second.c_str());

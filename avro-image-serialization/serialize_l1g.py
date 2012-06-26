@@ -59,10 +59,14 @@ tiffs = glob.glob(BASE_DIRECTORY + "/EO1H*_B[0-9][0-9][0-9]_L1T.TIF")
 tiffs = dict((t[-12:-8], gdal.Open(t, gdalconst.GA_ReadOnly)) for t in tiffs)
 sampletiff = tiffs.values()[0]
 
-array = numpy.empty((sampletiff.RasterYSize, sampletiff.RasterXSize, len(tiffs)), dtype=numpy.float)
+# array = numpy.empty((sampletiff.RasterYSize, sampletiff.RasterXSize, len(tiffs)), dtype=numpy.float)
+array = numpy.empty((sampletiff.RasterYSize, sampletiff.RasterXSize, 3), dtype=numpy.float)
 
 geoPicture.bands = tiffs.keys()
 geoPicture.bands.sort()
+
+geoPicture.bands = ["B029", "B023", "B016"]
+
 for index, key in enumerate(geoPicture.bands):
     if int(key[1:]) <= 70:
         scaleFactor = 1./40.
@@ -78,6 +82,9 @@ del sampletiff
 geoPicture.picture = array
 
 geoPicture.serialize(open("/tmp/tmp2.txt", "w"))
+
+g2 = GeoPictureSerializer.deserialize("/tmp/tmp2.txt")
+print numpy.nonzero(g2.picture - geoPicture.picture)
 
 # open("/tmp/tmp.txt", "w").write(geoPicture.serialize())
 # image = Image.fromarray(array)
