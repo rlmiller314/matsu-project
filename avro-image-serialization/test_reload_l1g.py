@@ -1,18 +1,27 @@
+import sys
 import json
+import time
 
 import numpy
 from PIL import Image
 
 import GeoPictureSerializer
-geoPicture = GeoPictureSerializer.deserialize(open("/mnt/tmp2.txt"))
 
-print json.loads(geoPicture.metadata["L1T"])
-print geoPicture.bands
-print geoPicture.picture.shape
-print geoPicture.picture
+inputFileName = sys.argv[1]
+print "loading", inputFileName
+
+tmp = time.time()
+geoPicture = GeoPictureSerializer.deserialize(open(inputFileName))
+print "time to load:", time.time() - tmp
 
 # just pull out red, green, blue
-geoPicture.picture = geoPicture.picture[:,:,(geoPicture.bands.index("B029"), geoPicture.bands.index("B023"), geoPicture.bands.index("B016"))]
+maxRadiance = max(geoPicture.picture[:,:,geoPicture.bands.index("B029")].max(),
+                  geoPicture.picture[:,:,geoPicture.bands.index("B023")].max(),
+                  geoPicture.picture[:,:,geoPicture.bands.index("B016")].max())
 
-image = Image.fromarray(numpy.array(geoPicture.picture, dtype=numpy.uint8))
+picture = geoPicture.picture[:,:,(geoPicture.bands.index("B029"), geoPicture.bands.index("B023"), geoPicture.bands.index("B016"))] * 255./maxRadiance
+
+image = Image.fromarray(numpy.array(picture, dtype=numpy.uint8))
 image.save("/var/www/quick-look/tmp2.png", "PNG", option="optimize")
+
+print "done: load the webpage!"
