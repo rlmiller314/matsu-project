@@ -135,10 +135,31 @@ class L1GPicture:
         l1t = self.L1T()
         return float(l1t["PRODUCT_PARAMETERS"]["SUN_AZIMUTH"]), float(l1t["PRODUCT_PARAMETERS"]["SUN_ELEVATION"])
 
+    def googleMap(self, redBand, greenBand, blueBand):
+        "Save enough data for a simple Google-map based service to overlay and outline the L1G image."
+        
+        self.png(redBand, greenBand, blueBand, fileName="/var/www/L1G-overlay.png")
 
+        ysize, xsize, depth = self._geoPicture.picture.shape
+        center = self.longLat(xsize/2., ysize/2.)
+        open("/var/www/L1G-centerLong.txt", "w").write(str(center[0]))
+        open("/var/www/L1G-centerLat.txt", "w").write(str(center[1]))
+        topleft = self.longLat(0, 0)
+        open("/var/www/L1G-topleftLong.txt", "w").write(str(topleft[0]))
+        open("/var/www/L1G-topleftLat.txt", "w").write(str(topleft[1]))
+        bottomright = self.longLat(xsize, ysize)
+        open("/var/www/L1G-bottomrightLong.txt", "w").write(str(bottomright[0]))
+        open("/var/www/L1G-bottomrightLat.txt", "w").write(str(bottomright[1]))
 
+        coordinates = [self.longLat(x, y) for x, y in self.corners((redBand, greenBand, blueBand))]
+        open("/var/www/L1G-p1long.txt", "w").write(str(coordinates[0][0]))
+        open("/var/www/L1G-p1lat.txt", "w").write(str(coordinates[0][1]))
+        open("/var/www/L1G-p2long.txt", "w").write(str(coordinates[1][0]))
+        open("/var/www/L1G-p2lat.txt", "w").write(str(coordinates[1][1]))
+        open("/var/www/L1G-p3long.txt", "w").write(str(coordinates[2][0]))
+        open("/var/www/L1G-p3lat.txt", "w").write(str(coordinates[2][1]))
+        open("/var/www/L1G-p4long.txt", "w").write(str(coordinates[3][0]))
+        open("/var/www/L1G-p4lat.txt", "w").write(str(coordinates[3][1]))
 
-p = L1GPicture(open("/mnt/pictures-L1G-serialized/EO1H1430472010084110PF_HYP_L1G.serialized"))
-p.png("B029", "B023", "B016")
-print p.corners(("B029", "B023", "B016"))
-print [p.longLat(x, y) for x, y in p.corners(("B029", "B023", "B016"))]
+# p = L1GPicture(open("/mnt/pictures-L1G-serialized/EO1H1430472010084110PF_HYP_L1G.serialized"))
+# p.googleMap("B029", "B023", "B016")
