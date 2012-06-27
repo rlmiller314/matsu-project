@@ -1,3 +1,4 @@
+import sys
 import json
 from math import floor, ceil
 
@@ -44,8 +45,6 @@ def map_to_tiles(inputStream, depth, longpixels, latpixels, numLatitudeSections)
     rasterXSize = geoPicture.picture.shape[1]
     rasterYSize = geoPicture.picture.shape[0]
     rasterDepth = geoPicture.picture.shape[2]
-
-    outputSerialized = []
 
     for section in xrange(numLatitudeSections):
         bottom = (section + 0.0)/numLatitudeSections
@@ -100,4 +99,6 @@ def map_to_tiles(inputStream, depth, longpixels, latpixels, numLatitudeSections)
             outputGeoPicture.metadata = geoPicture.metadata
             outputGeoPicture.bands = geoPicture.bands
 
-            outputSerialized.append((tileName(*tileIndex), outputGeoPicture.serialize()))
+            sys.stdout.write(tileName(*tileIndex) + "\t")
+            outputGeoPicture.serialize(sys.stdout)
+            sys.stdout.write("\n")
