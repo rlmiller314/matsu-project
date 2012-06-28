@@ -181,8 +181,16 @@ maxvalue = red.max()  # maxvalue = max(red.max(), green.max())
 
 red = numpy.array((red - minvalue) * 255./(maxvalue - minvalue), dtype=numpy.uint8)
 # green = numpy.array((green - minvalue) * 255./(maxvalue - minvalue), dtype=numpy.uint8)
-green = numpy.zeros(red.shape, dtype=numpy.uint8)
+# green = numpy.zeros(red.shape, dtype=numpy.uint8)
 blue = numpy.zeros(red.shape, dtype=numpy.uint8)
 
-image = Image.fromarray(numpy.dstack((red, green, blue, alpha)))
+image = Image.fromarray(numpy.dstack((red, red, blue, alpha)))
 image.save("/var/www/quick-look/tmp3.png", "PNG", option="optimized")
+
+B029 += red
+B023 += red
+numpy.minimum(B029, 255, B029)
+numpy.minimum(B023, 255, B023)
+
+image = Image.fromarray(numpy.dstack((B029, B023, B016, alpha)))
+image.save("/var/www/quick-look/tmp4.png", "PNG", option="optimized")
