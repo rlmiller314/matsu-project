@@ -57,13 +57,19 @@ def map_to_tiles(inputStream, depth, longpixels, latpixels, numLatitudeSections)
         corner3Long, corner3Lat, altitude = coordinateTransform.TransformPoint(tlx + 1.0*weres*rasterXSize, tly + bottom*nsres*rasterYSize)
         corner4Long, corner4Lat, altitude = coordinateTransform.TransformPoint(tlx + 1.0*weres*rasterXSize, tly + thetop*nsres*rasterYSize)
 
-        outputPictures = {}
-        for tileIndex in tileIndex(depth, corner1Long, corner1Lat), tileIndex(depth, corner2Long, corner2Lat), tileIndex(depth, corner3Long, corner3Lat), tileIndex(depth, corner4Long, corner4Lat):
-            if tileIndex not in outputPictures:
-                outputPictures[tileIndex] = numpy.zeros((latpixels, longpixels, rasterDepth), dtype=geoPicture.picture.dtype)
+        longIndexes = []
+        latIndexes = []
+        for ti in tileIndex(depth, corner1Long, corner1Lat), tileIndex(depth, corner2Long, corner2Lat), tileIndex(depth, corner3Long, corner3Lat), tileIndex(depth, corner4Long, corner4Lat):
+            longIndexes.append(ti[1])
+            latIndexes.append(ti[2])
 
-        for tileIndex, outputPicture in outputPictures.items():
-            longmin, longmax, latmin, latmax = tileCorners(*tileIndex)
+        outputPictures = {}
+        for ti in [(depth, x, y) for x in xrange(min(longIndexes), max(longIndexes)+1) for y in xrange(min(latIndexes), max(latIndexes)+1)]:
+            if ti not in outputPictures:
+                outputPictures[ti] = numpy.zeros((latpixels, longpixels, rasterDepth), dtype=geoPicture.picture.dtype)
+
+        for ti, outputPicture in outputPictures.items():
+            longmin, longmax, latmin, latmax = tileCorners(*ti)
 
             # find the origin and orientation of the image (not always exactly north-south-east-west)
             cornerLong, cornerLat, altitude   = coordinateTransform.TransformPoint(tlx, tly)
@@ -91,16 +97,33 @@ def map_to_tiles(inputStream, depth, longpixels, latpixels, numLatitudeSections)
 
             offset = L1TIFF_to_geo_trans.I * (offset_in_deg - truncate_correction - curvature_correction)
 
+            # change the format of trans and offset to be acceptable to affine_transformation
+            trans = numpy.matrix([[trans[0,0], trans[0,1], 0.], [trans[1,0], trans[1,1], 0.], [0., 0., 1.]])
+            offset = offset[0,0], offset[1,0], 0.
+
             # lay the GeoTIFF into the output image array
-            offset = offset[0,0], offset[1,0]
             affine_transform(geoPicture.picture[int(floor(bottom*rasterYSize)):int(ceil(thetop*rasterYSize)),:,:], trans, offset, (latpixels, longpixels, rasterDepth), outputPicture)
+
+            # smallest real pixel value is 1/100, 1/40 (Revision 1-A VNIR), or 1/80 (Revision 1-A SWIR)
+            # so anything less than 1e-3 is numerical error from the affine_transformation
+            if len(outputPicture[outputPicture > 1e-3]) == 0: continue
+
             outputGeoPicture = GeoPictureSerializer.GeoPicture()
             outputGeoPicture.picture = outputPicture
             outputGeoPicture.metadata = geoPicture.metadata
             outputGeoPicture.bands = geoPicture.bands
 
-            sys.stdout.write(tileName(*tileIndex) + "\t")
+            # global prefix, number
+            # image = Image.fromarray(numpy.array(outputGeoPicture.picture, dtype=numpy.uint8))
+            # image.save("%s%d.png" % (prefix, number), "PNG", options="optimize")
+            # number += 1
+
+            sys.stdout.write(tileName(*ti) + "\t")
             outputGeoPicture.serialize(sys.stdout)
             sys.stdout.write("\n")
 
-map_to_tiles(inputStream, depth, longpixels, latpixels, numLatitudeSections)
+# from PIL import Image
+# prefix = "/var/www/quick-look/maptmp"
+# number = 0
+
+# map_to_tiles(open("/mnt/pictures-L1G-serialized/GobiDesertWeirdness-RGB/EO1H1370322012164110T8_L1G.serialized"), 10, 1024, 512, 1)
