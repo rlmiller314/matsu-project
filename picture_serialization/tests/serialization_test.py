@@ -12,7 +12,8 @@ from osgeo import gdalconst
 gdal.UseExceptions()
 osr.UseExceptions()
 
-goodBands = set("B%03d" % b for b in range(10, 40+1) + range(42, 57+1) + range(82, 97+1) + range(102, 120+1) + range(134, 164+1) + range(183, 225+1))
+# goodBands = set("B%03d" % b for b in range(10, 40+1) + range(42, 57+1) + range(82, 97+1) + range(102, 120+1) + range(134, 164+1) + range(183, 225+1))
+goodBands = set(["B029", "B023", "B016"])
 
 import GeoPictureSerializer
 geoPicture = GeoPictureSerializer.GeoPicture()
@@ -40,7 +41,9 @@ geoPicture = GeoPictureSerializer.GeoPicture()
 
 inputDir = sys.argv[1]
 
-outputFileName = "/mnt/pictures-L1G-serialized" + inputDir[inputDir.index("/EO1H"):] + ".serialized"
+# outputFileName = "/mnt/pictures-L1G-serialized" + inputDir[inputDir.index("/EO1H"):] + ".serialized"
+# outputFileName = "/mnt/pictures-L1G-serialized/MountEverest" + inputDir[inputDir.index("/EO1H"):] + ".serialized"
+outputFileName = "/mnt/pictures-L1G-serialized/GobiDesertWeirdness-RGB" + inputDir[inputDir.index("/EO1H"):] + ".serialized"
 
 print time.time(), inputDir, "->", outputFileName
 

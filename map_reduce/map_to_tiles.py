@@ -102,3 +102,5 @@ def map_to_tiles(inputStream, depth, longpixels, latpixels, numLatitudeSections)
             sys.stdout.write(tileName(*tileIndex) + "\t")
             outputGeoPicture.serialize(sys.stdout)
             sys.stdout.write("\n")
+
+map_to_tiles(inputStream, depth, longpixels, latpixels, numLatitudeSections)
