@@ -1,5 +1,7 @@
 import sys
 import json
+import datetime
+import time
 from math import floor, ceil
 
 import numpy
@@ -8,32 +10,23 @@ from osgeo import osr
 
 import GeoPictureSerializer
 
+from tile_definition import *
+
 osr.UseExceptions()
 
-def tileIndex(depth, longitude, latitude):
-    "Inputs a depth and floating-point longitude and latitude, outputs a triple of index integers."
-    if abs(latitude) > 90.: raise ValueError("Latitude cannot be %s" % str(latitude))
-    longitude += 180.
-    latitude += 90.
-    while longitude <= 0.: longitude += 360.
-    while longitude > 360.: longitude -= 360.
-    longitude = int(floor(longitude/360. * 2**depth))
-    latitude = min(int(floor(latitude/180. * 2**depth)), 2**depth - 1)
-    return depth, longitude, latitude
+def map_to_tiles(inputStream, outputStream, depth=10, longpixels=512, latpixels=256, numLatitudeSections=1, splineOrder=3):
+    """Performs the mapping step of the Hadoop map-reduce job.
 
-def tileName(depth, longitude, latitude):
-    "Inputs an index-triple, outputs a string-valued name for the index."
-    return "T%02d-%05d-%05d" % (depth, longitude, latitude)  # constant length up to depth 16
+    Map: read L1G, possibly split by latitude, split by tile, transform pictures into tile coordinates, and output (tile coordinate and timestamp, transformed picture) key-value pairs.
 
-def tileCorners(depth, longitude, latitude):
-    "Inputs an index-triple, outputs the floating-point corners of the tile."
-    longmin = longitude*360./2**depth - 180.
-    longmax = (longitude + 1)*360./2**depth - 180.
-    latmin = latitude*180./2**depth - 90.
-    latmax = (latitude + 1)*180./2**depth - 90.
-    return longmin, longmax, latmin, latmax
+        * inputStream: usually sys.stdin; should be a serialized L1G picture.
+        * outputStream: usually sys.stdout; keys and values are separated by a tab, key-value pairs are separated by a newline.
+        * depth: logarithmic scale of the tile; 10 is the limit of Hyperion's resolution
+        * longpixels, latpixels: number of pixels in the output tiles
+        * numLatitudeSections: number of latitude stripes to cut before splitting into tiles (reduces error due to Earth's curvature)
+        * splineOrder: order of the spline used to calculate the affine_transformation (see SciPy docs); must be between 0 and 5
+    """
 
-def map_to_tiles(inputStream, depth, longpixels, latpixels, numLatitudeSections):
     # get the Level-1 image
     geoPicture = GeoPictureSerializer.deserialize(inputStream)
 
@@ -45,6 +38,9 @@ def map_to_tiles(inputStream, depth, longpixels, latpixels, numLatitudeSections)
     rasterXSize = geoPicture.picture.shape[1]
     rasterYSize = geoPicture.picture.shape[0]
     rasterDepth = geoPicture.picture.shape[2]
+
+    # get the timestamp to use as part of the key
+    timestamp = time.mktime(datetime.datetime.strptime(json.loads(geoPicture.metadata["L1T"])["PRODUCT_METADATA"]["START_TIME"], "%Y %j %H:%M:%S").timetuple())
 
     for section in xrange(numLatitudeSections):
         bottom = (section + 0.0)/numLatitudeSections
@@ -63,12 +59,7 @@ def map_to_tiles(inputStream, depth, longpixels, latpixels, numLatitudeSections)
             longIndexes.append(ti[1])
             latIndexes.append(ti[2])
 
-        outputPictures = {}
         for ti in [(depth, x, y) for x in xrange(min(longIndexes), max(longIndexes)+1) for y in xrange(min(latIndexes), max(latIndexes)+1)]:
-            if ti not in outputPictures:
-                outputPictures[ti] = numpy.zeros((latpixels, longpixels, rasterDepth), dtype=geoPicture.picture.dtype)
-
-        for ti, outputPicture in outputPictures.items():
             longmin, longmax, latmin, latmax = tileCorners(*ti)
 
             # find the origin and orientation of the image (not always exactly north-south-east-west)
@@ -97,33 +88,54 @@ def map_to_tiles(inputStream, depth, longpixels, latpixels, numLatitudeSections)
 
             offset = L1TIFF_to_geo_trans.I * (offset_in_deg - truncate_correction - curvature_correction)
 
-            # change the format of trans and offset to be acceptable to affine_transformation
-            trans = numpy.matrix([[trans[0,0], trans[0,1], 0.], [trans[1,0], trans[1,1], 0.], [0., 0., 1.]])
-            offset = offset[0,0], offset[1,0], 0.
+            offset = offset[0,0], offset[1,0]
 
             # lay the GeoTIFF into the output image array
-            affine_transform(geoPicture.picture[int(floor(bottom*rasterYSize)):int(ceil(thetop*rasterYSize)),:,:], trans, offset, (latpixels, longpixels, rasterDepth), outputPicture)
+            inputPicture = geoPicture.picture[int(floor(bottom*rasterYSize)):int(ceil(thetop*rasterYSize)),:,:]
+            inputMask = (inputPicture[:,:,0] > 0.)
+            for i in xrange(1, rasterDepth):
+                numpy.logical_and(inputMask, (inputPicture[:,:,i] > 0.), inputMask)
 
-            # smallest real pixel value is 1/100, 1/40 (Revision 1-A VNIR), or 1/80 (Revision 1-A SWIR)
-            # so anything less than 1e-3 is numerical error from the affine_transformation
-            if len(outputPicture[outputPicture > 1e-3]) == 0: continue
+            outputMask = numpy.zeros((latpixels, longpixels), dtype=geoPicture.picture.dtype)
+            affine_transform(inputMask, trans, offset, (latpixels, longpixels), outputMask, splineOrder)
+            if numpy.count_nonzero(outputMask > 0.5) == 0: continue
+
+            offset = offset[0], offset[1], 0.
+            trans = numpy.matrix([[trans[0,0], trans[0,1], 0.], [trans[1,0], trans[1,1], 0.], [0., 0., 1.]])
+
+            outputPicture = numpy.zeros((latpixels, longpixels, rasterDepth), dtype=geoPicture.picture.dtype)
+            affine_transform(inputPicture, trans, offset, (latpixels, longpixels, rasterDepth), outputPicture, splineOrder)
+
+            # suppress regions that should be zero but might not be because of numerical error in affine_transform
+            # this will make more of the picture eligible for zero-suppression (which checks for pixels exactly equal to zero)
+            cutMask = (outputMask < 0.01)
+            outputBands = []
+            for i in xrange(rasterDepth):
+                outputBands.append(outputPicture[:,:,i])
+                outputBands[-1][cutMask] = 0.
+            outputBands.append(outputMask)
+            outputBands[-1][cutMask] = 0.
 
             outputGeoPicture = GeoPictureSerializer.GeoPicture()
-            outputGeoPicture.picture = outputPicture
+            outputGeoPicture.picture = numpy.dstack(outputBands)
             outputGeoPicture.metadata = geoPicture.metadata
-            outputGeoPicture.bands = geoPicture.bands
+            outputGeoPicture.bands = geoPicture.bands + ["MASK"]
 
+            ### DEBUGGING CODE
             # global prefix, number
-            # image = Image.fromarray(numpy.array(outputGeoPicture.picture, dtype=numpy.uint8))
+            # mask = numpy.cast["uint8"](numpy.minimum(outputMask * 255, 255))
+            # image = Image.fromarray(numpy.dstack((numpy.array(outputPicture[:,:,0], dtype=numpy.uint8), numpy.array(outputPicture[:,:,1], dtype=numpy.uint8), numpy.array(outputPicture[:,:,2], dtype=numpy.uint8), mask)))
+            # # image = Image.fromarray(mask)
             # image.save("%s%d.png" % (prefix, number), "PNG", options="optimize")
             # number += 1
 
-            sys.stdout.write(tileName(*ti) + "\t")
-            outputGeoPicture.serialize(sys.stdout)
-            sys.stdout.write("\n")
+            outputStream.write("%s-%010d\t" % (tileName(*ti), timestamp))
+            outputGeoPicture.serialize(outputStream)
+            outputStream.write("\n")
 
+### DEBUGGING CODE
 # from PIL import Image
 # prefix = "/var/www/quick-look/maptmp"
 # number = 0
 
-# map_to_tiles(open("/mnt/pictures-L1G-serialized/GobiDesertWeirdness-RGB/EO1H1370322012164110T8_L1G.serialized"), 10, 1024, 512, 1)
+map_to_tiles(sys.stdin, sys.stdout)
