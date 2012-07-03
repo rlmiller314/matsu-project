@@ -161,7 +161,7 @@ class L1GPicture:
         open("/var/www/L1G-p4long.txt", "w").write(str(coordinates[3][0]))
         open("/var/www/L1G-p4lat.txt", "w").write(str(coordinates[3][1]))
 
-# http://ec2-174-129-119-167.compute-1.amazonaws.com/?marks=39.882178,94.226475;39.936198,94.294860;40.018848,94.274272;40.406830,94.421897;40.138269,94.093902;40.133282,94.098923;39.932907,94.065943
+# marks=39.882178,94.226475;39.936198,94.294860;40.018848,94.274272;40.406830,94.421897;40.138269,94.093902;40.133282,94.098923;39.932907,94.065943
 
 # p = L1GPicture(open("/mnt/pictures-L1G-serialized/GobiDesertWeirdness-RGB/EO1H1370322011209110T7_L1G.serialized"))   # bad right iamge
 # p = L1GPicture(open("/mnt/pictures-L1G-serialized/GobiDesertWeirdness-RGB/EO1H1370322012047110T5_L1G.serialized"))  # good right image, no sign of structure
