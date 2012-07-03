@@ -11,15 +11,23 @@ def tileIndex(depth, longitude, latitude):
     latitude = min(int(floor(latitude/180. * 2**(depth+1))), 2**(depth+1) - 1)
     return depth, longitude, latitude
 
-def tileName(depth, longitude, latitude):
+def tileName(depth, longIndex, latIndex):
     "Inputs an index-triple, outputs a string-valued name for the index."
-    return "T%02d-%05d-%05d" % (depth, longitude, latitude)  # constant length up to depth 15
+    return "T%02d-%05d-%05d" % (depth, longIndex, latIndex)  # constant length up to depth 15
 
-def tileCorners(depth, longitude, latitude):
+def tileCorners(depth, longIndex, latIndex):
     "Inputs an index-triple, outputs the floating-point corners of the tile."
-    longmin = longitude*360./2**(depth+1) - 180.
-    longmax = (longitude + 1)*360./2**(depth+1) - 180.
-    latmin = latitude*180./2**(depth+1) - 90.
-    latmax = (latitude + 1)*180./2**(depth+1) - 90.
+    longmin = longIndex*360./2**(depth+1) - 180.
+    longmax = (longIndex + 1)*360./2**(depth+1) - 180.
+    latmin = latIndex*180./2**(depth+1) - 90.
+    latmax = (latIndex + 1)*180./2**(depth+1) - 90.
     return longmin, longmax, latmin, latmax
 
+def tileParent(depth, longIndex, latIndex):
+    "Returns the (depth-1, longIndex, latIndex) that contains this tile."
+    return depth - 1, longIndex // 2, latIndex // 2
+
+def tileOffset(depth, longIndex, latIndex):
+    "Returns the corner this tile occupies in its parent's frame."
+    return longIndex % 2, latIndex % 2
+    
