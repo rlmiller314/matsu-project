@@ -1,0 +1,2462 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   style="stroke-linejoin:miter; stroke:black; stroke-width:2.5; text-anchor:middle; fill:none"
+   font-family="Helvetica, Arial, FreeSans, Sans, sans, sans-serif"
+   width="1000px"
+   height="1000px"
+   version="1.1"
+   viewBox="0 0 1000 1000"
+   id="svg2"
+   inkscape:version="0.48.3.1 r9886"
+   sodipodi:docname="spectra.svg"
+   inkscape:export-filename="/tmp/spectra.png"
+   inkscape:export-xdpi="45"
+   inkscape:export-ydpi="45">
+  <metadata
+     id="metadata951">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="954"
+     inkscape:window-height="1055"
+     id="namedview949"
+     showgrid="false"
+     inkscape:zoom="0.472"
+     inkscape:cx="662.33834"
+     inkscape:cy="464.19394"
+     inkscape:window-x="960"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="whole_document" />
+  <defs
+     id="defs4">
+    <clipPath
+       id="Grid_0_clip">
+      <rect
+         x="120"
+         y="50"
+         width="830"
+         height="870"
+         id="rect7" />
+    </clipPath>
+    <clipPath
+       id="HistogramNonUniform_0_clip">
+      <rect
+         x="120"
+         y="50"
+         width="830"
+         height="870"
+         id="rect10" />
+    </clipPath>
+    <clipPath
+       id="Legend_0_clip">
+      <rect
+         x="452"
+         y="50"
+         width="498"
+         height="115"
+         id="rect13" />
+    </clipPath>
+    <circle
+       id="Legend_0_mark_0"
+       cx="0"
+       cy="0"
+       r="5.625"
+       stroke="none"
+       stroke-opacity="1"
+       fill="black"
+       fill-opacity="1" />
+    <circle
+       id="Legend_0_mark_1"
+       cx="0"
+       cy="0"
+       r="5.625"
+       stroke="none"
+       stroke-opacity="1"
+       fill="red"
+       fill-opacity="1" />
+    <clipPath
+       id="Scatter_0_clip">
+      <rect
+         x="120"
+         y="50"
+         width="830"
+         height="870"
+         id="rect18" />
+    </clipPath>
+    <circle
+       id="Scatter_0_mark"
+       cx="0"
+       cy="0"
+       r="5.625"
+       stroke="none"
+       stroke-opacity="1"
+       fill="red"
+       fill-opacity="1" />
+    <clipPath
+       id="Scatter_1_clip">
+      <rect
+         x="120"
+         y="50"
+         width="830"
+         height="870"
+         id="rect22" />
+    </clipPath>
+    <circle
+       id="Scatter_1_mark"
+       cx="0"
+       cy="0"
+       r="5.625"
+       stroke="none"
+       stroke-opacity="1"
+       fill="black"
+       fill-opacity="1" />
+  </defs>
+  <g
+     id="whole_document">
+    <rect
+       id="background"
+       x="0"
+       y="0"
+       width="1000"
+       height="1000"
+       stroke="none"
+       fill="white" />
+    <g
+       id="HistogramNonUniform_0"
+       clip-path="url(#HistogramNonUniform_0_clip)">
+      <path
+         d="M -71.5385 933.084 L -71.5385 -613.564 L 118.297 -613.564 L 118.297 2479.73 L 324.308 2479.73 L 324.308 -613.564 L 337.077 -613.564 L 337.077 2479.73 L 403.051 2479.73 L 403.051 -613.564 L 417.949 -613.564 L 417.949 2479.73 L 503.077 2479.73 L 503.077 -613.564 L 558.41 -613.564 L 558.41 2479.73 L 694.615 2479.73 L 694.615 -613.564 L 766.974 -613.564 L 766.974 2479.73 L 952.554 2479.73 L 952.554 933.084"
+         stroke-width="3"
+         stroke-dasharray="3.0 3.0"
+         stroke="grey"
+         stroke-opacity="1"
+         fill="lightgrey"
+         fill-opacity="1"
+         id="path28" />
+    </g>
+    <g
+       id="Grid_0"
+       clip-path="url(#Grid_0_clip)">
+      <path
+         d="M 251.949 920 L 251.949 50"
+         stroke-width="3"
+         stroke-dasharray="3.0 3.0"
+         stroke="grey"
+         stroke-opacity="1"
+         fill="none"
+         id="path31" />
+    </g>
+    <path
+       sodipodi:type="arc"
+       style="color:#000000;fill:#ffff00;stroke:#808080;stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:3, 3;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="path3469"
+       sodipodi:cx="791.00079"
+       sodipodi:cy="607.12128"
+       sodipodi:rx="32.209316"
+       sodipodi:ry="198.87378"
+       d="m 823.21011,607.12128 a 32.209316,198.87378 0 1 1 -64.41863,0 32.209316,198.87378 0 1 1 64.41863,0 z"
+       transform="translate(-8.9886456,-47.190389)" />
+    <g
+       id="Scatter_0"
+       clip-path="url(#Scatter_0_clip)">
+      <path
+         d="M 109.603 166.79 L 113.95 165.896 L 118.297 163.663 L 126.992 154.568 L 131.339 148.385 L 135.686 151.966 L 140.033 149.934 L 144.38 147.451 L 148.727 150.82 L 153.074 147.811 L 157.421 147.577 L 161.768 146.462 L 166.115 145.56 L 170.462 146.228 L 174.809 145.604 L 183.504 143.38 L 192.198 145.287 L 196.545 147.032 L 200.892 146.625 L 205.239 145.676 L 209.586 149.79 L 213.933 147.791 L 218.28 148.665 L 222.627 153.564 L 226.974 150.845 L 231.321 154.559 L 235.668 156.635 L 240.015 156.597 L 244.363 157.992 L 248.71 163.198 L 253.057 185.996 L 261.751 163.005 L 266.098 165.38 L 270.445 167.12 L 274.792 169.691 L 279.139 172.4 L 283.486 173.634 L 287.833 172.934 L 292.18 174.742 L 296.527 176.679 L 300.874 179.019 L 305.222 181.85 L 309.569 185.612 L 313.916 189.934 L 318.263 193.915 L 322.61 198.105 L 315.701 185.672 L 320.004 189.086 L 324.308 200.823 L 328.611 200.713 L 332.914 200.42 L 337.217 198.299 L 341.521 197.853 L 345.824 198.307 L 350.127 198.948 L 354.43 201.164 L 358.734 201.455 L 363.037 202.339 L 367.34 204.471 L 371.643 205.75 L 375.946 207.843 L 380.25 210.509 L 384.553 212.096 L 393.159 216.033 L 397.463 217.868 L 401.766 227.621 L 406.069 237.477 L 410.372 236.587 L 414.676 235.35 L 418.979 233.225 L 423.282 231.057 L 427.585 232.754 L 431.888 235.207 L 436.192 237.211 L 440.495 239.953 L 444.798 238.856 L 449.101 239.363 L 453.405 240.343 L 457.708 241.665 L 462.011 245.691 L 466.314 254.332 L 470.618 250.688 L 474.921 247.786 L 479.224 247.358 L 483.527 249.83 L 487.83 253.717 L 492.134 257.465 L 496.437 262.263 L 500.74 281.629 L 505.043 334.99 L 509.347 362.802 L 513.65 344.757 L 517.953 344.55 L 522.256 341.303 L 526.56 337.991 L 530.863 329.071 L 535.166 330.287 L 539.469 339.756 L 543.772 335.125 L 548.076 322.272 L 552.379 323.995 L 556.682 320.417 L 560.985 317.356 L 565.289 310.489 L 569.592 305.524 L 573.895 303.267 L 578.198 304.706 L 582.502 305.692 L 591.108 301.658 L 595.411 304.357 L 599.714 305.713 L 604.018 302.157 L 608.321 302.659 L 612.624 302.879 L 616.927 299.224 L 621.231 297.986 L 625.534 301.147 L 629.837 301.43 L 634.14 301.327 L 642.747 304.417 L 647.05 305.517 L 651.353 308.354 L 655.656 313.416 L 659.96 319.236 L 664.263 327.388 L 672.869 336.676 L 677.173 336.849 L 681.476 338.539 L 685.779 342.213 L 690.082 344.689 L 694.386 357.249 L 698.689 369.674 L 702.992 383.154 L 707.295 407.263 L 711.598 435.791 L 715.902 432.329 L 720.205 425.908 L 724.508 465.955 L 728.811 433.881 L 733.115 441.603 L 737.418 480.184 L 741.721 484.054 L 746.024 478.897 L 750.328 480.533 L 754.631 477.808 L 758.934 495.215 L 763.237 492.303 L 767.54 459.472 L 771.844 437.057 L 776.147 440.298 L 780.45 506.842 L 784.753 494.002 L 789.057 431.074 L 793.36 401.602 L 801.966 426.424 L 806.27 421.603 L 814.876 403.02 L 819.179 400.819 L 823.482 401.053 L 827.786 403.595 L 832.089 407.07 L 836.392 408.841 L 840.695 409.302 L 844.999 412.949 L 853.605 423.48 L 857.908 421.454 L 862.212 424.496 L 866.515 432.551 L 870.818 432.79 L 875.121 432.306 L 883.728 434.97 L 888.031 438.295 L 892.334 440.078 L 896.637 439.568 L 900.941 442.146 L 905.244 445.097 L 909.547 442.303 L 913.85 445.02 L 918.154 442.586 L 922.457 445.204 L 926.76 452.258 L 931.063 455.334 L 935.366 456.318 L 939.67 463.208 L 943.973 469.113 L 948.276 473.67"
+         stroke-width="3"
+         stroke-dasharray=""
+         stroke="red"
+         stroke-opacity="1"
+         fill="none"
+         id="path34" />
+      <use
+         x="126.992"
+         y="154.568"
+         xlink:href="#Scatter_0_mark"
+         id="use36" />
+      <use
+         x="131.339"
+         y="148.385"
+         xlink:href="#Scatter_0_mark"
+         id="use38" />
+      <use
+         x="135.686"
+         y="151.966"
+         xlink:href="#Scatter_0_mark"
+         id="use40" />
+      <use
+         x="140.033"
+         y="149.934"
+         xlink:href="#Scatter_0_mark"
+         id="use42" />
+      <use
+         x="144.38"
+         y="147.451"
+         xlink:href="#Scatter_0_mark"
+         id="use44" />
+      <use
+         x="148.727"
+         y="150.82"
+         xlink:href="#Scatter_0_mark"
+         id="use46" />
+      <use
+         x="153.074"
+         y="147.811"
+         xlink:href="#Scatter_0_mark"
+         id="use48" />
+      <use
+         x="157.421"
+         y="147.577"
+         xlink:href="#Scatter_0_mark"
+         id="use50" />
+      <use
+         x="161.768"
+         y="146.462"
+         xlink:href="#Scatter_0_mark"
+         id="use52" />
+      <use
+         x="166.115"
+         y="145.56"
+         xlink:href="#Scatter_0_mark"
+         id="use54" />
+      <use
+         x="170.462"
+         y="146.228"
+         xlink:href="#Scatter_0_mark"
+         id="use56" />
+      <use
+         x="174.809"
+         y="145.604"
+         xlink:href="#Scatter_0_mark"
+         id="use58" />
+      <use
+         x="183.504"
+         y="143.38"
+         xlink:href="#Scatter_0_mark"
+         id="use60" />
+      <use
+         x="192.198"
+         y="145.287"
+         xlink:href="#Scatter_0_mark"
+         id="use62" />
+      <use
+         x="196.545"
+         y="147.032"
+         xlink:href="#Scatter_0_mark"
+         id="use64" />
+      <use
+         x="200.892"
+         y="146.625"
+         xlink:href="#Scatter_0_mark"
+         id="use66" />
+      <use
+         x="205.239"
+         y="145.676"
+         xlink:href="#Scatter_0_mark"
+         id="use68" />
+      <use
+         x="209.586"
+         y="149.79"
+         xlink:href="#Scatter_0_mark"
+         id="use70" />
+      <use
+         x="213.933"
+         y="147.791"
+         xlink:href="#Scatter_0_mark"
+         id="use72" />
+      <use
+         x="218.28"
+         y="148.665"
+         xlink:href="#Scatter_0_mark"
+         id="use74" />
+      <use
+         x="222.627"
+         y="153.564"
+         xlink:href="#Scatter_0_mark"
+         id="use76" />
+      <use
+         x="226.974"
+         y="150.845"
+         xlink:href="#Scatter_0_mark"
+         id="use78" />
+      <use
+         x="231.321"
+         y="154.559"
+         xlink:href="#Scatter_0_mark"
+         id="use80" />
+      <use
+         x="235.668"
+         y="156.635"
+         xlink:href="#Scatter_0_mark"
+         id="use82" />
+      <use
+         x="240.015"
+         y="156.597"
+         xlink:href="#Scatter_0_mark"
+         id="use84" />
+      <use
+         x="244.363"
+         y="157.992"
+         xlink:href="#Scatter_0_mark"
+         id="use86" />
+      <use
+         x="248.71"
+         y="163.198"
+         xlink:href="#Scatter_0_mark"
+         id="use88" />
+      <use
+         x="253.057"
+         y="185.996"
+         xlink:href="#Scatter_0_mark"
+         id="use90" />
+      <use
+         x="261.751"
+         y="163.005"
+         xlink:href="#Scatter_0_mark"
+         id="use92" />
+      <use
+         x="266.098"
+         y="165.38"
+         xlink:href="#Scatter_0_mark"
+         id="use94" />
+      <use
+         x="270.445"
+         y="167.12"
+         xlink:href="#Scatter_0_mark"
+         id="use96" />
+      <use
+         x="274.792"
+         y="169.691"
+         xlink:href="#Scatter_0_mark"
+         id="use98" />
+      <use
+         x="279.139"
+         y="172.4"
+         xlink:href="#Scatter_0_mark"
+         id="use100" />
+      <use
+         x="283.486"
+         y="173.634"
+         xlink:href="#Scatter_0_mark"
+         id="use102" />
+      <use
+         x="287.833"
+         y="172.934"
+         xlink:href="#Scatter_0_mark"
+         id="use104" />
+      <use
+         x="292.18"
+         y="174.742"
+         xlink:href="#Scatter_0_mark"
+         id="use106" />
+      <use
+         x="296.527"
+         y="176.679"
+         xlink:href="#Scatter_0_mark"
+         id="use108" />
+      <use
+         x="300.874"
+         y="179.019"
+         xlink:href="#Scatter_0_mark"
+         id="use110" />
+      <use
+         x="305.222"
+         y="181.85"
+         xlink:href="#Scatter_0_mark"
+         id="use112" />
+      <use
+         x="309.569"
+         y="185.612"
+         xlink:href="#Scatter_0_mark"
+         id="use114" />
+      <use
+         x="313.916"
+         y="189.934"
+         xlink:href="#Scatter_0_mark"
+         id="use116" />
+      <use
+         x="318.263"
+         y="193.915"
+         xlink:href="#Scatter_0_mark"
+         id="use118" />
+      <use
+         x="322.61"
+         y="198.105"
+         xlink:href="#Scatter_0_mark"
+         id="use120" />
+      <use
+         x="315.701"
+         y="185.672"
+         xlink:href="#Scatter_0_mark"
+         id="use122" />
+      <use
+         x="320.004"
+         y="189.086"
+         xlink:href="#Scatter_0_mark"
+         id="use124" />
+      <use
+         x="324.308"
+         y="200.823"
+         xlink:href="#Scatter_0_mark"
+         id="use126" />
+      <use
+         x="328.611"
+         y="200.713"
+         xlink:href="#Scatter_0_mark"
+         id="use128" />
+      <use
+         x="332.914"
+         y="200.42"
+         xlink:href="#Scatter_0_mark"
+         id="use130" />
+      <use
+         x="337.217"
+         y="198.299"
+         xlink:href="#Scatter_0_mark"
+         id="use132" />
+      <use
+         x="341.521"
+         y="197.853"
+         xlink:href="#Scatter_0_mark"
+         id="use134" />
+      <use
+         x="345.824"
+         y="198.307"
+         xlink:href="#Scatter_0_mark"
+         id="use136" />
+      <use
+         x="350.127"
+         y="198.948"
+         xlink:href="#Scatter_0_mark"
+         id="use138" />
+      <use
+         x="354.43"
+         y="201.164"
+         xlink:href="#Scatter_0_mark"
+         id="use140" />
+      <use
+         x="358.734"
+         y="201.455"
+         xlink:href="#Scatter_0_mark"
+         id="use142" />
+      <use
+         x="363.037"
+         y="202.339"
+         xlink:href="#Scatter_0_mark"
+         id="use144" />
+      <use
+         x="367.34"
+         y="204.471"
+         xlink:href="#Scatter_0_mark"
+         id="use146" />
+      <use
+         x="371.643"
+         y="205.75"
+         xlink:href="#Scatter_0_mark"
+         id="use148" />
+      <use
+         x="375.946"
+         y="207.843"
+         xlink:href="#Scatter_0_mark"
+         id="use150" />
+      <use
+         x="380.25"
+         y="210.509"
+         xlink:href="#Scatter_0_mark"
+         id="use152" />
+      <use
+         x="384.553"
+         y="212.096"
+         xlink:href="#Scatter_0_mark"
+         id="use154" />
+      <use
+         x="393.159"
+         y="216.033"
+         xlink:href="#Scatter_0_mark"
+         id="use156" />
+      <use
+         x="397.463"
+         y="217.868"
+         xlink:href="#Scatter_0_mark"
+         id="use158" />
+      <use
+         x="401.766"
+         y="227.621"
+         xlink:href="#Scatter_0_mark"
+         id="use160" />
+      <use
+         x="406.069"
+         y="237.477"
+         xlink:href="#Scatter_0_mark"
+         id="use162" />
+      <use
+         x="410.372"
+         y="236.587"
+         xlink:href="#Scatter_0_mark"
+         id="use164" />
+      <use
+         x="414.676"
+         y="235.35"
+         xlink:href="#Scatter_0_mark"
+         id="use166" />
+      <use
+         x="418.979"
+         y="233.225"
+         xlink:href="#Scatter_0_mark"
+         id="use168" />
+      <use
+         x="423.282"
+         y="231.057"
+         xlink:href="#Scatter_0_mark"
+         id="use170" />
+      <use
+         x="427.585"
+         y="232.754"
+         xlink:href="#Scatter_0_mark"
+         id="use172" />
+      <use
+         x="431.888"
+         y="235.207"
+         xlink:href="#Scatter_0_mark"
+         id="use174" />
+      <use
+         x="436.192"
+         y="237.211"
+         xlink:href="#Scatter_0_mark"
+         id="use176" />
+      <use
+         x="440.495"
+         y="239.953"
+         xlink:href="#Scatter_0_mark"
+         id="use178" />
+      <use
+         x="444.798"
+         y="238.856"
+         xlink:href="#Scatter_0_mark"
+         id="use180" />
+      <use
+         x="449.101"
+         y="239.363"
+         xlink:href="#Scatter_0_mark"
+         id="use182" />
+      <use
+         x="453.405"
+         y="240.343"
+         xlink:href="#Scatter_0_mark"
+         id="use184" />
+      <use
+         x="457.708"
+         y="241.665"
+         xlink:href="#Scatter_0_mark"
+         id="use186" />
+      <use
+         x="462.011"
+         y="245.691"
+         xlink:href="#Scatter_0_mark"
+         id="use188" />
+      <use
+         x="466.314"
+         y="254.332"
+         xlink:href="#Scatter_0_mark"
+         id="use190" />
+      <use
+         x="470.618"
+         y="250.688"
+         xlink:href="#Scatter_0_mark"
+         id="use192" />
+      <use
+         x="474.921"
+         y="247.786"
+         xlink:href="#Scatter_0_mark"
+         id="use194" />
+      <use
+         x="479.224"
+         y="247.358"
+         xlink:href="#Scatter_0_mark"
+         id="use196" />
+      <use
+         x="483.527"
+         y="249.83"
+         xlink:href="#Scatter_0_mark"
+         id="use198" />
+      <use
+         x="487.83"
+         y="253.717"
+         xlink:href="#Scatter_0_mark"
+         id="use200" />
+      <use
+         x="492.134"
+         y="257.465"
+         xlink:href="#Scatter_0_mark"
+         id="use202" />
+      <use
+         x="496.437"
+         y="262.263"
+         xlink:href="#Scatter_0_mark"
+         id="use204" />
+      <use
+         x="500.74"
+         y="281.629"
+         xlink:href="#Scatter_0_mark"
+         id="use206" />
+      <use
+         x="505.043"
+         y="334.99"
+         xlink:href="#Scatter_0_mark"
+         id="use208" />
+      <use
+         x="509.347"
+         y="362.802"
+         xlink:href="#Scatter_0_mark"
+         id="use210" />
+      <use
+         x="513.65"
+         y="344.757"
+         xlink:href="#Scatter_0_mark"
+         id="use212" />
+      <use
+         x="517.953"
+         y="344.55"
+         xlink:href="#Scatter_0_mark"
+         id="use214" />
+      <use
+         x="522.256"
+         y="341.303"
+         xlink:href="#Scatter_0_mark"
+         id="use216" />
+      <use
+         x="526.56"
+         y="337.991"
+         xlink:href="#Scatter_0_mark"
+         id="use218" />
+      <use
+         x="530.863"
+         y="329.071"
+         xlink:href="#Scatter_0_mark"
+         id="use220" />
+      <use
+         x="535.166"
+         y="330.287"
+         xlink:href="#Scatter_0_mark"
+         id="use222" />
+      <use
+         x="539.469"
+         y="339.756"
+         xlink:href="#Scatter_0_mark"
+         id="use224" />
+      <use
+         x="543.772"
+         y="335.125"
+         xlink:href="#Scatter_0_mark"
+         id="use226" />
+      <use
+         x="548.076"
+         y="322.272"
+         xlink:href="#Scatter_0_mark"
+         id="use228" />
+      <use
+         x="552.379"
+         y="323.995"
+         xlink:href="#Scatter_0_mark"
+         id="use230" />
+      <use
+         x="556.682"
+         y="320.417"
+         xlink:href="#Scatter_0_mark"
+         id="use232" />
+      <use
+         x="560.985"
+         y="317.356"
+         xlink:href="#Scatter_0_mark"
+         id="use234" />
+      <use
+         x="565.289"
+         y="310.489"
+         xlink:href="#Scatter_0_mark"
+         id="use236" />
+      <use
+         x="569.592"
+         y="305.524"
+         xlink:href="#Scatter_0_mark"
+         id="use238" />
+      <use
+         x="573.895"
+         y="303.267"
+         xlink:href="#Scatter_0_mark"
+         id="use240" />
+      <use
+         x="578.198"
+         y="304.706"
+         xlink:href="#Scatter_0_mark"
+         id="use242" />
+      <use
+         x="582.502"
+         y="305.692"
+         xlink:href="#Scatter_0_mark"
+         id="use244" />
+      <use
+         x="591.108"
+         y="301.658"
+         xlink:href="#Scatter_0_mark"
+         id="use246" />
+      <use
+         x="595.411"
+         y="304.357"
+         xlink:href="#Scatter_0_mark"
+         id="use248" />
+      <use
+         x="599.714"
+         y="305.713"
+         xlink:href="#Scatter_0_mark"
+         id="use250" />
+      <use
+         x="604.018"
+         y="302.157"
+         xlink:href="#Scatter_0_mark"
+         id="use252" />
+      <use
+         x="608.321"
+         y="302.659"
+         xlink:href="#Scatter_0_mark"
+         id="use254" />
+      <use
+         x="612.624"
+         y="302.879"
+         xlink:href="#Scatter_0_mark"
+         id="use256" />
+      <use
+         x="616.927"
+         y="299.224"
+         xlink:href="#Scatter_0_mark"
+         id="use258" />
+      <use
+         x="621.231"
+         y="297.986"
+         xlink:href="#Scatter_0_mark"
+         id="use260" />
+      <use
+         x="625.534"
+         y="301.147"
+         xlink:href="#Scatter_0_mark"
+         id="use262" />
+      <use
+         x="629.837"
+         y="301.43"
+         xlink:href="#Scatter_0_mark"
+         id="use264" />
+      <use
+         x="634.14"
+         y="301.327"
+         xlink:href="#Scatter_0_mark"
+         id="use266" />
+      <use
+         x="642.747"
+         y="304.417"
+         xlink:href="#Scatter_0_mark"
+         id="use268" />
+      <use
+         x="647.05"
+         y="305.517"
+         xlink:href="#Scatter_0_mark"
+         id="use270" />
+      <use
+         x="651.353"
+         y="308.354"
+         xlink:href="#Scatter_0_mark"
+         id="use272" />
+      <use
+         x="655.656"
+         y="313.416"
+         xlink:href="#Scatter_0_mark"
+         id="use274" />
+      <use
+         x="659.96"
+         y="319.236"
+         xlink:href="#Scatter_0_mark"
+         id="use276" />
+      <use
+         x="664.263"
+         y="327.388"
+         xlink:href="#Scatter_0_mark"
+         id="use278" />
+      <use
+         x="672.869"
+         y="336.676"
+         xlink:href="#Scatter_0_mark"
+         id="use280" />
+      <use
+         x="677.173"
+         y="336.849"
+         xlink:href="#Scatter_0_mark"
+         id="use282" />
+      <use
+         x="681.476"
+         y="338.539"
+         xlink:href="#Scatter_0_mark"
+         id="use284" />
+      <use
+         x="685.779"
+         y="342.213"
+         xlink:href="#Scatter_0_mark"
+         id="use286" />
+      <use
+         x="690.082"
+         y="344.689"
+         xlink:href="#Scatter_0_mark"
+         id="use288" />
+      <use
+         x="694.386"
+         y="357.249"
+         xlink:href="#Scatter_0_mark"
+         id="use290" />
+      <use
+         x="698.689"
+         y="369.674"
+         xlink:href="#Scatter_0_mark"
+         id="use292" />
+      <use
+         x="702.992"
+         y="383.154"
+         xlink:href="#Scatter_0_mark"
+         id="use294" />
+      <use
+         x="707.295"
+         y="407.263"
+         xlink:href="#Scatter_0_mark"
+         id="use296" />
+      <use
+         x="711.598"
+         y="435.791"
+         xlink:href="#Scatter_0_mark"
+         id="use298" />
+      <use
+         x="715.902"
+         y="432.329"
+         xlink:href="#Scatter_0_mark"
+         id="use300" />
+      <use
+         x="720.205"
+         y="425.908"
+         xlink:href="#Scatter_0_mark"
+         id="use302" />
+      <use
+         x="724.508"
+         y="465.955"
+         xlink:href="#Scatter_0_mark"
+         id="use304" />
+      <use
+         x="728.811"
+         y="433.881"
+         xlink:href="#Scatter_0_mark"
+         id="use306" />
+      <use
+         x="733.115"
+         y="441.603"
+         xlink:href="#Scatter_0_mark"
+         id="use308" />
+      <use
+         x="737.418"
+         y="480.184"
+         xlink:href="#Scatter_0_mark"
+         id="use310" />
+      <use
+         x="741.721"
+         y="484.054"
+         xlink:href="#Scatter_0_mark"
+         id="use312" />
+      <use
+         x="746.024"
+         y="478.897"
+         xlink:href="#Scatter_0_mark"
+         id="use314" />
+      <use
+         x="750.328"
+         y="480.533"
+         xlink:href="#Scatter_0_mark"
+         id="use316" />
+      <use
+         x="754.631"
+         y="477.808"
+         xlink:href="#Scatter_0_mark"
+         id="use318" />
+      <use
+         x="758.934"
+         y="495.215"
+         xlink:href="#Scatter_0_mark"
+         id="use320" />
+      <use
+         x="763.237"
+         y="492.303"
+         xlink:href="#Scatter_0_mark"
+         id="use322" />
+      <use
+         x="767.54"
+         y="459.472"
+         xlink:href="#Scatter_0_mark"
+         id="use324" />
+      <use
+         x="771.844"
+         y="437.057"
+         xlink:href="#Scatter_0_mark"
+         id="use326" />
+      <use
+         x="776.147"
+         y="440.298"
+         xlink:href="#Scatter_0_mark"
+         id="use328" />
+      <use
+         x="780.45"
+         y="506.842"
+         xlink:href="#Scatter_0_mark"
+         id="use330" />
+      <use
+         x="784.753"
+         y="494.002"
+         xlink:href="#Scatter_0_mark"
+         id="use332" />
+      <use
+         x="789.057"
+         y="431.074"
+         xlink:href="#Scatter_0_mark"
+         id="use334" />
+      <use
+         x="793.36"
+         y="401.602"
+         xlink:href="#Scatter_0_mark"
+         id="use336" />
+      <use
+         x="801.966"
+         y="426.424"
+         xlink:href="#Scatter_0_mark"
+         id="use338" />
+      <use
+         x="806.27"
+         y="421.603"
+         xlink:href="#Scatter_0_mark"
+         id="use340" />
+      <use
+         x="814.876"
+         y="403.02"
+         xlink:href="#Scatter_0_mark"
+         id="use342" />
+      <use
+         x="819.179"
+         y="400.819"
+         xlink:href="#Scatter_0_mark"
+         id="use344" />
+      <use
+         x="823.482"
+         y="401.053"
+         xlink:href="#Scatter_0_mark"
+         id="use346" />
+      <use
+         x="827.786"
+         y="403.595"
+         xlink:href="#Scatter_0_mark"
+         id="use348" />
+      <use
+         x="832.089"
+         y="407.07"
+         xlink:href="#Scatter_0_mark"
+         id="use350" />
+      <use
+         x="836.392"
+         y="408.841"
+         xlink:href="#Scatter_0_mark"
+         id="use352" />
+      <use
+         x="840.695"
+         y="409.302"
+         xlink:href="#Scatter_0_mark"
+         id="use354" />
+      <use
+         x="844.999"
+         y="412.949"
+         xlink:href="#Scatter_0_mark"
+         id="use356" />
+      <use
+         x="853.605"
+         y="423.48"
+         xlink:href="#Scatter_0_mark"
+         id="use358" />
+      <use
+         x="857.908"
+         y="421.454"
+         xlink:href="#Scatter_0_mark"
+         id="use360" />
+      <use
+         x="862.212"
+         y="424.496"
+         xlink:href="#Scatter_0_mark"
+         id="use362" />
+      <use
+         x="866.515"
+         y="432.551"
+         xlink:href="#Scatter_0_mark"
+         id="use364" />
+      <use
+         x="870.818"
+         y="432.79"
+         xlink:href="#Scatter_0_mark"
+         id="use366" />
+      <use
+         x="875.121"
+         y="432.306"
+         xlink:href="#Scatter_0_mark"
+         id="use368" />
+      <use
+         x="883.728"
+         y="434.97"
+         xlink:href="#Scatter_0_mark"
+         id="use370" />
+      <use
+         x="888.031"
+         y="438.295"
+         xlink:href="#Scatter_0_mark"
+         id="use372" />
+      <use
+         x="892.334"
+         y="440.078"
+         xlink:href="#Scatter_0_mark"
+         id="use374" />
+      <use
+         x="896.637"
+         y="439.568"
+         xlink:href="#Scatter_0_mark"
+         id="use376" />
+      <use
+         x="900.941"
+         y="442.146"
+         xlink:href="#Scatter_0_mark"
+         id="use378" />
+      <use
+         x="905.244"
+         y="445.097"
+         xlink:href="#Scatter_0_mark"
+         id="use380" />
+      <use
+         x="909.547"
+         y="442.303"
+         xlink:href="#Scatter_0_mark"
+         id="use382" />
+      <use
+         x="913.85"
+         y="445.02"
+         xlink:href="#Scatter_0_mark"
+         id="use384" />
+      <use
+         x="918.154"
+         y="442.586"
+         xlink:href="#Scatter_0_mark"
+         id="use386" />
+      <use
+         x="922.457"
+         y="445.204"
+         xlink:href="#Scatter_0_mark"
+         id="use388" />
+      <use
+         x="926.76"
+         y="452.258"
+         xlink:href="#Scatter_0_mark"
+         id="use390" />
+      <use
+         x="931.063"
+         y="455.334"
+         xlink:href="#Scatter_0_mark"
+         id="use392" />
+      <use
+         x="935.366"
+         y="456.318"
+         xlink:href="#Scatter_0_mark"
+         id="use394" />
+      <use
+         x="939.67"
+         y="463.208"
+         xlink:href="#Scatter_0_mark"
+         id="use396" />
+      <use
+         x="943.973"
+         y="469.113"
+         xlink:href="#Scatter_0_mark"
+         id="use398" />
+      <use
+         x="948.276"
+         y="473.67"
+         xlink:href="#Scatter_0_mark"
+         id="use400" />
+    </g>
+    <g
+       id="Scatter_1"
+       clip-path="url(#Scatter_1_clip)">
+      <path
+         d="M 109.603 136.698 L 113.95 135.938 L 118.297 134.606 L 122.645 130.494 L 126.992 127.345 L 131.339 122.5 L 135.686 126.726 L 140.033 125.579 L 144.38 124.711 L 148.727 128.036 L 153.074 125.567 L 157.421 126.425 L 161.768 126.401 L 166.115 125.401 L 170.462 126.968 L 174.809 127.76 L 179.156 127.068 L 183.504 129.439 L 187.851 125.789 L 192.198 128.262 L 196.545 131.299 L 200.892 130.99 L 205.239 132.096 L 209.586 135.949 L 213.933 132.027 L 218.28 133.059 L 222.627 141.355 L 226.974 143.524 L 231.321 149.537 L 235.668 166.895 L 240.015 157.424 L 244.363 147.343 L 248.71 151.614 L 253.057 182.982 L 257.404 151.94 L 261.751 151.757 L 270.445 160.449 L 274.792 175.778 L 279.139 181.703 L 283.486 174.345 L 287.833 164.735 L 292.18 164.467 L 296.527 165.497 L 300.874 167.88 L 305.222 172.392 L 309.569 189.054 L 313.916 208.507 L 318.263 218.241 L 322.61 218.955 L 315.701 207.751 L 320.004 220.258 L 324.308 304.101 L 328.611 309.679 L 332.914 302.415 L 337.217 261.685 L 341.521 237.519 L 345.824 219.482 L 350.127 207.211 L 354.43 205.898 L 358.734 203.521 L 363.037 201.484 L 367.34 201.637 L 371.643 201.486 L 375.946 202.641 L 380.25 205.835 L 384.553 209.24 L 388.856 215.733 L 393.159 231.301 L 397.463 261.174 L 401.766 338.932 L 406.069 422.66 L 410.372 388.734 L 414.676 391.158 L 418.979 347.689 L 423.282 303.056 L 427.585 291.127 L 431.888 290.958 L 436.192 287.706 L 440.495 286.466 L 444.798 278.137 L 449.101 270.984 L 453.405 266.291 L 457.708 266.256 L 462.011 272.853 L 466.314 283.969 L 470.618 275.054 L 474.921 274.714 L 479.224 285.89 L 483.527 306.066 L 487.83 329.602 L 492.134 365.886 L 500.74 508.634 L 505.043 638.403 L 513.65 658.782 L 517.953 664.959 L 522.256 612.32 L 526.56 615.871 L 530.863 618.692 L 535.166 613.482 L 539.469 605.413 L 543.772 577.024 L 548.076 540.595 L 552.379 562.933 L 556.682 531.246 L 560.985 477.346 L 565.289 427.313 L 569.592 403.887 L 573.895 388.183 L 578.198 376.385 L 582.502 368.349 L 586.805 363.201 L 591.108 361.44 L 595.411 365.753 L 599.714 365.137 L 604.018 360.072 L 608.321 361.614 L 612.624 360.344 L 616.927 354.832 L 621.231 353.548 L 625.534 357.012 L 629.837 356.982 L 634.14 356.01 L 638.444 357.967 L 642.747 359.331 L 651.353 367.388 L 655.656 373.57 L 659.96 380.822 L 664.263 390.279 L 672.869 407.331 L 677.173 421.816 L 681.476 446.807 L 685.779 480.694 L 690.082 522.815 L 694.386 597.735 L 698.689 642.099 L 702.992 623.832 L 707.295 621.626 L 711.598 629.171 L 715.902 631.065 L 720.205 676.885 L 724.508 681.812 L 728.811 706.673 L 733.115 707.777 L 737.418 715.053 L 741.721 726.104 L 746.024 841.632 L 750.328 847.5 L 754.631 706.541 L 758.934 704.672 L 763.237 749.111 L 767.54 622.141 L 776.147 573.092 L 780.45 705.274 L 784.753 671.743 L 789.057 546.423 L 793.36 505.458 L 797.663 513.912 L 801.966 541.713 L 806.27 527.244 L 810.573 506.087 L 814.876 494.217 L 819.179 488.532 L 823.482 482.77 L 827.786 481.301 L 832.089 481.442 L 836.392 477.027 L 840.695 474.18 L 844.999 480.067 L 849.302 488.278 L 853.605 487.685 L 857.908 486.332 L 866.515 492.77 L 870.818 487.948 L 875.121 487.992 L 879.424 490.758 L 883.728 496.998 L 888.031 501.041 L 892.334 500.477 L 905.244 520.193 L 909.547 515.047 L 913.85 526.773 L 918.154 525.292 L 922.457 533.425 L 926.76 555.893 L 931.063 555.516 L 935.366 560.284 L 939.67 576.986 L 943.973 597.079 L 948.276 583.426"
+         stroke-width="3"
+         stroke-dasharray=""
+         stroke="black"
+         stroke-opacity="1"
+         fill="none"
+         id="path403" />
+      <use
+         x="122.645"
+         y="130.494"
+         xlink:href="#Scatter_1_mark"
+         id="use405" />
+      <use
+         x="126.992"
+         y="127.345"
+         xlink:href="#Scatter_1_mark"
+         id="use407" />
+      <use
+         x="131.339"
+         y="122.5"
+         xlink:href="#Scatter_1_mark"
+         id="use409" />
+      <use
+         x="135.686"
+         y="126.726"
+         xlink:href="#Scatter_1_mark"
+         id="use411" />
+      <use
+         x="140.033"
+         y="125.579"
+         xlink:href="#Scatter_1_mark"
+         id="use413" />
+      <use
+         x="144.38"
+         y="124.711"
+         xlink:href="#Scatter_1_mark"
+         id="use415" />
+      <use
+         x="148.727"
+         y="128.036"
+         xlink:href="#Scatter_1_mark"
+         id="use417" />
+      <use
+         x="153.074"
+         y="125.567"
+         xlink:href="#Scatter_1_mark"
+         id="use419" />
+      <use
+         x="157.421"
+         y="126.425"
+         xlink:href="#Scatter_1_mark"
+         id="use421" />
+      <use
+         x="161.768"
+         y="126.401"
+         xlink:href="#Scatter_1_mark"
+         id="use423" />
+      <use
+         x="166.115"
+         y="125.401"
+         xlink:href="#Scatter_1_mark"
+         id="use425" />
+      <use
+         x="170.462"
+         y="126.968"
+         xlink:href="#Scatter_1_mark"
+         id="use427" />
+      <use
+         x="174.809"
+         y="127.76"
+         xlink:href="#Scatter_1_mark"
+         id="use429" />
+      <use
+         x="179.156"
+         y="127.068"
+         xlink:href="#Scatter_1_mark"
+         id="use431" />
+      <use
+         x="183.504"
+         y="129.439"
+         xlink:href="#Scatter_1_mark"
+         id="use433" />
+      <use
+         x="187.851"
+         y="125.789"
+         xlink:href="#Scatter_1_mark"
+         id="use435" />
+      <use
+         x="192.198"
+         y="128.262"
+         xlink:href="#Scatter_1_mark"
+         id="use437" />
+      <use
+         x="196.545"
+         y="131.299"
+         xlink:href="#Scatter_1_mark"
+         id="use439" />
+      <use
+         x="200.892"
+         y="130.99"
+         xlink:href="#Scatter_1_mark"
+         id="use441" />
+      <use
+         x="205.239"
+         y="132.096"
+         xlink:href="#Scatter_1_mark"
+         id="use443" />
+      <use
+         x="209.586"
+         y="135.949"
+         xlink:href="#Scatter_1_mark"
+         id="use445" />
+      <use
+         x="213.933"
+         y="132.027"
+         xlink:href="#Scatter_1_mark"
+         id="use447" />
+      <use
+         x="218.28"
+         y="133.059"
+         xlink:href="#Scatter_1_mark"
+         id="use449" />
+      <use
+         x="222.627"
+         y="141.355"
+         xlink:href="#Scatter_1_mark"
+         id="use451" />
+      <use
+         x="226.974"
+         y="143.524"
+         xlink:href="#Scatter_1_mark"
+         id="use453" />
+      <use
+         x="231.321"
+         y="149.537"
+         xlink:href="#Scatter_1_mark"
+         id="use455" />
+      <use
+         x="235.668"
+         y="166.895"
+         xlink:href="#Scatter_1_mark"
+         id="use457" />
+      <use
+         x="240.015"
+         y="157.424"
+         xlink:href="#Scatter_1_mark"
+         id="use459" />
+      <use
+         x="244.363"
+         y="147.343"
+         xlink:href="#Scatter_1_mark"
+         id="use461" />
+      <use
+         x="248.71"
+         y="151.614"
+         xlink:href="#Scatter_1_mark"
+         id="use463" />
+      <use
+         x="253.057"
+         y="182.982"
+         xlink:href="#Scatter_1_mark"
+         id="use465" />
+      <use
+         x="257.404"
+         y="151.94"
+         xlink:href="#Scatter_1_mark"
+         id="use467" />
+      <use
+         x="261.751"
+         y="151.757"
+         xlink:href="#Scatter_1_mark"
+         id="use469" />
+      <use
+         x="270.445"
+         y="160.449"
+         xlink:href="#Scatter_1_mark"
+         id="use471" />
+      <use
+         x="274.792"
+         y="175.778"
+         xlink:href="#Scatter_1_mark"
+         id="use473" />
+      <use
+         x="279.139"
+         y="181.703"
+         xlink:href="#Scatter_1_mark"
+         id="use475" />
+      <use
+         x="283.486"
+         y="174.345"
+         xlink:href="#Scatter_1_mark"
+         id="use477" />
+      <use
+         x="287.833"
+         y="164.735"
+         xlink:href="#Scatter_1_mark"
+         id="use479" />
+      <use
+         x="292.18"
+         y="164.467"
+         xlink:href="#Scatter_1_mark"
+         id="use481" />
+      <use
+         x="296.527"
+         y="165.497"
+         xlink:href="#Scatter_1_mark"
+         id="use483" />
+      <use
+         x="300.874"
+         y="167.88"
+         xlink:href="#Scatter_1_mark"
+         id="use485" />
+      <use
+         x="305.222"
+         y="172.392"
+         xlink:href="#Scatter_1_mark"
+         id="use487" />
+      <use
+         x="309.569"
+         y="189.054"
+         xlink:href="#Scatter_1_mark"
+         id="use489" />
+      <use
+         x="313.916"
+         y="208.507"
+         xlink:href="#Scatter_1_mark"
+         id="use491" />
+      <use
+         x="318.263"
+         y="218.241"
+         xlink:href="#Scatter_1_mark"
+         id="use493" />
+      <use
+         x="322.61"
+         y="218.955"
+         xlink:href="#Scatter_1_mark"
+         id="use495" />
+      <use
+         x="315.701"
+         y="207.751"
+         xlink:href="#Scatter_1_mark"
+         id="use497" />
+      <use
+         x="320.004"
+         y="220.258"
+         xlink:href="#Scatter_1_mark"
+         id="use499" />
+      <use
+         x="324.308"
+         y="304.101"
+         xlink:href="#Scatter_1_mark"
+         id="use501" />
+      <use
+         x="328.611"
+         y="309.679"
+         xlink:href="#Scatter_1_mark"
+         id="use503" />
+      <use
+         x="332.914"
+         y="302.415"
+         xlink:href="#Scatter_1_mark"
+         id="use505" />
+      <use
+         x="337.217"
+         y="261.685"
+         xlink:href="#Scatter_1_mark"
+         id="use507" />
+      <use
+         x="341.521"
+         y="237.519"
+         xlink:href="#Scatter_1_mark"
+         id="use509" />
+      <use
+         x="345.824"
+         y="219.482"
+         xlink:href="#Scatter_1_mark"
+         id="use511" />
+      <use
+         x="350.127"
+         y="207.211"
+         xlink:href="#Scatter_1_mark"
+         id="use513" />
+      <use
+         x="354.43"
+         y="205.898"
+         xlink:href="#Scatter_1_mark"
+         id="use515" />
+      <use
+         x="358.734"
+         y="203.521"
+         xlink:href="#Scatter_1_mark"
+         id="use517" />
+      <use
+         x="363.037"
+         y="201.484"
+         xlink:href="#Scatter_1_mark"
+         id="use519" />
+      <use
+         x="367.34"
+         y="201.637"
+         xlink:href="#Scatter_1_mark"
+         id="use521" />
+      <use
+         x="371.643"
+         y="201.486"
+         xlink:href="#Scatter_1_mark"
+         id="use523" />
+      <use
+         x="375.946"
+         y="202.641"
+         xlink:href="#Scatter_1_mark"
+         id="use525" />
+      <use
+         x="380.25"
+         y="205.835"
+         xlink:href="#Scatter_1_mark"
+         id="use527" />
+      <use
+         x="384.553"
+         y="209.24"
+         xlink:href="#Scatter_1_mark"
+         id="use529" />
+      <use
+         x="388.856"
+         y="215.733"
+         xlink:href="#Scatter_1_mark"
+         id="use531" />
+      <use
+         x="393.159"
+         y="231.301"
+         xlink:href="#Scatter_1_mark"
+         id="use533" />
+      <use
+         x="397.463"
+         y="261.174"
+         xlink:href="#Scatter_1_mark"
+         id="use535" />
+      <use
+         x="401.766"
+         y="338.932"
+         xlink:href="#Scatter_1_mark"
+         id="use537" />
+      <use
+         x="406.069"
+         y="422.66"
+         xlink:href="#Scatter_1_mark"
+         id="use539" />
+      <use
+         x="410.372"
+         y="388.734"
+         xlink:href="#Scatter_1_mark"
+         id="use541" />
+      <use
+         x="414.676"
+         y="391.158"
+         xlink:href="#Scatter_1_mark"
+         id="use543" />
+      <use
+         x="418.979"
+         y="347.689"
+         xlink:href="#Scatter_1_mark"
+         id="use545" />
+      <use
+         x="423.282"
+         y="303.056"
+         xlink:href="#Scatter_1_mark"
+         id="use547" />
+      <use
+         x="427.585"
+         y="291.127"
+         xlink:href="#Scatter_1_mark"
+         id="use549" />
+      <use
+         x="431.888"
+         y="290.958"
+         xlink:href="#Scatter_1_mark"
+         id="use551" />
+      <use
+         x="436.192"
+         y="287.706"
+         xlink:href="#Scatter_1_mark"
+         id="use553" />
+      <use
+         x="440.495"
+         y="286.466"
+         xlink:href="#Scatter_1_mark"
+         id="use555" />
+      <use
+         x="444.798"
+         y="278.137"
+         xlink:href="#Scatter_1_mark"
+         id="use557" />
+      <use
+         x="449.101"
+         y="270.984"
+         xlink:href="#Scatter_1_mark"
+         id="use559" />
+      <use
+         x="453.405"
+         y="266.291"
+         xlink:href="#Scatter_1_mark"
+         id="use561" />
+      <use
+         x="457.708"
+         y="266.256"
+         xlink:href="#Scatter_1_mark"
+         id="use563" />
+      <use
+         x="462.011"
+         y="272.853"
+         xlink:href="#Scatter_1_mark"
+         id="use565" />
+      <use
+         x="466.314"
+         y="283.969"
+         xlink:href="#Scatter_1_mark"
+         id="use567" />
+      <use
+         x="470.618"
+         y="275.054"
+         xlink:href="#Scatter_1_mark"
+         id="use569" />
+      <use
+         x="474.921"
+         y="274.714"
+         xlink:href="#Scatter_1_mark"
+         id="use571" />
+      <use
+         x="479.224"
+         y="285.89"
+         xlink:href="#Scatter_1_mark"
+         id="use573" />
+      <use
+         x="483.527"
+         y="306.066"
+         xlink:href="#Scatter_1_mark"
+         id="use575" />
+      <use
+         x="487.83"
+         y="329.602"
+         xlink:href="#Scatter_1_mark"
+         id="use577" />
+      <use
+         x="492.134"
+         y="365.886"
+         xlink:href="#Scatter_1_mark"
+         id="use579" />
+      <use
+         x="500.74"
+         y="508.634"
+         xlink:href="#Scatter_1_mark"
+         id="use581" />
+      <use
+         x="505.043"
+         y="638.403"
+         xlink:href="#Scatter_1_mark"
+         id="use583" />
+      <use
+         x="513.65"
+         y="658.782"
+         xlink:href="#Scatter_1_mark"
+         id="use585" />
+      <use
+         x="517.953"
+         y="664.959"
+         xlink:href="#Scatter_1_mark"
+         id="use587" />
+      <use
+         x="522.256"
+         y="612.32"
+         xlink:href="#Scatter_1_mark"
+         id="use589" />
+      <use
+         x="526.56"
+         y="615.871"
+         xlink:href="#Scatter_1_mark"
+         id="use591" />
+      <use
+         x="530.863"
+         y="618.692"
+         xlink:href="#Scatter_1_mark"
+         id="use593" />
+      <use
+         x="535.166"
+         y="613.482"
+         xlink:href="#Scatter_1_mark"
+         id="use595" />
+      <use
+         x="539.469"
+         y="605.413"
+         xlink:href="#Scatter_1_mark"
+         id="use597" />
+      <use
+         x="543.772"
+         y="577.024"
+         xlink:href="#Scatter_1_mark"
+         id="use599" />
+      <use
+         x="548.076"
+         y="540.595"
+         xlink:href="#Scatter_1_mark"
+         id="use601" />
+      <use
+         x="552.379"
+         y="562.933"
+         xlink:href="#Scatter_1_mark"
+         id="use603" />
+      <use
+         x="556.682"
+         y="531.246"
+         xlink:href="#Scatter_1_mark"
+         id="use605" />
+      <use
+         x="560.985"
+         y="477.346"
+         xlink:href="#Scatter_1_mark"
+         id="use607" />
+      <use
+         x="565.289"
+         y="427.313"
+         xlink:href="#Scatter_1_mark"
+         id="use609" />
+      <use
+         x="569.592"
+         y="403.887"
+         xlink:href="#Scatter_1_mark"
+         id="use611" />
+      <use
+         x="573.895"
+         y="388.183"
+         xlink:href="#Scatter_1_mark"
+         id="use613" />
+      <use
+         x="578.198"
+         y="376.385"
+         xlink:href="#Scatter_1_mark"
+         id="use615" />
+      <use
+         x="582.502"
+         y="368.349"
+         xlink:href="#Scatter_1_mark"
+         id="use617" />
+      <use
+         x="586.805"
+         y="363.201"
+         xlink:href="#Scatter_1_mark"
+         id="use619" />
+      <use
+         x="591.108"
+         y="361.44"
+         xlink:href="#Scatter_1_mark"
+         id="use621" />
+      <use
+         x="595.411"
+         y="365.753"
+         xlink:href="#Scatter_1_mark"
+         id="use623" />
+      <use
+         x="599.714"
+         y="365.137"
+         xlink:href="#Scatter_1_mark"
+         id="use625" />
+      <use
+         x="604.018"
+         y="360.072"
+         xlink:href="#Scatter_1_mark"
+         id="use627" />
+      <use
+         x="608.321"
+         y="361.614"
+         xlink:href="#Scatter_1_mark"
+         id="use629" />
+      <use
+         x="612.624"
+         y="360.344"
+         xlink:href="#Scatter_1_mark"
+         id="use631" />
+      <use
+         x="616.927"
+         y="354.832"
+         xlink:href="#Scatter_1_mark"
+         id="use633" />
+      <use
+         x="621.231"
+         y="353.548"
+         xlink:href="#Scatter_1_mark"
+         id="use635" />
+      <use
+         x="625.534"
+         y="357.012"
+         xlink:href="#Scatter_1_mark"
+         id="use637" />
+      <use
+         x="629.837"
+         y="356.982"
+         xlink:href="#Scatter_1_mark"
+         id="use639" />
+      <use
+         x="634.14"
+         y="356.01"
+         xlink:href="#Scatter_1_mark"
+         id="use641" />
+      <use
+         x="638.444"
+         y="357.967"
+         xlink:href="#Scatter_1_mark"
+         id="use643" />
+      <use
+         x="642.747"
+         y="359.331"
+         xlink:href="#Scatter_1_mark"
+         id="use645" />
+      <use
+         x="651.353"
+         y="367.388"
+         xlink:href="#Scatter_1_mark"
+         id="use647" />
+      <use
+         x="655.656"
+         y="373.57"
+         xlink:href="#Scatter_1_mark"
+         id="use649" />
+      <use
+         x="659.96"
+         y="380.822"
+         xlink:href="#Scatter_1_mark"
+         id="use651" />
+      <use
+         x="664.263"
+         y="390.279"
+         xlink:href="#Scatter_1_mark"
+         id="use653" />
+      <use
+         x="672.869"
+         y="407.331"
+         xlink:href="#Scatter_1_mark"
+         id="use655" />
+      <use
+         x="677.173"
+         y="421.816"
+         xlink:href="#Scatter_1_mark"
+         id="use657" />
+      <use
+         x="681.476"
+         y="446.807"
+         xlink:href="#Scatter_1_mark"
+         id="use659" />
+      <use
+         x="685.779"
+         y="480.694"
+         xlink:href="#Scatter_1_mark"
+         id="use661" />
+      <use
+         x="690.082"
+         y="522.815"
+         xlink:href="#Scatter_1_mark"
+         id="use663" />
+      <use
+         x="694.386"
+         y="597.735"
+         xlink:href="#Scatter_1_mark"
+         id="use665" />
+      <use
+         x="698.689"
+         y="642.099"
+         xlink:href="#Scatter_1_mark"
+         id="use667" />
+      <use
+         x="702.992"
+         y="623.832"
+         xlink:href="#Scatter_1_mark"
+         id="use669" />
+      <use
+         x="707.295"
+         y="621.626"
+         xlink:href="#Scatter_1_mark"
+         id="use671" />
+      <use
+         x="711.598"
+         y="629.171"
+         xlink:href="#Scatter_1_mark"
+         id="use673" />
+      <use
+         x="715.902"
+         y="631.065"
+         xlink:href="#Scatter_1_mark"
+         id="use675" />
+      <use
+         x="720.205"
+         y="676.885"
+         xlink:href="#Scatter_1_mark"
+         id="use677" />
+      <use
+         x="724.508"
+         y="681.812"
+         xlink:href="#Scatter_1_mark"
+         id="use679" />
+      <use
+         x="728.811"
+         y="706.673"
+         xlink:href="#Scatter_1_mark"
+         id="use681" />
+      <use
+         x="733.115"
+         y="707.777"
+         xlink:href="#Scatter_1_mark"
+         id="use683" />
+      <use
+         x="737.418"
+         y="715.053"
+         xlink:href="#Scatter_1_mark"
+         id="use685" />
+      <use
+         x="741.721"
+         y="726.104"
+         xlink:href="#Scatter_1_mark"
+         id="use687" />
+      <use
+         x="746.024"
+         y="841.632"
+         xlink:href="#Scatter_1_mark"
+         id="use689" />
+      <use
+         x="750.328"
+         y="847.5"
+         xlink:href="#Scatter_1_mark"
+         id="use691" />
+      <use
+         x="754.631"
+         y="706.541"
+         xlink:href="#Scatter_1_mark"
+         id="use693" />
+      <use
+         x="758.934"
+         y="704.672"
+         xlink:href="#Scatter_1_mark"
+         id="use695" />
+      <use
+         x="763.237"
+         y="749.111"
+         xlink:href="#Scatter_1_mark"
+         id="use697" />
+      <use
+         x="767.54"
+         y="622.141"
+         xlink:href="#Scatter_1_mark"
+         id="use699" />
+      <use
+         x="776.147"
+         y="573.092"
+         xlink:href="#Scatter_1_mark"
+         id="use701" />
+      <use
+         x="780.45"
+         y="705.274"
+         xlink:href="#Scatter_1_mark"
+         id="use703" />
+      <use
+         x="784.753"
+         y="671.743"
+         xlink:href="#Scatter_1_mark"
+         id="use705" />
+      <use
+         x="789.057"
+         y="546.423"
+         xlink:href="#Scatter_1_mark"
+         id="use707" />
+      <use
+         x="793.36"
+         y="505.458"
+         xlink:href="#Scatter_1_mark"
+         id="use709" />
+      <use
+         x="797.663"
+         y="513.912"
+         xlink:href="#Scatter_1_mark"
+         id="use711" />
+      <use
+         x="801.966"
+         y="541.713"
+         xlink:href="#Scatter_1_mark"
+         id="use713" />
+      <use
+         x="806.27"
+         y="527.244"
+         xlink:href="#Scatter_1_mark"
+         id="use715" />
+      <use
+         x="810.573"
+         y="506.087"
+         xlink:href="#Scatter_1_mark"
+         id="use717" />
+      <use
+         x="814.876"
+         y="494.217"
+         xlink:href="#Scatter_1_mark"
+         id="use719" />
+      <use
+         x="819.179"
+         y="488.532"
+         xlink:href="#Scatter_1_mark"
+         id="use721" />
+      <use
+         x="823.482"
+         y="482.77"
+         xlink:href="#Scatter_1_mark"
+         id="use723" />
+      <use
+         x="827.786"
+         y="481.301"
+         xlink:href="#Scatter_1_mark"
+         id="use725" />
+      <use
+         x="832.089"
+         y="481.442"
+         xlink:href="#Scatter_1_mark"
+         id="use727" />
+      <use
+         x="836.392"
+         y="477.027"
+         xlink:href="#Scatter_1_mark"
+         id="use729" />
+      <use
+         x="840.695"
+         y="474.18"
+         xlink:href="#Scatter_1_mark"
+         id="use731" />
+      <use
+         x="844.999"
+         y="480.067"
+         xlink:href="#Scatter_1_mark"
+         id="use733" />
+      <use
+         x="849.302"
+         y="488.278"
+         xlink:href="#Scatter_1_mark"
+         id="use735" />
+      <use
+         x="853.605"
+         y="487.685"
+         xlink:href="#Scatter_1_mark"
+         id="use737" />
+      <use
+         x="857.908"
+         y="486.332"
+         xlink:href="#Scatter_1_mark"
+         id="use739" />
+      <use
+         x="866.515"
+         y="492.77"
+         xlink:href="#Scatter_1_mark"
+         id="use741" />
+      <use
+         x="870.818"
+         y="487.948"
+         xlink:href="#Scatter_1_mark"
+         id="use743" />
+      <use
+         x="875.121"
+         y="487.992"
+         xlink:href="#Scatter_1_mark"
+         id="use745" />
+      <use
+         x="879.424"
+         y="490.758"
+         xlink:href="#Scatter_1_mark"
+         id="use747" />
+      <use
+         x="883.728"
+         y="496.998"
+         xlink:href="#Scatter_1_mark"
+         id="use749" />
+      <use
+         x="888.031"
+         y="501.041"
+         xlink:href="#Scatter_1_mark"
+         id="use751" />
+      <use
+         x="892.334"
+         y="500.477"
+         xlink:href="#Scatter_1_mark"
+         id="use753" />
+      <use
+         x="905.244"
+         y="520.193"
+         xlink:href="#Scatter_1_mark"
+         id="use755" />
+      <use
+         x="909.547"
+         y="515.047"
+         xlink:href="#Scatter_1_mark"
+         id="use757" />
+      <use
+         x="913.85"
+         y="526.773"
+         xlink:href="#Scatter_1_mark"
+         id="use759" />
+      <use
+         x="918.154"
+         y="525.292"
+         xlink:href="#Scatter_1_mark"
+         id="use761" />
+      <use
+         x="922.457"
+         y="533.425"
+         xlink:href="#Scatter_1_mark"
+         id="use763" />
+      <use
+         x="926.76"
+         y="555.893"
+         xlink:href="#Scatter_1_mark"
+         id="use765" />
+      <use
+         x="931.063"
+         y="555.516"
+         xlink:href="#Scatter_1_mark"
+         id="use767" />
+      <use
+         x="935.366"
+         y="560.284"
+         xlink:href="#Scatter_1_mark"
+         id="use769" />
+      <use
+         x="939.67"
+         y="576.986"
+         xlink:href="#Scatter_1_mark"
+         id="use771" />
+      <use
+         x="943.973"
+         y="597.079"
+         xlink:href="#Scatter_1_mark"
+         id="use773" />
+      <use
+         x="948.276"
+         y="583.426"
+         xlink:href="#Scatter_1_mark"
+         id="use775" />
+    </g>
+    <g
+       id="frame_0">
+      <rect
+         id="frame_0_border"
+         x="120"
+         y="50"
+         width="830"
+         height="870" />
+      <text
+         id="frame_0_bottomlabel"
+         font-size="30"
+         transform="translate(535, 989.6)"
+         text-anchor="middle"
+         dominant-baseline="middle"
+         stroke="none"
+         fill="black">wavelength [nm]</text>
+      <g
+         id="frame_0_bottomticks">
+        <path
+           d="M 268.974 920 L 268.974 910"
+           id="path781" />
+        <path
+           d="M 609.487 920 L 609.487 910"
+           id="path783" />
+        <path
+           d="M 311.538 920 L 311.538 910"
+           id="path785" />
+        <path
+           d="M 694.615 920 L 694.615 910"
+           id="path787" />
+        <path
+           d="M 737.179 920 L 737.179 910"
+           id="path789" />
+        <path
+           d="M 354.103 920 L 354.103 900"
+           id="path791" />
+        <text
+           font-size="30"
+           transform="translate(354.103, 950)"
+           text-anchor="middle"
+           dominant-baseline="middle"
+           stroke="none"
+           fill="black"
+           id="text793">1000</text>
+        <path
+           d="M 396.667 920 L 396.667 910"
+           id="path795" />
+        <path
+           d="M 141.282 920 L 141.282 900"
+           id="path797" />
+        <text
+           font-size="30"
+           transform="translate(141.282, 950)"
+           text-anchor="middle"
+           dominant-baseline="middle"
+           stroke="none"
+           fill="black"
+           id="text799">500</text>
+        <path
+           d="M 566.923 920 L 566.923 900"
+           id="path801" />
+        <text
+           font-size="30"
+           transform="translate(566.923, 950)"
+           text-anchor="middle"
+           dominant-baseline="middle"
+           stroke="none"
+           fill="black"
+           id="text803">1500</text>
+        <path
+           d="M 439.231 920 L 439.231 910"
+           id="path805" />
+        <path
+           d="M 524.359 920 L 524.359 910"
+           id="path807" />
+        <path
+           d="M 481.795 920 L 481.795 910"
+           id="path809" />
+        <path
+           d="M 907.436 920 L 907.436 910"
+           id="path811" />
+        <path
+           d="M 779.744 920 L 779.744 900"
+           id="path813" />
+        <text
+           font-size="30"
+           transform="translate(779.744, 950)"
+           text-anchor="middle"
+           dominant-baseline="middle"
+           stroke="none"
+           fill="black"
+           id="text815">2000</text>
+        <path
+           d="M 183.846 920 L 183.846 910"
+           id="path817" />
+        <path
+           d="M 652.051 920 L 652.051 910"
+           id="path819" />
+        <path
+           d="M 864.872 920 L 864.872 910"
+           id="path821" />
+        <path
+           d="M 226.41 920 L 226.41 910"
+           id="path823" />
+        <path
+           d="M 950 920 L 950 910"
+           id="path825" />
+        <path
+           d="M 822.308 920 L 822.308 910"
+           id="path827" />
+      </g>
+      <text
+         id="frame_0_leftlabel"
+         font-size="30"
+         transform="translate(37, 485) rotate(-90)"
+         text-anchor="middle"
+         dominant-baseline="middle"
+         stroke="none"
+         fill="black">log radiance [log W/m/m/sr/μm]</text>
+      <g
+         id="frame_0_leftticks">
+        <path
+           d="M 120 855.752 L 140 855.752"
+           id="path831" />
+        <text
+           font-size="30"
+           transform="translate(110, 865.752)"
+           text-anchor="end"
+           dominant-baseline="middle"
+           stroke="none"
+           fill="black"
+           id="text833">‒4</text>
+        <path
+           d="M 120 778.42 L 130 778.42"
+           id="path835" />
+        <path
+           d="M 120 701.087 L 140 701.087"
+           id="path837" />
+        <text
+           font-size="30"
+           transform="translate(110, 711.087)"
+           text-anchor="end"
+           dominant-baseline="middle"
+           stroke="none"
+           fill="black"
+           id="text839">‒2</text>
+        <path
+           d="M 120 623.755 L 130 623.755"
+           id="path841" />
+        <path
+           d="M 120 546.422 L 140 546.422"
+           id="path843" />
+        <text
+           font-size="30"
+           transform="translate(110, 556.422)"
+           text-anchor="end"
+           dominant-baseline="middle"
+           stroke="none"
+           fill="black"
+           id="text845">0</text>
+        <path
+           d="M 120 469.09 L 130 469.09"
+           id="path847" />
+        <path
+           d="M 120 391.757 L 140 391.757"
+           id="path849" />
+        <text
+           font-size="30"
+           transform="translate(110, 401.757)"
+           text-anchor="end"
+           dominant-baseline="middle"
+           stroke="none"
+           fill="black"
+           id="text851">2</text>
+        <path
+           d="M 120 314.425 L 130 314.425"
+           id="path853" />
+        <path
+           d="M 120 237.092 L 140 237.092"
+           id="path855" />
+        <text
+           font-size="30"
+           transform="translate(110, 247.092)"
+           text-anchor="end"
+           dominant-baseline="middle"
+           stroke="none"
+           fill="black"
+           id="text857">4</text>
+        <path
+           d="M 120 159.76 L 130 159.76"
+           id="path859" />
+        <path
+           d="M 120 82.4276 L 140 82.4276"
+           id="path861" />
+        <text
+           font-size="30"
+           transform="translate(110, 92.4276)"
+           text-anchor="end"
+           dominant-baseline="middle"
+           stroke="none"
+           fill="black"
+           id="text863">6</text>
+      </g>
+      <g
+         id="frame_0_topticks">
+        <path
+           d="M 268.974 50 L 268.974 60"
+           id="path866" />
+        <path
+           d="M 609.487 50 L 609.487 60"
+           id="path868" />
+        <path
+           d="M 311.538 50 L 311.538 60"
+           id="path870" />
+        <path
+           d="M 694.615 50 L 694.615 60"
+           id="path872" />
+        <path
+           d="M 737.179 50 L 737.179 60"
+           id="path874" />
+        <path
+           d="M 354.103 50 L 354.103 70"
+           id="path876" />
+        <path
+           d="M 396.667 50 L 396.667 60"
+           id="path878" />
+        <path
+           d="M 141.282 50 L 141.282 70"
+           id="path880" />
+        <path
+           d="M 566.923 50 L 566.923 70"
+           id="path882" />
+        <path
+           d="M 439.231 50 L 439.231 60"
+           id="path884" />
+        <path
+           d="M 524.359 50 L 524.359 60"
+           id="path886" />
+        <path
+           d="M 481.795 50 L 481.795 60"
+           id="path888" />
+        <path
+           d="M 907.436 50 L 907.436 60"
+           id="path890" />
+        <path
+           d="M 779.744 50 L 779.744 70"
+           id="path892" />
+        <path
+           d="M 183.846 50 L 183.846 60"
+           id="path894" />
+        <path
+           d="M 652.051 50 L 652.051 60"
+           id="path896" />
+        <path
+           d="M 864.872 50 L 864.872 60"
+           id="path898" />
+        <path
+           d="M 226.41 50 L 226.41 60"
+           id="path900" />
+        <path
+           d="M 950 50 L 950 60"
+           id="path902" />
+        <path
+           d="M 822.308 50 L 822.308 60"
+           id="path904" />
+      </g>
+      <g
+         id="frame_0_rightticks">
+        <path
+           d="M 950 855.752 L 930 855.752"
+           id="path907" />
+        <path
+           d="M 950 778.42 L 940 778.42"
+           id="path909" />
+        <path
+           d="M 950 701.087 L 930 701.087"
+           id="path911" />
+        <path
+           d="M 950 623.755 L 940 623.755"
+           id="path913" />
+        <path
+           d="M 950 546.422 L 930 546.422"
+           id="path915" />
+        <path
+           d="M 950 469.09 L 940 469.09"
+           id="path917" />
+        <path
+           d="M 950 391.757 L 930 391.757"
+           id="path919" />
+        <path
+           d="M 950 314.425 L 940 314.425"
+           id="path921" />
+        <path
+           d="M 950 237.092 L 930 237.092"
+           id="path923" />
+        <path
+           d="M 950 159.76 L 940 159.76"
+           id="path925" />
+        <path
+           d="M 950 82.4276 L 930 82.4276"
+           id="path927" />
+      </g>
+    </g>
+    <g
+       id="Legend_0">
+      <rect
+         x="452"
+         y="50"
+         width="498"
+         height="115"
+         stroke-width="3"
+         stroke-dasharray=""
+         stroke="black"
+         stroke-opacity="1"
+         fill="white"
+         fill-opacity="1"
+         id="rect930" />
+      <g
+         id="Legend_0_content"
+         clip-path="url(#Legend_0_clip)">
+        <line
+           x1="478.55"
+           y1="74.5"
+           x2="531.05"
+           y2="74.5"
+           stroke-width="3"
+           stroke-dasharray=""
+           stroke="black"
+           stroke-opacity="1"
+           id="line933" />
+        <use
+           x="504.79999"
+           y="71.875"
+           xlink:href="#Legend_0_mark_0"
+           id="use935"
+           transform="translate(0,2)"
+           width="1000"
+           height="1000" />
+        <text
+           font-size="30"
+           transform="translate(557.6, 85)"
+           text-anchor="start"
+           dominant-baseline="middle"
+           stroke="none"
+           fill="black"
+           id="text937">salt of Lake Frome</text>
+        <line
+           x1="478.55"
+           y1="109.5"
+           x2="531.05"
+           y2="109.5"
+           stroke-width="3"
+           stroke-dasharray=""
+           stroke="red"
+           stroke-opacity="1"
+           id="line939" />
+        <use
+           x="504.79999"
+           y="106.875"
+           xlink:href="#Legend_0_mark_1"
+           id="use941"
+           transform="translate(0,2)"
+           width="1000"
+           height="1000" />
+        <text
+           font-size="30"
+           transform="translate(557.6, 120)"
+           text-anchor="start"
+           dominant-baseline="middle"
+           stroke="none"
+           fill="black"
+           id="text943">salt in Atacama Desert</text>
+        <rect
+           x="478.55"
+           y="128.75"
+           width="52.5"
+           height="26.25"
+           stroke-width="3"
+           stroke-dasharray="3.0 3.0"
+           stroke="grey"
+           stroke-opacity="1"
+           fill="lightgrey"
+           fill-opacity="1"
+           id="rect945" />
+        <text
+           font-size="30"
+           transform="translate(557.6, 155)"
+           text-anchor="start"
+           dominant-baseline="middle"
+           stroke="none"
+           fill="black"
+           id="text947">excluded bands</text>
+      </g>
+    </g>
+    <text
+       y="354.86966"
+       x="852.76923"
+       style="font-size:30px;text-anchor:middle;fill:none;stroke:#000000;stroke-width:2.5;stroke-linejoin:miter"
+       font-size="30"
+       dominant-baseline="middle"
+       id="text947-5">
+      <tspan
+         style="font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+         id="tspan4261">CO<tspan
+   style="font-size:65.00091553%;baseline-shift:sub"
+   id="tspan4263">2</tspan>
+ line</tspan>
+    </text>
+  </g>
+</svg>
