@@ -1,0 +1,203 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>OpenLayers Map Controls Example</title>
+
+        <link rel="stylesheet" href="../theme/default/style.css" type="text/css" />
+        <!--  <link rel="stylesheet" href="style.css" type="text/css" /> -->
+        <script src="./lib/OpenLayers.js"></script>
+        <script type="text/javascript">
+            var map;
+            function init(){
+                map = new OpenLayers.Map('map', {
+                    controls: [
+                        new OpenLayers.Control.Navigation(),
+                        new OpenLayers.Control.PanZoomBar(),
+                        new OpenLayers.Control.LayerSwitcher({'ascending':false}),
+                        new OpenLayers.Control.Permalink(),
+                        new OpenLayers.Control.ScaleLine(),
+                        new OpenLayers.Control.Permalink('permalink'),
+                        new OpenLayers.Control.MousePosition(),
+                        new OpenLayers.Control.OverviewMap(),
+                        new OpenLayers.Control.KeyboardDefaults()
+                    ],
+                    numZoomLevels: 18,
+                    allOverlays: true
+                    
+                });
+    			map.tileSize.w = 512;
+    			map.tileSize.h = 256;
+
+				var nasa = new OpenLayers.Layer.WMS(
+                        "Image set Nasa World - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'world', styles: 'world', format: 'image/png'}
+                );
+    			
+                var ol_wms = new OpenLayers.Layer.WMS(
+                    "OpenLayers WMS",
+                    "http://labs.metacarta.com/wms/vmap0",
+                    {layers: 'basic'} );
+                var jpl_wms = new OpenLayers.Layer.WMS(
+                    "NASA Global Mosaic",
+                    "http://t1.hypercube.telascience.org/cgi-bin/landsat7", 
+                    {layers: "landsat7"});
+
+                var dm_wms = new OpenLayers.Layer.WMS(
+                    "DM Solutions Demo",
+                    "http://www2.dmsolutions.ca/cgi-bin/mswms_gmap",
+                    {layers: "bathymetry,land_fn,park,drain_fn,drainage," +
+                             "prov_bound,fedlimit,rail,road,popplace",
+                     transparent: "false", format: "image/png" });
+				var eo1021 = new OpenLayers.Layer.WMS(
+                        "EO1 - 021 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '021', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1019 = new OpenLayers.Layer.WMS(
+                        "EO1 - 019 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '019', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+                
+				var eo1018 = new OpenLayers.Layer.WMS(
+                        "EO1 - 018 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '018', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+
+				var eo1017 = new OpenLayers.Layer.WMS(
+                        "EO1 - 017 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '017', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1016 = new OpenLayers.Layer.WMS(
+                        "EO1 - 016 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '016', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1015 = new OpenLayers.Layer.WMS(
+                        "EO1 - 015 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '2011-015', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1014 = new OpenLayers.Layer.WMS(
+                        "EO1 - 014 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '2011-014', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1013 = new OpenLayers.Layer.WMS(
+                        "EO1 - 013 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '2011-013', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1012 = new OpenLayers.Layer.WMS(
+                        "EO1 - 012 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '2011-012', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1011 = new OpenLayers.Layer.WMS(
+                        "EO1 - 011 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '2011-011', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1010 = new OpenLayers.Layer.WMS(
+                        "EO1 - 010 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '2011-010', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1009 = new OpenLayers.Layer.WMS(
+                        "EO1 - 009 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '009', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1008 = new OpenLayers.Layer.WMS(
+                        "EO1 - 008 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '2011-008', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1007 = new OpenLayers.Layer.WMS(
+                        "EO1 - 007 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '2011-007', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1006 = new OpenLayers.Layer.WMS(
+                        "EO1 - 006 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '2011-006', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1005 = new OpenLayers.Layer.WMS(
+                        "EO1 - 005 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '2011-005', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1004 = new OpenLayers.Layer.WMS(
+                        "EO1 - 004 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '2011-004', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1003 = new OpenLayers.Layer.WMS(
+                        "EO1 - 003 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '2011-003', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1002 = new OpenLayers.Layer.WMS(
+                        "EO1 - 002 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '2011-002', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+				var eo1001 = new OpenLayers.Layer.WMS(
+                        "EO1 - 001 - HBase",
+                        "http://matsu.opencloudconsortium.org:3080/MatsuWMS/MatsuWMS?",
+                        {layers: 'eo1', styles: '2011-001', format: 'image/png', transparent: "false", isBaseLayer: "false"}
+                );
+                
+				
+
+                ol_wms.setVisibility(true);
+
+				jpl_wms.setVisibility(false);
+                dm_wms.setVisibility(false);
+                eo1021.setVisibility(false);
+                eo1019.setVisibility(false);
+                eo1018.setVisibility(false);
+                eo1017.setVisibility(false);
+                eo1016.setVisibility(false);
+                eo1015.setVisibility(false);
+                eo1014.setVisibility(false);
+                eo1013.setVisibility(false);
+                eo1012.setVisibility(false);
+                eo1011.setVisibility(false);
+                eo1010.setVisibility(false);
+                eo1009.setVisibility(false);
+                eo1008.setVisibility(false);
+                eo1007.setVisibility(false);
+                eo1006.setVisibility(false);
+                eo1005.setVisibility(false);
+                eo1004.setVisibility(false);
+                eo1003.setVisibility(false);
+                eo1002.setVisibility(false);
+                eo1001.setVisibility(false);
+                nasa.setVisibility(false);
+                
+                map.addLayers([nasa, ol_wms, jpl_wms, dm_wms, eo1021, eo1019, eo1018, eo1017, eo1016, eo1015, eo1014, eo1013, eo1012, eo1011, eo1010, eo1009, eo1008, eo1007, eo1006, eo1005, eo1004, eo1003, eo1002, eo1001]);
+                if (!map.getCenter()) map.zoomToMaxExtent();
+            }
+        </script>
+
+    </head>
+    <body onload="init()">
+        <h1 id="title">Map Controls Example</h1>
+
+        <div id="tags">
+        </div>
+
+        <p id="shortdesc">
+            Attach zooming, panning, layer switcher, overview map, and permalink map controls to an OpenLayers window.
+        </p>
+
+        <a style="float:right" href="" id="permalink">Permalink</a>
+        <div id="map" class="smallmap"></div>
+
+        <div id="docs"></div>
+    </body>
+</html>

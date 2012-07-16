@@ -1,0 +1,33 @@
+<html>
+<head>
+<script src="http://openlayers.org/api/OpenLayers.js"></script>
+<script type="text/javascript">
+ 
+var map;
+
+// "EPSG:4326", "EPSG:3785", or "EPSG:54009"
+// EPSG:4326 is the only one that works.
+// We don't actually do anything with this right now -- just set
+// it to be null
+
+function init() {
+    map = new OpenLayers.Map('map', {tileSize: "512,256"});
+    map.tileSize.w = 512;
+    map.tileSize.h = 256;
+    var wms = new OpenLayers.Layer.WMS(
+            "OpenLayers WMS",
+            "http://209.242.64.99:6365/MatsuWMS/MatsuWMS?",
+            {layers: 'TileLayer1', styles: 'TileStyle1'}
+        );
+
+ 
+    map.addLayer(wms);
+    map.zoomToMaxExtent();
+}
+ 
+</script>
+</head>
+ 
+<body onload="init()">
+<div id="map" style="width: 100%; height: 100%"></div>
+</body>

@@ -1,0 +1,97 @@
+<!--
+
+    Buildfile for OCC WMS for implementing a small WMS
+    Type 'ant' on the command line in this directory to creat the war for running this WMS
+
+-->
+
+
+<project basedir="." name="MatsuWMS" default="war">
+    <property environment="env"/>
+
+    <property name="bindir" value="${basedir}/bindir/"/>
+    <property name="srcdir" value="${basedir}/src/"/>
+    <property name="content" value="WebContent"/>
+    <property name="libdir" value="${basedir}/${content}/WEB-INF/lib/"/>
+    <property name="builddir" value="${basedir}/builddir"/>
+
+    <property name="deploydir" value="${basedir}/deploy"/>
+    <property name="releasewar" value="MatsuWMS.war"/>
+
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="source" value="1.6"/>
+    <property name="target" value="1.6"/>
+
+    <property name="openmap.jar" value="${basedir}/${content}/WEB-INF/lib/openmap.jar"/>
+    <property name="log4j.jar" value="${basedir}/${content}/WEB-INF/lib/log4j-1.2.15.jar"/>
+
+    <path id="external.classpath">
+        <pathelement location="${bindir}/classes"/>
+        <fileset dir="${env.CATALINA_HOME}/lib">
+             <include name="*.jar"/>
+         </fileset>
+        <pathelement location="${openmap.jar}"/>
+        <pathelement location="WebContent/WEB-INF/lib/log4j-1.2.15.jar"/>
+    </path>
+
+    <target name="clean">
+        <delete dir="${bindir}/classes"/>
+        <delete dir="${builddir}/classes"/>
+        <delete dir="${bindir}"/>
+        <delete dir="${builddir}"/>
+    </target>
+    <target  name="cleanall" depends="clean"/>
+
+    <target name="compile">
+        <mkdir dir="${bindir}"/>
+        <mkdir dir="${bindir}/classes"/>
+        <mkdir dir="${builddir}"/>
+        <mkdir dir="${builddir}/classes"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="${builddir}/classes" source="${source}" target="${target}">
+            <exclude name="${basedir}/test/*"/>
+            <classpath refid="external.classpath"/>
+            <src path="${srcdir}"/>
+            <classpath>
+                <fileset dir="${libdir}">
+                    <include name="*.jar"/>
+                </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+
+    <target name="init" depends="compile">
+        <copy includeemptydirs="false" todir="${bindir}/classes">
+            <fileset dir="${srcdir}">
+                <exclude name="**/*.launch"/>
+                <exclude name="**/*.java"/>
+                <exclude name="**/*.orig"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="war" depends="clean,compile,init,unjar openmap">
+        <delete file="${deploydir}/${releasewar}"/>
+        <mkdir dir="${deploydir}"/>
+        <copydir src="${builddir}/" dest="${content}/WEB-INF/">
+            <exclude name="*.war"/>
+        </copydir>
+        <delete file="${content}/WEB-INF/*.war"/>
+        <war destfile="${deploydir}/${releasewar}" webxml="${content}/WEB-INF/web.xml">
+            <lib dir="${content}/WEB-INF/lib"/>
+            <fileset dir="${content}"/>
+        </war>
+        <delete dir="${content}/WEB-INF/classes/org"/>
+        <delete dir="${content}/WEB-INF/*.war"/>
+    </target>
+
+    <target name="unjar openmap">
+        <unjar src="${openmap.jar}"
+               dest="${bindir}">
+                <patternset>
+                    <exclude name="**/META-INF/"/>
+                </patternset>
+        </unjar>
+    </target>
+
+</project>
