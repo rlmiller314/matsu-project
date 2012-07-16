@@ -33,3 +33,20 @@ draw(Overlay(3,
              ), fileName="spectra.svg")
 
 
+##############
+
+xvalues = [x[1] for x in atacama if 183 <= x[0] <= 189 and not 185 <= x[0] <= 186]
+yvalues = [x[2] for x in atacama if 183 <= x[0] <= 189 and not 185 <= x[0] <= 186]
+
+intercept, intercept_error, slope, slope_error = linearfit(xvalues, yvalues)
+
+xvalues = [x[1] for x in atacama if 183 <= x[0] <= 189]
+yvalues = [x[2] for x in atacama if 183 <= x[0] <= 189]
+
+linear = Curve("a + b*x", 1970, 2040, parameters={"a": intercept, "b": slope}, linestyle="dashed")
+data = Scatter(x=xvalues, y=yvalues, connector="unsorted", markersize=1.25, markeroutline="white", xlabel="wavelength [nm]", ylabel=u"log radiance [log W/m/m/sr/\u03bcm]")
+
+legend = Legend([[linear, "fit to background"], [data, "data"]], anchor="tl", x=0, colwid=[0.3, 0.7])
+draw(Overlay(1, linear, data, legend), fileName="/tmp/sideband_subtraction.svg")
+
+
