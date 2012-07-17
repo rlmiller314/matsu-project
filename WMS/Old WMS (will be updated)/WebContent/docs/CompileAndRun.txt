@@ -1,0 +1,20 @@
+In order to get this WMS up and running, you will need to do a few things.
+
+1) Know the directories of your source data.
+
+2) Edit the WEB-INF/MatsuWMSConfig.xml to point to your data with unique layernames
+and stylenames.
+
+3) In the directory of the project, type ant to build the project.  This will result in
+a file in the deploy directory called MatsuWMS.war.
+
+4) There are a couple examples of web pages in overlay.html and multilayer.html.  Open
+these and look inside to see how to add layers and where to get layers from.  The key
+is to point to your local ip of this WMS for images from this WMS.  The layernames
+and stylenames in the MatsuWMS.war need to show up in one of these files.
+
+5) Put the MatsuWMS.war file in the webapps directory of tomcat and startup tomcat.
+Now, point a browser to
+http://yourip/MatsuWMS/overlay.html
+
+If you are seeing images, good!

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OCCWMSConfig>
+	<debugInfo>true</debugInfo>
+    <wmsentry>
+		<layername>world</layername>
+        <stylename>world</stylename>
+		<zookeepers>192.168.18.101:2181</zookeepers>
+        <!--<zookeeperport>2181</zookeeperport>-->
+    </wmsentry>
+    <wmsentry>
+		<layername>TileLayer1</layername>
+        <stylename>TileStyle1</stylename>
+        <bounds>-180_-90_180_90</bounds>
+		<zookeepers>192.168.18.101:2181</zookeepers>
+        <!--<zookeeperport>2181</zookeeperport>-->
+    </wmsentry>
+    <wmsentry>
+		<layername>eo1</layername>
+        <stylename>021</stylename>
+		<zookeepers>192.168.18.101:2181</zookeepers>
+        <!--<zookeeperport>2181</zookeeperport>-->
+    </wmsentry>
+	
+</OCCWMSConfig>

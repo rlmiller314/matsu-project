@@ -1,0 +1,43 @@
+Here is a document describing what is required for images to be displayed from my running map server.
+
+For your output data to work with my WMS (remember this is very preliminary WMS code) it needs to adhere to a global tiling of the world.  I am working from Plate Carree projection.  Plate Carree is flat and rectangular.  The "0" zoom level has 1 bounding box with minx = -180.0, miny = -90.0, maxx = 180.0, and maxy = 90.0.  Zoom level 1 cuts the bounds of zoom level 0 into 4 boxes (1 cut vertically and 1 cut horizontally):
+
+minx  miny  maxx  maxy
+-180  -90    0         0
+-180  0       0         90
+0       -90    180     0
+0       0       180     90
+
+For every higher zoom level, the bounding boxes of the previous level is cut vertically and horizontally.  So, for every zoom level increase, there is a 4x in the number of images (from zoom level 1 with 4 images goes to zoom level 2 with 16 images).  In my scheme, all images are 512x256.  This is the size I have chosen right now.  Later we can work on file sizes and different projections.
+
+Next, there are 3 items that are needed for a set of imagery to be displayed through the map server.
+1) Layer name - this is simply a unique string (no spaces or special characters at this time).  For example: GuLayer1
+2) Style name - this is simply a unique string (no spaces or special characters at this time).  For example: GuStyle1
+
+The pairing of layer name and style name are actually the unique identifiers for a set of imagery but since the WMS I have is in its very early stages, I need layer and style names all to be unique.
+
+3) Top level directory of images.  This is where the most work is done.  For this example, let's say that the directory is: /data/guSet1/
+Now, under the directory /data/guSet1/ there should be a set of directories.  Each of these directories is named after the minimum longitude (minx) of images.  So, for a set of images that cover the world from zoom level 1 to 4 there will be directories named:
+/data/guSet1/-180.0/
+/data/guSet1/-157.5/
+/data/guSet1/-135.0/
+/data/guSet1/-112.5/
+/data/guSet1/-90.0/
+...
+/data/guSet1/0.0/
+/data/guSet1/22.5/
+...
+/data/guSet1/157.5/
+Under each of these directories are the images that share the minimum x value. The name of the images are of the format:
+minx_miny_maxx_maxy_widthxheight.png
+For example:
+-45.0_-11.25_-22.5_0.0_512x256.png
+The above named example would be in the /data/guSet1/-45.0/ directory.
+
+Right now, I have code that works with this structure of file names and directories.  I have provided an interface to for programmers to program against to make their own data interpreters.  But for now, seeing how time is getting very short, you can use what I have already working.  The map server will read in the layer/style/boundingbox from the WMS GetMap request of the client and look to the directory in question.
+
+I will follow this email up with more information on how you can get this working on with the download of the WMS on your side after I have uploaded the code for the WMS.
+
+Please let me know if you have any questions.
+
+andrew

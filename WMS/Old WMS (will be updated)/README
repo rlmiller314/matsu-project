@@ -1,0 +1,89 @@
+WMS README
+==========
+
+TODO
+----
+
+Everything works, but the web page is ugly.
+Relative paths below are relative to this file location.
+
+
+IMPORTANT NOTES BEFORE COMPILING MATSU-WMS
+------------------------------------------
+
+    1. You need to get the current jar libraries from the directory
+        ../matsu-project/java-image-processing/
+        (inside of there, do:)
+        ant matsu-accumulo-jar
+        ant matsu-coords-jar
+
+    2. Move the two jars that were created into the directory
+        ./WebContent/WEB-INF/lib
+
+    3. You have to have Tomcat installed and the environment
+        variable 'CATALINA_HOME' set, because it is used for
+        paths to libraries in the compile.
+        in my .bashrc::
+
+            CATALINA_HOME=/usr/share/tomcat6
+            export CATALINA_HOME
+
+        (by the way, here is how you start tomcat:)
+        sudo /etc/init.d/tomcat6 start
+
+    4. OK you can compile.
+
+        ant
+
+    5. And it creates
+        ./deploy/MatsuWMS.war
+        
+    
+Configuring the web page
+------------------------
+
+    There are three files that have to change:
+
+    1. Your webpage, where you define the URL of the
+        WMS, e.g.  ./WebContent/tanya.html
+
+        var wms = new OpenLayers.Layer.WMS(
+                "OpenLayers WMS",
+                "http://209.242.64.99:6365/MatsuWMS/MatsuWMS?",
+                {layers: 'TileLayer1', styles: 'TileStyle1'}
+            );
+
+
+    2. Your web.xml where you say which config file
+        you are using: ./WebContent/WEB-INF/web.xml
+
+          <init-param>
+            <param-name>config.path</param-name>
+            <param-value>WEB-INF/MatsuWMSConfig.xml</param-value>
+          </init-param>
+
+    3. That config file itself, to say what images are
+        supposed to be available where: ./WebContent/WEB-INF/WmatsuWMSConfig.xml
+
+Deploying
+---------
+Deploy a new Jar for the first time
+http://209.242.64.99:6365/manager/deploy?path=/MatsuWMS&war=file:/home/export/tanya/matsu_with_pipes/matsu-wms/deploy/MatsuWMS.war
+
+Stop
+http://209.242.64.99:6365/manager/stop?path=/MatsuWMS
+
+Redeploy it if it was stopped
+http://209.242.64.99:6365/manager/deploy?path=/MatsuWMS&tag=MatsuWMS
+
+update a newly compiled version of the cgi once it's stopped
+http://209.242.64.99:6365/manager/deploy?path=/MatsuWMS&war=file:/home/export/tanya/matsu_with_pipes/matsu-wms/deploy/MatsuWMS.war&update=true
+
+Undeploy
+http://209.242.64.99:6365/manager/undeploy?path=/MatsuWMS
+
+
+And you can look at it at:
+http://209.242.64.99:6365/MatsuWMS/index.html   // interfaces with an external WMS
+http://209.242.64.99:6365/MatsuWMS/tanya.html   // interfaces with our WMS
+

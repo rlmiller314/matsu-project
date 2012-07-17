@@ -1,0 +1,61 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>OpenLayers Example</title>
+    <link rel="stylesheet" href="/theme/default/style.css" type="text/css" />
+    <!--  <link rel="stylesheet" href="style.css" type="text/css" /> -->
+    <script src="./lib/OpenLayers.js"></script>
+    <script type="text/javascript"><!--
+        // making this a global variable so that it is accessible for
+        // debugging/inspecting in Firebug
+        var map = null;
+
+        function init(){
+
+            map = new OpenLayers.Map('map', {projection:"EPSG:4326", numZoomLevels: 20});
+	        //OpenLayers.Util.precision = 16;
+            OpenLayers.Util.DEFAULT_PRECISION = 16;
+            map.tileSize.w = 512;
+            map.tileSize.h = 256;
+
+                        var haiti = new OpenLayers.Layer.WMS(
+                                        "Image set World - HBase",
+                                        "http://localhost:8080/MatsuWMS/MatsuWMS?",
+                                        {layers: 'haiti2', styles: 'ge1-16', format: 'image/png'}
+                                );
+
+                        var world = new OpenLayers.Layer.WMS(
+                                        "Image set World - HBase",
+                                        "http://localhost:8080/MatsuWMS/MatsuWMS?",
+                                        {layers: 'world', styles: 'world', format: 'image/png'}
+                                );
+                        var worldfab = new OpenLayers.Layer.WMS(
+                                        "Image set World Fabricated - HBase",
+                                        "http://localhost:8080/MatsuWMS/MatsuWMS?",
+                                        {layers: 'world', styles: 'worldfab', format: 'image/png'}
+                                );
+                        var delta = new OpenLayers.Layer.WMS(
+                                        "Delta set from World Fabricated - HBase",
+                                        "http://localhost:8080/MatsuWMS/MatsuWMS?",
+                                        {layers: 'delta', styles: 'delta', format: 'image/png'}
+                                );
+            
+            //map.addLayers([ol_wms, jpl_wms, dm_wms]);
+            map.addLayers([haiti, world, worldfab, delta]);
+            map.addControl(new OpenLayers.Control.LayerSwitcher());
+            //map.zoomToMaxExtent();
+            map.setCenter(new OpenLayers.LonLat(-72.333984375,18.643798828125), 15);
+        }
+    --></script>
+  </head>
+
+  <body onload="init()">
+    <h1 id="title">OpenLayers Example</h1>
+    <div id="tags"></div>
+    <p id="shortdesc">
+        Demonstrate a simple map with an overlay that includes layer switching controls.
+    </p>
+    <div id="map" class="smallmap"></div>
+    <div id="docs"></div>
+  </body>
+
+</html>

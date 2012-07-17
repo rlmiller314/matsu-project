@@ -1,0 +1,31 @@
+<html>
+<head>
+<script src="http://openlayers.org/api/OpenLayers.js"></script>
+<script type="text/javascript">
+ 
+var map;
+
+// "EPSG:4326", "EPSG:3785", or "EPSG:54009"
+
+function init() {
+	map = new OpenLayers.Map('map', {projection:"EPSG:4326"}, {tileSize: "512,256"});
+	map.tileSize.w = 512;
+	map.tileSize.h = 256;
+	var wms = new OpenLayers.Layer.WMS(
+			"OpenLayers WMS",
+			"http://192.168.2.130:8080/OCCWMS/OCCWMS?",
+			{layers: 'TileLayer1', styles: 'TileStyle1', format: 'image/png'}
+		);
+	
+ 
+	map.addLayers([wms]);
+	// map.setCenter(new OpenLayers.LonLat(17.99,59.3),10);
+	map.setCenter(new OpenLayers.LonLat(0, 30),7);
+}
+ 
+</script>
+</head>
+ 
+<body onload="init()">
+<div id="map" style="width: 100%; height: 100%"></div>
+</body>
