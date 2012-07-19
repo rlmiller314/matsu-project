@@ -90,4 +90,23 @@ public class WriteToAccumulo {
     public void sayhello() {
 	System.out.println("Why, hello there.");
     }
+
+    public static void testInput(byte s[]) {
+	System.out.print(">");
+	for (int i = 0;  i < 256;  i++) {
+	    System.out.print(s[i]);
+	    System.out.print(" ");
+	}
+	System.out.println("<");
+    }
+
+    public static byte[] testOutput() {
+	byte s[] = new byte[256];
+
+	for (int i = 0;  i < 256;  i++) {
+	    s[i] = (byte)(i);
+	}
+
+	return s;
+    }
 }

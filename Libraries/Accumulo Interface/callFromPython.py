@@ -12,4 +12,7 @@ WriteToAccumulo.read()
 t = WriteToAccumulo()
 t.sayhello()
 
+WriteToAccumulo.testInput(jpype.JArray(jpype.JByte, 1)("".join(chr(i) for i in xrange(256))))
+print ">" + str([i for i in WriteToAccumulo.testOutput()]) + "<"
+
 jpype.shutdownJVM()
