@@ -28,7 +28,7 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 
 public class WriteToAccumulo {
 
-    static String tableName = "quicktest8";
+    static String tableName = "quicktest9";
 
     public static void write() throws AccumuloException, AccumuloSecurityException, TableNotFoundException, MutationsRejectedException, TableExistsException {
 	Instance zookeeper = new ZooKeeperInstance("accumulo", "192.168.18.101:2181");
@@ -85,5 +85,9 @@ public class WriteToAccumulo {
     public static void main(String argv[]) throws AccumuloException, AccumuloSecurityException, TableNotFoundException, MutationsRejectedException, TableExistsException {
 	write();
 	read();
+    }
+
+    public void sayhello() {
+	System.out.println("Why, hello there.");
     }
 }
