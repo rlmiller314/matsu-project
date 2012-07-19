@@ -69,7 +69,7 @@ cd ..
 wget http://effbot.org/downloads/Imaging-1.1.7.tar.gz
 tar -xzvf Imaging-1.1.7.tar.gz
 cd Imaging-1.1.7
-sed 's/^ZLIB_ROOT = None$/ZLIB_ROOT = "/usr/lib64", "/usr/include"/' < setup.py > /tmp/TMP
+sed 's/^ZLIB_ROOT = None$/ZLIB_ROOT = "\/usr\/lib64", "\/usr\/include"/' < setup.py > /tmp/TMP
 cp -f /tmp/TMP setup.py
 python setup.py install --home=$IMAGELIBRARY_DIRECTORY
 cd ..
