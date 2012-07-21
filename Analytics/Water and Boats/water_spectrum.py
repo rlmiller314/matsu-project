@@ -230,21 +230,19 @@ for band in sampleBands:
 plots = {}
 for i in xrange(len(sampleBands)):
     for j in xrange(i+1, len(sampleBands)):
-        watery = zip(images[sampleBands[i]][masks["pure-water"]], images[sampleBands[j]][masks["pure-water"]])
-        wake = zip(images[sampleBands[i]][masks["wake-tight"]], images[sampleBands[j]][masks["wake-tight"]])
-        clouds = zip(images[sampleBands[i]][masks["clouds-tight"]], images[sampleBands[j]][masks["clouds-tight"]])
+        watery = zip(numpy.log(images[sampleBands[i]][masks["pure-water"]] + 1e-10), numpy.log(images[sampleBands[j]][masks["pure-water"]] + 1e-10))
+        wake = zip(numpy.log(images[sampleBands[i]][masks["wake-tight"]] + 1e-10), numpy.log(images[sampleBands[j]][masks["wake-tight"]] + 1e-10))
+        clouds = zip(numpy.log(images[sampleBands[i]][masks["clouds-tight"]] + 1e-10), numpy.log(images[sampleBands[j]][masks["clouds-tight"]] + 1e-10))
 
         waterplot = Scatter(watery, sig=["x", "y"], limit=1000, markercolor="blue")
         wakeplot = Scatter(wake, sig=["x", "y"], limit=1000, markercolor="black")
         cloudsplot = Scatter(clouds, sig=["x", "y"], limit=1000, markercolor="red")
 
-        plots[i,j] = Overlay(waterplot, wakeplot, cloudsplot, xlabel="band %d" % sampleBands[i], ylabel="band %d" % sampleBands[j], bottommargin=0.2, xlabeloffset=0.2, leftmargin=0.2, ylabeloffset=-0.15)
+        plots[i,j] = Overlay(waterplot, wakeplot, cloudsplot, xlabel="log(band %d)" % sampleBands[i], ylabel="log(band %d)" % sampleBands[j], bottommargin=0.2, xlabeloffset=0.2, leftmargin=0.2, ylabeloffset=-0.15, xmin=-5., ymin=-5., xmax=6., ymax=6.)
 
 view(Layout(5, 5,
             None,       None,       None,       None,       plots[0,1],
             None,       None,       None,       plots[1,2], plots[0,2],
             None,       None,       plots[2,3], plots[1,3], plots[0,3],
             None,       plots[3,4], plots[2,4], plots[1,4], plots[0,4],
-            plots[4,5], plots[3,5], plots[2,5], plots[1,5], plots[0,5]), width=2500, height=2500, fileName="plot_6x6grid.svg")
-
-
+            plots[4,5], plots[3,5], plots[2,5], plots[1,5], plots[0,5]), width=2500, height=2500, fileName="plot_log6x6grid.svg")
