@@ -219,30 +219,130 @@ view(Overlay(*([Grid(vert=map(wavelength, sampleBands))] + [Scatter(x=map(wavele
 
 #####################################################################################
 
-images = {}
-for band in sampleBands:
-    images[band] = gdal.Open(glob.glob(inputDir + "/*_B%03d_L1T.TIF" % band)[0], gdalconst.GA_ReadOnly)
+original_images = {}
+for i, band in enumerate(sampleBands):
+    original_images[band] = gdal.Open(glob.glob(inputDir + "/*_B%03d_L1T.TIF" % band)[0], gdalconst.GA_ReadOnly)
     if band < 70.5:
-        images[band] = images[band].GetRasterBand(1).ReadAsArray()[2200:2800,197:358] / 40.
+        original_images[band] = original_images[band].GetRasterBand(1).ReadAsArray()[2200:2800,197:358] / 40.
     else:
-        images[band] = images[band].GetRasterBand(1).ReadAsArray()[2200:2800,197:358] / 80.
+        original_images[band] = original_images[band].GetRasterBand(1).ReadAsArray()[2200:2800,197:358] / 80.
+
+images = numpy.dstack([original_images[sampleBands[i]] for i in xrange(len(sampleBands))])
+del original_images
 
 plots = {}
+logplots = {}
 for i in xrange(len(sampleBands)):
     for j in xrange(i+1, len(sampleBands)):
-        watery = zip(numpy.log(images[sampleBands[i]][masks["pure-water"]] + 1e-10), numpy.log(images[sampleBands[j]][masks["pure-water"]] + 1e-10))
-        wake = zip(numpy.log(images[sampleBands[i]][masks["wake-tight"]] + 1e-10), numpy.log(images[sampleBands[j]][masks["wake-tight"]] + 1e-10))
-        clouds = zip(numpy.log(images[sampleBands[i]][masks["clouds-tight"]] + 1e-10), numpy.log(images[sampleBands[j]][masks["clouds-tight"]] + 1e-10))
+        watery = zip(images[:,:,i][masks["pure-water"]], images[:,:,j][masks["pure-water"]])
+        wake = zip(images[:,:,i][masks["wake-tight"]], images[:,:,j][masks["wake-tight"]])
+        clouds = zip(images[:,:,i][masks["clouds-tight"]], images[:,:,j][masks["clouds-tight"]])
 
         waterplot = Scatter(watery, sig=["x", "y"], limit=1000, markercolor="blue")
         wakeplot = Scatter(wake, sig=["x", "y"], limit=1000, markercolor="black")
         cloudsplot = Scatter(clouds, sig=["x", "y"], limit=1000, markercolor="red")
 
-        plots[i,j] = Overlay(waterplot, wakeplot, cloudsplot, xlabel="log(band %d)" % sampleBands[i], ylabel="log(band %d)" % sampleBands[j], bottommargin=0.2, xlabeloffset=0.2, leftmargin=0.2, ylabeloffset=-0.15, xmin=-5., ymin=-5., xmax=6., ymax=6.)
+        plots[i,j] = Overlay(waterplot, wakeplot, cloudsplot, xlabel="band %d" % sampleBands[i], ylabel="band %d" % sampleBands[j], bottommargin=0.2, xlabeloffset=0.2, leftmargin=0.2, ylabeloffset=-0.15)
+
+        watery = zip(numpy.log(images[:,:,i][masks["pure-water"]] + 1e-10), numpy.log(images[:,:,j][masks["pure-water"]] + 1e-10))
+        wake = zip(numpy.log(images[:,:,i][masks["wake-tight"]] + 1e-10), numpy.log(images[:,:,j][masks["wake-tight"]] + 1e-10))
+        clouds = zip(numpy.log(images[:,:,i][masks["clouds-tight"]] + 1e-10), numpy.log(images[:,:,j][masks["clouds-tight"]] + 1e-10))
+
+        waterplot = Scatter(watery, sig=["x", "y"], limit=1000, markercolor="blue")
+        wakeplot = Scatter(wake, sig=["x", "y"], limit=1000, markercolor="black")
+        cloudsplot = Scatter(clouds, sig=["x", "y"], limit=1000, markercolor="red")
+
+        logplots[i,j] = Overlay(waterplot, wakeplot, cloudsplot, xlabel="log(band %d)" % sampleBands[i], ylabel="log(band %d)" % sampleBands[j], bottommargin=0.2, xlabeloffset=0.2, leftmargin=0.2, ylabeloffset=-0.15, xmin=-5., ymin=-5., xmax=6., ymax=6.)
+
+watercenter = numpy.median(images[masks["pure-water"]], axis=0)
+wakecenter = numpy.median(images[masks["wake-tight"]], axis=0)
+cloudscenter = numpy.median(images[masks["clouds-tight"]], axis=0)
+
+plotz = {}
+for i, j in plots:
+    plotz[i,j] = Overlay(plots[i,j], Scatter(x=[watercenter[i], wakecenter[i], cloudscenter[i]], y=[watercenter[j], wakecenter[j], cloudscenter[j]], marker="plus", markercolor="white", markersize=2.), xlabel=plots[i,j].xlabel, ylabel=plots[i,j].ylabel, bottommargin=plots[i,j].bottommargin, leftmargin=plots[i,j].leftmargin, xlabeloffset=plots[i,j].xlabeloffset, ylabeloffset=plots[i,j].ylabeloffset)
+
+view(Layout(5, 5,
+            None,       None,       None,       None,       plotz[0,1],
+            None,       None,       None,       plotz[1,2], plotz[0,2],
+            None,       None,       plotz[2,3], plotz[1,3], plotz[0,3],
+            None,       plotz[3,4], plotz[2,4], plotz[1,4], plotz[0,4],
+            plotz[4,5], plotz[3,5], plotz[2,5], plotz[1,5], plotz[0,5]), width=2500, height=2500, fileName="plot_6x6grid.svg")
+
+view(Layout(5, 5,
+            None,          None,          None,          None,          logplots[0,1],
+            None,          None,          None,          logplots[1,2], logplots[0,2],
+            None,          None,          logplots[2,3], logplots[1,3], logplots[0,3],
+            None,          logplots[3,4], logplots[2,4], logplots[1,4], logplots[0,4],
+            logplots[4,5], logplots[3,5], logplots[2,5], logplots[1,5], logplots[0,5]), width=2500, height=2500, fileName="plot_log6x6grid.svg")
+
+#####################################################################################
+
+for i in xrange(len(sampleBands)):
+    images[:,:,i] -= watercenter[i]
+
+cloudscenter = numpy.median(images[masks["clouds-tight"]], axis=0)
+
+def gramSchmidt(vs):
+    us = []
+    for i, v in enumerate(vs):
+        u = numpy.array(v)
+        for j in xrange(i):
+            u -= us[j].dot(v) * us[j]
+        u /= numpy.linalg.norm(u)
+        us.append(u)
+    return us
+
+basis = gramSchmidt([cloudscenter] + zip(*numpy.random.randn(6, 5)))
+projection = lambda x: sum([ow * ow.dot(x) for ow in basis[1:]])
+
+watery = numpy.array(map(projection, images[masks["pure-water"]]))
+wake = numpy.array(map(projection, images[masks["wake-tight"]]))
+clouds = numpy.array(map(projection, images[masks["clouds-tight"]]))
+
+plots = {}
+for i in xrange(len(sampleBands)):
+    for j in xrange(i+1, len(sampleBands)):
+        waterplot = Scatter(x=watery[:,i], y=watery[:,j], limit=1000, markercolor="blue")
+        wakeplot = Scatter(x=wake[:,i], y=wake[:,j], limit=1000, markercolor="black")
+        cloudsplot = Scatter(x=clouds[:,i], y=clouds[:,j], limit=1000, markercolor="red")
+
+        plots[i,j] = Overlay(cloudsplot, waterplot, wakeplot, xlabel="band %d" % sampleBands[i], ylabel="band %d" % sampleBands[j], bottommargin=0.2, xlabeloffset=0.2, leftmargin=0.2, ylabeloffset=-0.15)
 
 view(Layout(5, 5,
             None,       None,       None,       None,       plots[0,1],
             None,       None,       None,       plots[1,2], plots[0,2],
             None,       None,       plots[2,3], plots[1,3], plots[0,3],
             None,       plots[3,4], plots[2,4], plots[1,4], plots[0,4],
-            plots[4,5], plots[3,5], plots[2,5], plots[1,5], plots[0,5]), width=2500, height=2500, fileName="plot_log6x6grid.svg")
+            plots[4,5], plots[3,5], plots[2,5], plots[1,5], plots[0,5]), width=2500, height=2500, fileName="plot_6x6grid_cloudsremoved.svg")
+
+def takeALook(band, minvalue=None, maxvalue=None, fileName=None, projection=None):
+    if projection is None:
+        pictures = images
+    else:
+        pictures = numpy.reshape(images, (images.shape[0]*images.shape[1], images.shape[2]))
+        pictures = numpy.array(map(projection, pictures))
+        pictures = numpy.reshape(pictures, (images.shape[0], images.shape[1], images.shape[2]))
+
+    onlyBand = pictures[:,:,sampleBands.index(band)]
+
+    if minvalue is None:
+        minvalue = numpy.percentile(onlyBand, 5.)
+    if maxvalue is None:
+        maxvalue = numpy.percentile(onlyBand, 95.)
+
+    onlyBand = numpy.array(numpy.maximum(numpy.minimum((onlyBand - minvalue) / (maxvalue - minvalue) * 255., 255), 0), dtype=numpy.uint8)
+
+    image = numpy.dstack((onlyBand, onlyBand, onlyBand))
+    image = Image.fromarray(image)
+    if fileName is None:
+        image.show()
+    else:
+        image.save(fileName, "PNG", options="optimized")
+
+takeALook(40)
+takeALook(40, 1., 10., projection=projection)
+
+takeALook(40, fileName="cloud_removal_before.png")
+takeALook(40, 1., 10., fileName="cloud_removal_after.png", projection=projection)
+
