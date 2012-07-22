@@ -305,6 +305,7 @@ watery = numpy.array(map(projection, images[masks["pure-water"]]))
 wake = numpy.array(map(projection, images[masks["wake-tight"]]))
 clouds = numpy.array(map(projection, images[masks["clouds-tight"]]))
 everything = numpy.array(map(projection, numpy.reshape(images, (images.shape[0]*images.shape[1], images.shape[2]))))
+wakeloose = numpy.array(map(projection, images[masks["wake-loose"]]))
 
 plots = {}
 for i in xrange(len(sampleBands)):
@@ -435,4 +436,132 @@ image.save("likelihood_image.png", "PNG", options="optimize")
 
 #####################################################################################
 
+def transformation((p0, p1, p2, p3, p4, p5)):
+    return numpy.array(numpy.matrix([[p0, p1, p2, p3, p4, p5]]) * eigenvectors).flatten() / numpy.sqrt(eigenvalues)
 
+everythingtrans = numpy.array(map(transformation, everything))
+wakeloosetrans = numpy.array(map(transformation, wakeloose))
+waketrans = numpy.array(map(transformation, wake))
+
+# everything_0 = Histogram(100, -5., 25., data=everything[:,0], ymax=1000, fillcolor="lightgray")
+# everything_1 = Histogram(100, -5., 5., data=everything[:,1], ymax=1000, fillcolor="lightgray")
+# everything_2 = Histogram(100, -15., 5., data=everything[:,2], ymax=1000, fillcolor="lightgray")
+# everything_3 = Histogram(100, -30., 10., data=everything[:,3], ymax=1000, fillcolor="lightgray")
+# everything_4 = Histogram(100, -10., 3., data=everything[:,4], ymax=1000, fillcolor="lightgray")
+# everything_5 = Histogram(100, -25., 5., data=everything[:,5], ymax=1000, fillcolor="lightgray")
+
+everything_0 = Histogram(100, -50., 50., data=everythingtrans[:,0], ymax=100, fillcolor="lightgray")
+everything_1 = Histogram(100, -20., 20., data=everythingtrans[:,1], ymax=100, fillcolor="lightgray")
+everything_2 = Histogram(100, -20., 20., data=everythingtrans[:,2], ymax=100, fillcolor="lightgray")
+everything_3 = Histogram(100, -20., 20., data=everythingtrans[:,3], ymax=100, fillcolor="lightgray")
+everything_4 = Histogram(100, -1., 1., data=everythingtrans[:,4], ymax=100, fillcolor="lightgray")
+everything_5 = Histogram(100, -10., 10., data=everythingtrans[:,5], ymax=100, fillcolor="lightgray")
+
+wake_0 = Histogram(100, -50., 50., data=waketrans[:,0], fillcolor="red")
+wake_1 = Histogram(100, -20., 20., data=waketrans[:,1], fillcolor="red")
+wake_2 = Histogram(100, -20., 20., data=waketrans[:,2], fillcolor="red")
+wake_3 = Histogram(100, -20., 20., data=waketrans[:,3], fillcolor="red")
+wake_4 = Histogram(100, -1., 1., data=waketrans[:,4], fillcolor="red")
+wake_5 = Histogram(100, -10., 10., data=waketrans[:,5], fillcolor="red")
+
+wakeloose_0 = Histogram(100, -50., 50., data=wakeloosetrans[:,0], fillcolor="pink")
+wakeloose_1 = Histogram(100, -20., 20., data=wakeloosetrans[:,1], fillcolor="pink")
+wakeloose_2 = Histogram(100, -20., 20., data=wakeloosetrans[:,2], fillcolor="pink")
+wakeloose_3 = Histogram(100, -20., 20., data=wakeloosetrans[:,3], fillcolor="pink")
+wakeloose_4 = Histogram(100, -1., 1., data=wakeloosetrans[:,4], fillcolor="pink")
+wakeloose_5 = Histogram(100, -10., 10., data=wakeloosetrans[:,5], fillcolor="pink")
+
+for i, x in enumerate([everything_0, everything_1, everything_2, everything_3, everything_4, everything_5]):
+    x.bottommargin = 0.15
+    x.xlabeloffset = 0.15
+    x.xlabel = "eigenbasis direction %d" % (i+1)
+
+legend = Legend([[everything_0, "all pixels"], [wakeloose_0, "wake (broadly defined)"], [wake_0, "wake (strictly defined)"]], width=1, colwid=[0.2, 0.8], justify="cl")
+
+view(Layout(2, 3,
+            Overlay(0, everything_0, wakeloose_0, wake_0),
+            Overlay(0, everything_1, wakeloose_1, wake_1),
+            Overlay(0, everything_2, wakeloose_2, wake_2),
+            Overlay(0, everything_3, wakeloose_3, wake_3),
+            Overlay(0, everything_4, wakeloose_4, wake_4, legend),
+            Overlay(0, everything_5, wakeloose_5, wake_5)), width=1500, height=1000, fileName="plot_naivebayes_with_pca.svg")
+
+def loglikelihood(x):
+    x = transformation(x)
+    denom_loglikelihood = 0.
+    numer_loglikelihood = 0.
+    for i, (denomhist, numerhist) in enumerate([(everything_0, wake_0), (everything_1, wake_1), (everything_2, wake_2), (everything_3, wake_3), (everything_5, wake_5)]):
+        index = denomhist.index(x[i])
+        if index is None:
+            denom_loglikelihood += log(1. / denomhist.entries)
+            numer_loglikelihood += log(1. / numerhist.entries)
+        else:
+            denomvalue = denomhist.values[index] + 1e-5
+            numervalue = numerhist.values[index] + 1e-5
+            denom_loglikelihood += log(denomvalue / denomhist.entries)
+            numer_loglikelihood += log(numervalue / numerhist.entries)
+    return numer_loglikelihood / denom_loglikelihood
+
+pictures = numpy.reshape(images, (images.shape[0]*images.shape[1], images.shape[2]))
+tmp = [loglikelihood(projection(x)) for x in pictures]
+pictures = numpy.array(map(lambda x: 1. - chi2prob.cdf(x*2., 5), tmp))
+pictures = numpy.reshape(pictures, (images.shape[0], images.shape[1]))
+onlyBand = numpy.array(numpy.power(pictures, 1) * 255., dtype=numpy.uint8)
+image = numpy.dstack((onlyBand, onlyBand, onlyBand))
+image = Image.fromarray(image)
+image.show()
+# image.save("likelihood_naivebayes_image.png", "PNG", options="optimize")
+
+onlyBand = numpy.array(numpy.power(pictures, 10) * 255., dtype=numpy.uint8)
+image = numpy.dstack((onlyBand, onlyBand, onlyBand))
+image = Image.fromarray(image)
+image.show()
+# image.save("likelihood_naivebayes_power10_image.png", "PNG", options="optimize")
+
+#####################################################################################
+
+# inputDir = "/home/pivarski/NOBACKUP/KagoshimaBay/EO1H1120382011197110KF_HYP_L1G"
+# inputDir = "/home/pivarski/NOBACKUP/KagoshimaBay/EO1H1120382011210110KF_HYP_L1G"
+inputDir = "/home/pivarski/NOBACKUP/KagoshimaBay/EO1H1120382011205110PF_HYP_L1G"
+
+original_images = {}
+for i, band in enumerate(sampleBands):
+    original_images[band] = gdal.Open(glob.glob(inputDir + "/*_B%03d_L1T.TIF" % band)[0], gdalconst.GA_ReadOnly)
+    if band < 70.5:
+        original_images[band] = original_images[band].GetRasterBand(1).ReadAsArray() / 40.
+    else:
+        original_images[band] = original_images[band].GetRasterBand(1).ReadAsArray() / 80.
+
+images = numpy.dstack([original_images[sampleBands[i]] for i in xrange(len(sampleBands))])
+del original_images
+
+alpha = (images[:,:,0] > 0.)
+for i in xrange(1, len(sampleBands)):
+    numpy.logical_and(alpha, (images[:,:,i] > 0.), alpha)
+
+for i in xrange(len(sampleBands)):
+    images[:,:,i] -= watercenter[i]
+
+pictures = numpy.reshape(images, (images.shape[0]*images.shape[1], images.shape[2]))
+alpha = numpy.reshape(alpha, (images.shape[0]*images.shape[1]))
+
+pictures = numpy.array([(1. - chi2prob.cdf(loglikelihood(projection(x))*2., 5)) if a else 0. for x, a in zip(pictures, alpha)])
+
+pictures = numpy.reshape(pictures, (images.shape[0], images.shape[1]))
+alpha = numpy.reshape(alpha, (images.shape[0], images.shape[1]))
+
+# onlyBand = numpy.array(pictures * 255., dtype=numpy.uint8)
+# image = numpy.dstack((onlyBand, onlyBand, onlyBand, numpy.array(alpha*255, dtype=numpy.uint8)))
+# image = Image.fromarray(image)
+# image.show()
+
+onlyBand = numpy.array(numpy.power(pictures, 20) * 255., dtype=numpy.uint8)
+image = numpy.dstack((onlyBand, onlyBand, onlyBand, numpy.array(alpha*255, dtype=numpy.uint8)))
+image = Image.fromarray(image)
+# image.show()
+image.save("whole_image_EO1H1120382011205110PF_HYP_L1G.png", "PNG", options="optimize")
+
+image = numpy.dstack((onlyBand, onlyBand, numpy.zeros_like(onlyBand), onlyBand))
+image = Image.fromarray(image)
+# image.show()
+image.save("whole_image_EO1H1120382011205110PF_HYP_L1G_translucent.png", "PNG", options="optimize")
