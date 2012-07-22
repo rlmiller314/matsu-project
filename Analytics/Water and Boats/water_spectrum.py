@@ -4,11 +4,13 @@ import random
 import time
 
 import numpy
+from scipy.stats import chi2 as chi2prob
 from PIL import Image
 from osgeo import gdal
 from osgeo import gdalconst
 
 from cassius import *
+from minuit import Minuit
 
 #####################################################################################
 
@@ -283,6 +285,9 @@ for i in xrange(len(sampleBands)):
 
 cloudscenter = numpy.median(images[masks["clouds-tight"]], axis=0)
 
+print cloudscenter
+# [ 68.75    45.35     9.4375  27.6125   5.125   14.475 ]
+
 def gramSchmidt(vs):
     us = []
     for i, v in enumerate(vs):
@@ -299,6 +304,7 @@ projection = lambda x: sum([ow * ow.dot(x) for ow in basis[1:]])
 watery = numpy.array(map(projection, images[masks["pure-water"]]))
 wake = numpy.array(map(projection, images[masks["wake-tight"]]))
 clouds = numpy.array(map(projection, images[masks["clouds-tight"]]))
+everything = numpy.array(map(projection, numpy.reshape(images, (images.shape[0]*images.shape[1], images.shape[2]))))
 
 plots = {}
 for i in xrange(len(sampleBands)):
@@ -345,4 +351,88 @@ takeALook(40, 1., 10., projection=projection)
 
 takeALook(40, fileName="cloud_removal_before.png")
 takeALook(40, 1., 10., fileName="cloud_removal_after.png", projection=projection)
+
+#####################################################################################
+
+# fakedata = numpy.array([(x, y + 3.*x) for x, y in numpy.random.randn(1000, 2)])
+# eigenvalues, eigenvectors = numpy.linalg.eig(numpy.cov(fakedata.T))
+
+# def unitGaussian(p0, p1):
+#     return exp(-(p0**2 + p1**2))
+
+# def likelihood(p0, p1):
+#     return unitGaussian(*(numpy.array(numpy.matrix([[p0, p1]]) * eigenvectors).flatten() / numpy.sqrt(eigenvalues)))
+
+# colorField = ColorField(100, -6., 6., 100, -6., 6., zmin=-0.1, zmax=1.1)
+# colorField.map(likelihood)
+
+# view(Overlay(0, colorField, Scatter(x=fakedata[:,0], y=fakedata[:,1], markersize=0.5)))
+
+#####################################################################################
+
+eigenvalues, eigenvectors = numpy.linalg.eig(numpy.cov(everything.T))
+smallestIndex = numpy.argsort(eigenvalues)[0]
+eigenvalues[smallestIndex] = 1e10
+
+def likelihood(p0, p1, p2, p3, p4, p5):
+    return exp(-sum(numpy.square(numpy.array(numpy.matrix([[p0, p1, p2, p3, p4, p5]]) * eigenvectors).flatten()) / eigenvalues))
+
+# colorField = ColorField(100, -8., 8., 100, -8., 8., zmin=-0.1, zmax=1.1, tocolor=gradients["blues"])
+# colorField.map(lambda a, b: likelihood(0., 0., a, b, 0., 0.))
+
+# view(Overlay(0, colorField, Scatter(x=everything[:,2], y=everything[:,3], markersize=0.25, markercolor="red")))
+
+plots = {}
+for i in xrange(len(sampleBands)):
+    for j in xrange(i+1, len(sampleBands)):
+        xmin = min(wake[:,i].min(), everything[:,i].min(), watery[:,i].min())
+        xmax = max(wake[:,i].max(), everything[:,i].max(), watery[:,i].max())
+        ymin = min(wake[:,j].min(), everything[:,j].min(), watery[:,j].min())
+        ymax = max(wake[:,j].max(), everything[:,j].max(), watery[:,j].max())
+
+        wakeplot = Scatter(x=wake[:,i], y=wake[:,j], limit=1000, markercolor="blue", markeroutline="white")
+
+        colorField = ColorField(30, xmin, xmax, 30, ymin, ymax, zmin=-0.1, zmax=1.1, tocolor=gradients["fire"], xlabel="band %d" % sampleBands[i], ylabel="band %d" % sampleBands[j], bottommargin=0.2, xlabeloffset=0.2, leftmargin=0.2, ylabeloffset=-0.15)
+        
+        def colorme(x, y):
+            zero = [0., 0., 0., 0., 0., 0.]
+            zero[i] = x
+            zero[j] = y
+            return likelihood(*zero)
+
+        colorField.map(colorme)
+
+        plots[i,j] = Overlay(0, colorField, wakeplot, xlabel="band %d" % sampleBands[i], ylabel="band %d" % sampleBands[j], bottommargin=0.2, xlabeloffset=0.2, leftmargin=0.2, ylabeloffset=-0.15)
+
+view(Layout(5, 5,
+            None,       None,       None,       None,       plots[0,1],
+            None,       None,       None,       plots[1,2], plots[0,2],
+            None,       None,       plots[2,3], plots[1,3], plots[0,3],
+            None,       plots[3,4], plots[2,4], plots[1,4], plots[0,4],
+            plots[4,5], plots[3,5], plots[2,5], plots[1,5], plots[0,5]), width=2500, height=2500, fileName="plot_6x6grid_likelihood.svg")
+
+#####################################################################################
+
+def loglikelihood(p0, p1, p2, p3, p4, p5):
+    return sum(numpy.square(numpy.array(numpy.matrix([[p0, p1, p2, p3, p4, p5]]) * eigenvectors).flatten()) / eigenvalues)
+
+pictures = numpy.reshape(images, (images.shape[0]*images.shape[1], images.shape[2]))
+tmp = [loglikelihood(*projection(x)) for x in pictures]
+pictures = numpy.array(map(lambda x: chi2prob.cdf(x, 5), tmp))
+pictures = numpy.reshape(pictures, (images.shape[0], images.shape[1]))
+onlyBand = numpy.array(numpy.power(pictures, 1) * 255., dtype=numpy.uint8)
+
+# pictures = numpy.reshape(images, (images.shape[0]*images.shape[1], images.shape[2]))
+# pictures = numpy.array([loglikelihood(*projection(x)) for x in pictures])
+# pictures = numpy.reshape(pictures, (images.shape[0], images.shape[1]))
+# minvalue = numpy.percentile(pictures, 5.)
+# maxvalue = numpy.percentile(pictures, 100.)
+# onlyBand = numpy.array(numpy.maximum(numpy.minimum((pictures - minvalue) / (maxvalue - minvalue) * 255., 255), 0), dtype=numpy.uint8)
+
+image = numpy.dstack((onlyBand, onlyBand, onlyBand))
+image = Image.fromarray(image)
+image.save("likelihood_image.png", "PNG", options="optimize")
+
+#####################################################################################
+
 
