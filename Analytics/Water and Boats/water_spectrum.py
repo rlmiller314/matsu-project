@@ -565,3 +565,92 @@ image = numpy.dstack((onlyBand, onlyBand, numpy.zeros_like(onlyBand), onlyBand))
 image = Image.fromarray(image)
 # image.show()
 image.save("whole_image_EO1H1120382011205110PF_HYP_L1G_translucent.png", "PNG", options="optimize")
+
+#####################################################################################
+
+image016 = gdal.Open(glob.glob(inputDir + "/*_B%03d_L1T.TIF" % 16)[0], gdalconst.GA_ReadOnly)
+image150 = gdal.Open(glob.glob(inputDir + "/*_B%03d_L1T.TIF" % 150)[0], gdalconst.GA_ReadOnly)
+
+image016 = image016.GetRasterBand(1).ReadAsArray()[2200:2800,197:358] / 40.
+image150 = image150.GetRasterBand(1).ReadAsArray()[2200:2800,197:358] / 80.
+
+water0 = image016[masks["pure-water"]]
+water1 = image150[masks["pure-water"]]
+wake0 = image016[masks["wake-tight"]]
+wake1 = image150[masks["wake-tight"]]
+clouds0 = image016[masks["clouds-tight"]]
+clouds1 = image150[masks["clouds-tight"]]
+cloudsloose0 = image016[masks["clouds-loose"]]
+cloudsloose1 = image150[masks["clouds-loose"]]
+
+watercenter0 = numpy.median(water0)
+watercenter1 = numpy.median(water1)
+
+print watercenter0, watercenter1
+# 49.925 0.3125
+
+waterplot = Scatter(x=water0 - watercenter0, y=water1 - watercenter1, limit=1000, markercolor="blue")
+wakeplot = Scatter(x=wake0 - watercenter0, y=wake1 - watercenter1, limit=1000, markercolor="black")
+cloudsplot = Scatter(x=clouds0 - watercenter0, y=clouds1 - watercenter1, limit=1000, markercolor="red")
+cloudslooseplot = Scatter(x=cloudsloose0 - watercenter0, y=cloudsloose1 - watercenter1, limit=1000, markercolor="pink")
+
+# simplecut = Scatter(x=[15., 1000.], y=[0., 120.], marker=None, connector="unsorted", linestyle="dashed", linecolor="grey")
+simplecut = Scatter(x=[2., 1000.], y=[0., 100.], marker=None, connector="unsorted", linestyle="dashed", linecolor="grey")
+
+view(Overlay(cloudslooseplot, simplecut, cloudsplot, waterplot, wakeplot, Legend([[cloudsplot, "clouds"], [cloudslooseplot, "clouds (loose)"], [wakeplot, "wake of ship"], [waterplot, "water"], [simplecut, "simple cut"]], colwid=[0.3, 0.7], justify="cl", width=0.37), xlabel="band 16 minus water center", ylabel="band 150 minus water center", xmin=0., xmax=250., ymin=0., ymax=35.), fileName="plots_simplecut.svg")
+
+# fakedata = numpy.array([(random.uniform(0., 250.), random.uniform(0., 35.)) for i in xrange(100000)])
+# selection = (fakedata[:,0] - 15. > (1000. - 15.)/120.*fakedata[:,1])
+# view(Overlay(simplecut, Scatter(fakedata[selection], sig=["x", "y"], markersize=0.25), xlabel="band 16 minus water center", ylabel="band 150 minus water center", xmin=0., xmax=250., ymin=0., ymax=35.))
+
+#####################################################################################
+
+picture = numpy.dstack((image016 - watercenter0, image150 - watercenter1))
+selection = (picture[:,:,0] - 2. > (1000. - 2.)/100.*picture[:,:,1])
+antiselection = numpy.logical_not(selection)
+
+picture[antiselection] = 0.
+
+minvalue = 0.
+maxvalue = picture[selection].max()
+onlyBand = numpy.sqrt(numpy.maximum(numpy.minimum((picture[:,:,0] - minvalue) / (maxvalue - minvalue), 1.), 0.))
+onlyBand = numpy.array(onlyBand * 255., dtype=numpy.uint8)
+
+image = numpy.dstack((onlyBand, onlyBand, onlyBand))
+image = Image.fromarray(image)
+image.show()
+
+image.save("simplecut_image.png", "PNG", options="optimize")
+
+#####################################################################################
+
+# inputDir = "/home/pivarski/NOBACKUP/KagoshimaBay/EO1H1120382011197110KF_HYP_L1G"
+# inputDir = "/home/pivarski/NOBACKUP/KagoshimaBay/EO1H1120382011210110KF_HYP_L1G"
+inputDir = "/home/pivarski/NOBACKUP/KagoshimaBay/EO1H1120382011205110PF_HYP_L1G"
+
+image016 = gdal.Open(glob.glob(inputDir + "/*_B%03d_L1T.TIF" % 16)[0], gdalconst.GA_ReadOnly)
+image150 = gdal.Open(glob.glob(inputDir + "/*_B%03d_L1T.TIF" % 150)[0], gdalconst.GA_ReadOnly)
+
+image016 = image016.GetRasterBand(1).ReadAsArray() / 40.
+image150 = image150.GetRasterBand(1).ReadAsArray() / 80.
+
+alpha = numpy.logical_and(image016 > 0., image150 > 0.)
+
+picture = numpy.dstack((image016 - watercenter0, image150 - watercenter1))
+selection = (picture[:,:,0] - 2. > (1000. - 2.)/100.*picture[:,:,1])
+
+picture[numpy.logical_not(selection)] = 0.
+picture[numpy.logical_not(alpha)] = 0.
+
+minvalue = 0.
+maxvalue = picture[selection].max()
+onlyBand = numpy.sqrt(numpy.maximum(numpy.minimum((picture[:,:,0] - minvalue) / (maxvalue - minvalue), 1.), 0.))
+onlyBand = numpy.array(onlyBand * 255., dtype=numpy.uint8)
+
+image = numpy.dstack((onlyBand, onlyBand, onlyBand, numpy.array(alpha * 255, dtype=numpy.uint8)))
+image = Image.fromarray(image)
+image.save("whole_simplecut_%s.png" % inputDir.split("/")[-1], "PNG", options="optimize")
+
+image = numpy.dstack((onlyBand, onlyBand, numpy.zeros_like(onlyBand), numpy.minimum(2*onlyBand*alpha, 255)))
+image = Image.fromarray(image)
+image.save("whole_simplecut_%s_translucent.png" % inputDir.split("/")[-1], "PNG", options="optimize")
