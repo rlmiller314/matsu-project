@@ -55,16 +55,16 @@ public class AccumuloInterface {
 	    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
 	    String line;
 	    while ((line = bufferedReader.readLine()) != null) {
-		scan.setRange(new Range(line, line));
+		scan.setRange(new Range(line));
 
 		int count = 0;
 		String output = "{";
 		for (Entry<Key, Value> entry : scan) {
 		    if (count > 0) {
-			output += ", ";
+			output += ",";
 		    }
 
-		    output += "\"" + JSONObject.escape(entry.getKey().getColumnQualifier().toString()) + "\": " + entry.getValue().toString();
+		    output += "\"" + JSONObject.escape(entry.getKey().getColumnQualifier().toString()) + "\":" + entry.getValue().toString();
 		    count++;
 		}
 		output += "}";
@@ -113,10 +113,20 @@ public class AccumuloInterface {
 		    continue;
 		}
 
+		String l2png = (String)obj.get("L2PNG");
+		if (l2png == null) {
+		    System.out.println("JSON object is missing its 'L2PNG'; skipping...");
+		    continue;
+		}
+
 		Set columnNames = obj.keySet();
 		columnNames.remove(new String("KEY"));
+		columnNames.remove(new String("L2PNG"));
 
 		Mutation mutation = new Mutation(new Text(key));
+
+ 		mutation.put(columnFamily, new Text("L2PNG"), new Value(l2png.getBytes()));
+
 		for (Object columnName : columnNames) {
 		    Object value = obj.get(columnName);
 
@@ -129,6 +139,7 @@ public class AccumuloInterface {
 			mutation.put(columnFamily, new Text((String)columnName), new Value(value.toString().getBytes()));
 		    }
 		}
+
 		batchWriter.addMutation(mutation);
 
 	    }
