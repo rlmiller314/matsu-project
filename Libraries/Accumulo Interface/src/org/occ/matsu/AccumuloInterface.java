@@ -35,20 +35,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 
 public class AccumuloInterface {
-    public static void read() throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-	// Key start = null;
-	// Key end = null;
-	// scan.setRange(new Range(start, end));
-	// Iterator<Entry<Key,Value>> iter = scan.iterator();
-
-	// while (iter.hasNext()) {
-	//     Entry<Key,Value> entry = iter.next();
-	//     Text columnFamily = entry.getKey().getColumnFamily();
-	//     Text columnQualifier = entry.getKey().getColumnQualifier();
-	//     System.out.println("row: " + entry.getKey().getRow() + " columnFamily: " + columnFamily + " columnQualifier: " + columnQualifier + " value: " + entry.getValue().toString());
-	// }
-    }
-
     public static void main(String argv[]) throws AccumuloException, AccumuloSecurityException, TableNotFoundException, MutationsRejectedException, TableExistsException, IOException {
 	if (argv.length != 2) {
 	    throw new RuntimeException("Pass a command: 'read TABLENAME' or 'write TABLENAME'.");
@@ -64,14 +50,33 @@ public class AccumuloInterface {
 	    }
 
 	    Connector connector = zookeeper.getConnector("root", "password".getBytes());
-	
 	    Scanner scan = connector.createScanner(tableName, Constants.NO_AUTHS);
 
+	    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+	    String line;
+	    while ((line = bufferedReader.readLine()) != null) {
+		scan.setRange(new Range(line, line));
 
+		int count = 0;
+		String output = "{";
+		for (Entry<Key, Value> entry : scan) {
+		    if (count > 0) {
+			output += ", ";
+		    }
 
+		    output += "\"" + JSONObject.escape(entry.getKey().getColumnQualifier().toString()) + "\": " + entry.getValue().toString();
+		    count++;
+		}
+		output += "}";
 
+		if (count == 0) {
+		    System.out.println("None");
+		}
+		else {
+		    System.out.println(output);
+		}
 
-
+	    }
 	}
 	else if (argv[0].equals("write")) {
 	    String tableName = argv[1];
@@ -133,5 +138,7 @@ public class AccumuloInterface {
 	else {
 	    throw new RuntimeException("Unrecognized command: must be 'read' or 'write'.");
 	}
+	    
+	System.out.println("Shutting down...");
     }
 }
