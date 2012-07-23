@@ -1,10 +1,41 @@
 #!/bin/env sh
 
+################################################################################
+#
+#   Environment variables for the user to set
+#
+#   This is where the image libraries will be installed.
+#   To uninstall, just remove this directory.
+export IMAGELIBRARY_DIRECTORY=/opt/imagelibraries
+#
+#   This is where the packages will be downloaded and compiled.
+#   You can delete this after installation and everything should still work.
+export PACKAGE_CACHE_DIRECTORY=/tmp/package_cache
+#
+#   This is a script that you should source ("source setup_environment.sh")
+#   after each login to use the compiled Python and libraries, rather than
+#   the default ones.  (Note: "./setup_environment.sh" is not sufficient.)
+export SETUP_ENVIRONMENT=setup_environment.sh
+#
+################################################################################
+#
+#   This script replaces the contents of $IMAGELIBRARY_DIRECTORY,
+#   $PACKAGE_CACHE_DIRECTORY, and $SETUP_ENVIRONMENT with a new copy
+#   downloaded and compiled from the Internet.
+#
+#   To use (after possibly changing the three environment variables above):
+#
+#       ./download_and_compile.sh
+#       (wait half an hour)
+#
+#       source setup_environment.sh
+#       (new software is ready to use)
+#
+################################################################################
+
 # 0. Create a directory in which to install everything
 
-export IMAGELIBRARY_DIRECTORY=/opt/imagelibraries
-
-cat > setup_environment.sh <<EOF
+cat > $SETUP_ENVIRONMENT <<EOF
 
 export PYTHONPATH=$IMAGELIBRARY_DIRECTORY/lib/python:$PYTHONPATH
 export LD_LIBRARY_PATH=$IMAGELIBRARY_DIRECTORY/lib:$LD_LIBRARY_PATH
@@ -14,8 +45,6 @@ EOF
 
 chmod 755 setup_environment.sh
 source setup_environment.sh
-
-export PACKAGE_CACHE_DIRECTORY=/tmp/package_cache
 
 rm -rf $IMAGELIBRARY_DIRECTORY
 rm -rf $PACKAGE_CACHE_DIRECTORY
@@ -69,7 +98,7 @@ cd ..
 wget http://effbot.org/downloads/Imaging-1.1.7.tar.gz
 tar -xzvf Imaging-1.1.7.tar.gz
 cd Imaging-1.1.7
-sed 's/^ZLIB_ROOT = None$/ZLIB_ROOT = "/usr/lib64", "/usr/include"/' < setup.py > /tmp/TMP
+sed 's/^ZLIB_ROOT = None$/ZLIB_ROOT = "\/usr\/lib64", "\/usr\/include"/' < setup.py > /tmp/TMP
 cp -f /tmp/TMP setup.py
 python setup.py install --home=$IMAGELIBRARY_DIRECTORY
 cd ..
