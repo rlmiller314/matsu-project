@@ -1,4 +1,8 @@
 import sys
+import subprocess
+import StringIO
+import base64
+import json
 
 import numpy
 from PIL import Image
@@ -8,7 +12,7 @@ import GeoPictureSerializer
 
 from tile_definition import *
 
-def reduce_tiles(tiles, inputStream, outputDirectory, bands=["B029", "B023", "B016"], minRadiance=0., maxRadiance=300.):
+def reduce_tiles(tiles, inputStream, outputDirectory=None, outputAccumulo=None, bands=["B029", "B023", "B016"], layer="RGB", minRadiance=0., maxRadiance=300.):
     while True:
         line = inputStream.readline()
         if not line: break
@@ -48,9 +52,15 @@ def reduce_tiles(tiles, inputStream, outputDirectory, bands=["B029", "B023", "B0
         outputMask[condition] = mask[condition]
 
         image = Image.fromarray(numpy.dstack((outputRed, outputGreen, outputBlue, outputMask)))
-        image.save("%s/%s.png" % (outputDirectory, tileName(depth, longIndex, latIndex)), "PNG", options="optimize")
+        if outputDirectory is not None:
+            image.save("%s/%s.png" % (outputDirectory, tileName(depth, longIndex, latIndex)), "PNG", options="optimize")
+        if outputAccumulo is not None:
+            buff = StringIO.StringIO()
+            image.save(buff, "PNG", options="optimize")
+            outputAccumulo.stdin.write(json.dumps({"KEY": "%s_%s" % (tileName(depth, longIndex, latIndex), layer), "L2PNG": base64.b64encode(buff.getvalue())}))
+            outputAccumulo.stdin.write("\n")
 
-def collate(depth, tiles, outputDirectory, splineOrder=3):
+def collate(depth, tiles, outputDirectory=None, outputAccumulo=None, layer="RGB", splineOrder=3):
     for depthIndex, longIndex, latIndex in tiles.keys():
         if depthIndex == depth:
             parentDepth, parentLongIndex, parentLatIndex = tileParent(depthIndex, longIndex, latIndex)
@@ -90,10 +100,24 @@ def collate(depth, tiles, outputDirectory, splineOrder=3):
             outputMask[latSlice,longSlice] = inputMask[0:rasterYSize/2,0:rasterXSize/2]
 
             image = Image.fromarray(numpy.dstack((outputRed, outputGreen, outputBlue)))
-            image.save("%s/%s.png" % (outputDirectory, tileName(parentDepth, parentLongIndex, parentLatIndex)), "PNG", options="optimize")
+            if outputDirectory is not None:
+                image.save("%s/%s.png" % (outputDirectory, tileName(parentDepth, parentLongIndex, parentLatIndex)), "PNG", options="optimize")
+            if outputAccumulo is not None:
+                buff = StringIO.StringIO()
+                image.save(buff, "PNG", options="optimize")
+                outputAccumulo.stdin.write(json.dumps({"KEY": "%s_%s" % (tileName(parentDepth, parentLongIndex, parentLatIndex), layer), "L2PNG": base64.b64encode(buff.getvalue())}))
+                outputAccumulo.stdin.write("\n")
+
+# tiles = {}
+# reduce_tiles(tiles, sys.stdin, outputDirectory="/tmp/map-reduce")
+# for depth in xrange(10, 1, -1):
+#     collate(depth, tiles, outputDirectory="/tmp/map-reduce")
+
+accumulo = subprocess.Popen(["java", "-jar", "/home/export/tanya/matsu-project/Libraries/Accumulo Interface/matsuAccumuloInterface.jar", "write", "quicktest12"], stdin=subprocess.PIPE)
 
 tiles = {}
-reduce_tiles(tiles, sys.stdin, "/var/www/map-reduce")
+reduce_tiles(tiles, sys.stdin, outputAccumulo=accumulo)
 
 for depth in xrange(10, 1, -1):
-    collate(depth, tiles, "/var/www/map-reduce")
+    collate(depth, tiles, outputAccumulo=accumulo)
+

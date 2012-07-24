@@ -6,6 +6,9 @@ import java.util.Map.Entry;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.StringUtils;
+
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.Connector;
@@ -64,7 +67,15 @@ public class AccumuloInterface {
 			output += ",";
 		    }
 
-		    output += "\"" + JSONObject.escape(entry.getKey().getColumnQualifier().toString()) + "\":" + entry.getValue().toString();
+		    String columnName = entry.getKey().getColumnQualifier().toString();
+
+		    if (columnName.equals("L2PNG")) {
+			output += "\"" + JSONObject.escape(columnName) + "\":" + Base64.encodeBase64String(entry.getValue().get());
+		    }
+		    else {
+			output += "\"" + JSONObject.escape(columnName) + "\":" + entry.getValue().toString();
+		    }
+
 		    count++;
 		}
 		output += "}";
@@ -125,7 +136,7 @@ public class AccumuloInterface {
 
 		Mutation mutation = new Mutation(new Text(key));
 
- 		mutation.put(columnFamily, new Text("L2PNG"), new Value(l2png.getBytes()));
+ 		mutation.put(columnFamily, new Text("L2PNG"), new Value(StringUtils.newStringUtf8(Base64.decodeBase64(l2png)).getBytes()));
 
 		for (Object columnName : columnNames) {
 		    Object value = obj.get(columnName);
