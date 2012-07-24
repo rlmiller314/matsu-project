@@ -108,16 +108,16 @@ def collate(depth, tiles, outputDirectory=None, outputAccumulo=None, layer="RGB"
                 outputAccumulo.stdin.write(json.dumps({"KEY": "%s_%s" % (tileName(parentDepth, parentLongIndex, parentLatIndex), layer), "L2PNG": base64.b64encode(buff.getvalue())}))
                 outputAccumulo.stdin.write("\n")
 
-# tiles = {}
-# reduce_tiles(tiles, sys.stdin, outputDirectory="/tmp/map-reduce")
-# for depth in xrange(10, 1, -1):
-#     collate(depth, tiles, outputDirectory="/tmp/map-reduce")
-
-accumulo = subprocess.Popen(["java", "-jar", "/home/export/tanya/matsu-project/Libraries/Accumulo Interface/matsuAccumuloInterface.jar", "write", "quicktest12"], stdin=subprocess.PIPE)
-
 tiles = {}
-reduce_tiles(tiles, sys.stdin, outputAccumulo=accumulo)
-
+reduce_tiles(tiles, sys.stdin, outputDirectory="/tmp/map-reduce")
 for depth in xrange(10, 1, -1):
-    collate(depth, tiles, outputAccumulo=accumulo)
+    collate(depth, tiles, outputDirectory="/tmp/map-reduce")
+
+# accumulo = subprocess.Popen(["java", "-jar", "/home/export/tanya/matsu-project/Libraries/Accumulo Interface/matsuAccumuloInterface.jar", "write", "MatsuLevel2Tiles"], stdin=subprocess.PIPE)
+# 
+# tiles = {}
+# reduce_tiles(tiles, sys.stdin, outputAccumulo=accumulo)
+# 
+# for depth in xrange(10, 1, -1):
+#     collate(depth, tiles, outputAccumulo=accumulo)
 
