@@ -7,14 +7,20 @@ from distutils.core import setup, Extension
 import numpy
 
 AVRO_HOME = "/usr"
+BOOST_INCLUDEDIR = "/usr/include/boost"
+BOOST_LIBRARYDIR = "/usr/lib"
 
 otherargs = []
 for arg in sys.argv:
-    if arg.find("with-avro") != -1:
-        optlist, argv = getopt.getopt([arg], "", ["with-avro="])
+    if arg.find("with-avro") != -1 or arg.find("with-boostinclude") != -1 or arg.find("with-boostlib") != -1:
+        optlist, argv = getopt.getopt([arg], "", ["with-avro=", "with-boostinclude=", "with-boostlib="])
         for name, value in optlist:
             if name == "--with-avro":
                 AVRO_HOME = value
+            if name == "--with-boostinclude":
+                BOOST_INCLUDEDIR = value
+            if name == "--with-boostlib":
+                BOOST_LIBRARYDIR = value
     else:
         otherargs.append(arg)
 sys.argv = otherargs
@@ -26,6 +32,10 @@ print("*************************************************************************
 print("Assuming AVRO includes and libraries are in %s and %s" % (AVRO_INCLUDE, AVRO_LIB))
 print("************************************************************************************************")
 
+print("************************************************************************************************")
+print("Assuming Boost includes and libraries are in %s and %s" % (BOOST_INCLUDEDIR, BOOST_LIBRARYDIR))
+print("************************************************************************************************")
+
 setup(name="GeoPictureSerializer",
       version="0.1.0",
       description="Module to serialize geo-tagged images and their metadata with Avro",
@@ -35,7 +45,7 @@ setup(name="GeoPictureSerializer",
       package_dir={"": "lib"},
       ext_modules=[Extension("GeoPictureSerializer",
                              [os.path.join("GeoPictureSerializer.cpp")],
-                             library_dirs=[AVRO_LIB],
+                             library_dirs=[AVRO_LIB, BOOST_LIBRARYDIR],
                              libraries=["avrocpp"],
-                             include_dirs=[AVRO_INCLUDE, numpy.get_include()],
+                             include_dirs=[AVRO_INCLUDE, BOOST_INCLUDEDIR, numpy.get_include()],
                              )])
