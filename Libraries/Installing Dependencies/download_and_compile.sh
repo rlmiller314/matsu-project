@@ -124,3 +124,40 @@ make install
 cd swig/python
 python setup.py install --home=$IMAGELIBRARY_DIRECTORY
 cd ../../..
+
+################################################################################
+#
+#   Second part: Avro serialization
+#
+################################################################################
+
+# 1. Install most prerequisites from packages
+
+yum -y install cmake
+yum -y install boost141-devel.x86_64 boost141-filesystem.x86_64 boost141-system.x86_64 boost141-program-options.x86_64 
+
+export BOOST_INCLUDEDIR=/usr/include/boost141
+export BOOST_LIBRARYDIR=/usr/lib64/boost141
+
+# 2. Install Avro
+
+wget http://mirrors.sonic.net/apache/avro/avro-1.7.1/cpp/avro-cpp-1.7.1.tar.gz
+tar -xzvf avro-cpp-1.7.1.tar.gz
+cd avro-cpp-1.7.1
+cmake -G "Unix Makefiles"
+make
+make package
+tar -xzvf avrocpp-1.7.1.tar.gz
+cp -a avrocpp-1.7.1/include/avro/ $IMAGELIBRARY_DIRECTORY/include/
+cp -a avrocpp-1.7.1/lib/libavrocpp* $IMAGELIBRARY_DIRECTORY/lib/
+cp -a avrocpp-1.7.1/bin/avrogencpp $IMAGELIBRARY_DIRECTORY/bin/
+cd ..
+
+# 3. Get the whole matsu-project to install the serialization engine
+
+wget --no-check-certificate https://github.com/opencloudconsortium/matsu-project/tarball/master -O matsu-project.tar.gz
+tar -xzvf matsu-project.tar.gz
+cd opencloudconsortium-matsu-project-*
+cd Libraries/Serialization\ with\ Avro/
+python setup.py install --home=$IMAGELIBRARY_DIRECTORY --with-avro=$IMAGELIBRARY_DIRECTORY --with-boostinclude=$BOOST_INCLUDEDIR --with-boostlib=$BOOST_LIBRARYDIR
+cd ../../..

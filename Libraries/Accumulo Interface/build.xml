@@ -14,6 +14,9 @@
 		<fileset dir="/home/export/tanya/apps/hadoop-0.20.203.0/">
 		    <include name="hadoop-core-0.20.203.0.jar" />
 		</fileset>
+		<fileset dir="./">
+		    <include name="json-simple-1.1.1.jar" />
+		</fileset>
 	    </classpath>
 	</javac>
     </target>
@@ -85,9 +88,11 @@
 	<antcall target="embed-jar"><param name="file" value="/home/export/tanya/apps/hadoop-0.20.203.0/lib/slf4j-log4j12-1.4.3.jar" /></antcall>
 	<antcall target="embed-jar"><param name="file" value="/home/export/tanya/apps/hadoop-0.20.203.0/lib/xmlenc-0.52.jar" /></antcall>
 
+	<antcall target="embed-jar"><param name="file" value="json-simple-1.1.1.jar" /></antcall>
+
 	<jar jarfile="matsuAccumuloInterface.jar" basedir="build">
 	    <manifest>
-		<attribute name="Main-Class" value="org.occ.matsu.accumulo.WriteToAccumulo" />
+		<attribute name="Main-Class" value="org.occ.matsu.accumulo.AccumuloInterface" />
 	    </manifest>
 	</jar>
     </target>
