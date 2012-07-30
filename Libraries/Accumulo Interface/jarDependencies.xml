@@ -1,6 +1,6 @@
 <project name="JarDependencies" default="jar">
 
-    <target name="jar" depends="compile">
+    <target name="jar">
 	<antcall target="embed-jar"><param name="file" value="/home/export/tanya/apps/accumulo-1.3.5/lib/accumulo-core-1.3.5-incubating.jar" /></antcall>
 	<antcall target="embed-jar"><param name="file" value="/home/export/tanya/apps/accumulo-1.3.5/lib/accumulo-core-1.3.5-incubating-javadoc.jar" /></antcall>
 	<antcall target="embed-jar"><param name="file" value="/home/export/tanya/apps/accumulo-1.3.5/lib/accumulo-examples-1.3.5-incubating.jar" /></antcall>
