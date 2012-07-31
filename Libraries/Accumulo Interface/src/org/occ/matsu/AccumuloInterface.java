@@ -6,6 +6,9 @@ import java.util.Map.Entry;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 
@@ -70,7 +73,7 @@ public class AccumuloInterface {
 		    String columnName = entry.getKey().getColumnQualifier().toString();
 
 		    if (columnName.equals("L2PNG")) {
-			output += "\"" + JSONObject.escape(columnName) + "\":" + Base64.encodeBase64String(entry.getValue().get());
+			output += "\"" + JSONObject.escape(columnName) + "\":\"" + Base64.encodeBase64String(entry.getValue().get()) + "\"";
 		    }
 		    else {
 			output += "\"" + JSONObject.escape(columnName) + "\":" + entry.getValue().toString();
@@ -87,6 +90,31 @@ public class AccumuloInterface {
 		    System.out.println(output);
 		}
 
+	    }
+	}
+	else if (argv[0].equals("image")) {
+	    String tableName = argv[1];
+
+	    Instance zookeeper = new ZooKeeperInstance("accumulo", "192.168.18.101:2181");
+	    if (zookeeper == null) {
+		System.err.println("ZooKeeper instance not found");
+	    }
+
+	    Connector connector = zookeeper.getConnector("root", "password".getBytes());
+	    Scanner scan = connector.createScanner(tableName, Constants.NO_AUTHS);
+
+	    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+	    String line;
+	    while ((line = bufferedReader.readLine()) != null) {
+		scan.setRange(new Range(line));
+
+		for (Entry<Key, Value> entry : scan) {
+		    DataOutputStream output = new DataOutputStream(new FileOutputStream(line + ".png"));
+		    if (entry.getKey().getColumnQualifier().toString().equals("L2PNG")) {
+			entry.getValue().write(output);
+		    }
+		    output.close();
+		}
 	    }
 	}
 	else if (argv[0].equals("write")) {
@@ -160,7 +188,5 @@ public class AccumuloInterface {
 	else {
 	    throw new RuntimeException("Unrecognized command: must be 'read' or 'write'.");
 	}
-	    
-	System.out.println("Shutting down...");
     }
 }
