@@ -1,12 +1,13 @@
 import sys
 import subprocess
-import StringIO
+from io import BytesIO
 import base64
 import json
 
 import numpy
 from PIL import Image
 from scipy.ndimage.interpolation import affine_transform
+import jpype
 
 import GeoPictureSerializer
 
@@ -55,10 +56,9 @@ def reduce_tiles(tiles, inputStream, outputDirectory=None, outputAccumulo=None, 
         if outputDirectory is not None:
             image.save("%s/%s.png" % (outputDirectory, tileName(depth, longIndex, latIndex)), "PNG", options="optimize")
         if outputAccumulo is not None:
-            buff = StringIO.StringIO()
+            buff = BytesIO()
             image.save(buff, "PNG", options="optimize")
-            outputAccumulo.stdin.write(json.dumps({"KEY": "%s_%s" % (tileName(depth, longIndex, latIndex), layer), "L2PNG": base64.b64encode(buff.getvalue())}))
-            outputAccumulo.stdin.write("\n")
+            outputAccumulo.write("%s-%s" % (tileName(depth, longIndex, latIndex), layer), "{}", buff.getvalue())
 
 def collate(depth, tiles, outputDirectory=None, outputAccumulo=None, layer="RGB", splineOrder=3):
     for depthIndex, longIndex, latIndex in tiles.keys():
@@ -103,21 +103,27 @@ def collate(depth, tiles, outputDirectory=None, outputAccumulo=None, layer="RGB"
             if outputDirectory is not None:
                 image.save("%s/%s.png" % (outputDirectory, tileName(parentDepth, parentLongIndex, parentLatIndex)), "PNG", options="optimize")
             if outputAccumulo is not None:
-                buff = StringIO.StringIO()
+                buff = BytesIO()
                 image.save(buff, "PNG", options="optimize")
-                outputAccumulo.stdin.write(json.dumps({"KEY": "%s_%s" % (tileName(parentDepth, parentLongIndex, parentLatIndex), layer), "L2PNG": base64.b64encode(buff.getvalue())}))
-                outputAccumulo.stdin.write("\n")
+                outputAccumulo.write("%s-%s" % (tileName(parentDepth, parentLongIndex, parentLatIndex), layer), "{}", buff.getvalue())
+
+### tiles = {}
+### reduce_tiles(tiles, sys.stdin, outputDirectory="/tmp/map-reduce")
+### for depth in xrange(10, 1, -1):
+###     collate(depth, tiles, outputDirectory="/tmp/map-reduce")
+
+
+
+classpath = "/home/export/tanya/matsu-project/Libraries/Accumulo Interface/matsuAccumuloInterface.jar"
+jpype.startJVM(jpype.getDefaultJVMPath(), "-Djava.class.path=%s" % classpath)
+AccumuloInterface = jpype.JClass("org.occ.matsu.accumulo.AccumuloInterface")
+
+AccumuloInterface.connectForWriting("accumulo", "192.168.18.101:2181", "root", "password", "MatsuLevel2Tiles")
 
 tiles = {}
-reduce_tiles(tiles, sys.stdin, outputDirectory="/tmp/map-reduce")
+reduce_tiles(tiles, sys.stdin, outputDirectory="/tmp/map-reduce", outputAccumulo=AccumuloInterface)
+
 for depth in xrange(10, 1, -1):
-    collate(depth, tiles, outputDirectory="/tmp/map-reduce")
+    collate(depth, tiles, outputDirectory="/tmp/map-reduce", outputAccumulo=AccumuloInterface)
 
-# accumulo = subprocess.Popen(["java", "-jar", "/home/export/tanya/matsu-project/Libraries/Accumulo Interface/matsuAccumuloInterface.jar", "write", "MatsuLevel2Tiles"], stdin=subprocess.PIPE)
-# 
-# tiles = {}
-# reduce_tiles(tiles, sys.stdin, outputAccumulo=accumulo)
-# 
-# for depth in xrange(10, 1, -1):
-#     collate(depth, tiles, outputAccumulo=accumulo)
-
+AccumuloInterface.finishedWriting()
