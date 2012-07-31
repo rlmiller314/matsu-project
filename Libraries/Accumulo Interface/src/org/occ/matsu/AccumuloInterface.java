@@ -1,4 +1,4 @@
-package org.occ.matsu.accumulo;
+package org.occ.matsu;
 
 import java.util.Iterator;
 import java.util.Map.Entry;

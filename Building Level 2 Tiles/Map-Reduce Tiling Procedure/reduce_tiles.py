@@ -116,7 +116,7 @@ def collate(depth, tiles, outputDirectory=None, outputAccumulo=None, layer="RGB"
 
 classpath = "/home/export/tanya/matsu-project/Libraries/Accumulo Interface/matsuAccumuloInterface.jar"
 jpype.startJVM(jpype.getDefaultJVMPath(), "-Djava.class.path=%s" % classpath)
-AccumuloInterface = jpype.JClass("org.occ.matsu.accumulo.AccumuloInterface")
+AccumuloInterface = jpype.JClass("org.occ.matsu.AccumuloInterface")
 
 AccumuloInterface.connectForWriting("accumulo", "192.168.18.101:2181", "root", "password", "MatsuLevel2Tiles")
 
