@@ -2,6 +2,8 @@ package org.occ.matsu;
 
 import java.io.PrintWriter;
 
+import java.util.Map.Entry;
+
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.Connector;
@@ -9,6 +11,7 @@ import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.Constants;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
+import org.apache.accumulo.core.data.Value;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -30,11 +33,28 @@ public class MatsuServlet extends HttpServlet {
     protected static String password = "password";
     protected static String tableName = "MatsuLevel2Tiles";
 
-    protected static String configPath;
+    protected String configPath;
 
     protected static Instance zooKeeperInstance = null;
     protected static Connector connector = null;
-    protected static Scanner scanner = null;
+
+    static {
+	System.out.println("begin static");
+
+	zooKeeperInstance = new ZooKeeperInstance(accumuloName, zooKeeperList);
+
+	try {
+	    connector = zooKeeperInstance.getConnector(userId, password.getBytes());
+	}
+	catch (AccumuloException exception) {
+	    connector = null;
+	}
+	catch (AccumuloSecurityException exception) {
+	    connector = null;
+	}
+
+	System.out.println("end static");
+    }
 
     @Override public void init(ServletConfig servletConfig) throws ServletException {
 	System.out.println("begin init()");
@@ -52,33 +72,8 @@ public class MatsuServlet extends HttpServlet {
 	System.out.println("end init()");
     }
 
-    public synchronized static void startup() throws ServletException {
+    public void startup() throws ServletException {
 	System.out.println("begin startup()");
-
-        zooKeeperInstance = new ZooKeeperInstance(accumuloName, zooKeeperList);
-        if (zooKeeperInstance == null) {
-	    System.out.println("zooKeeperInstance is null, throwing exception");
-
-            throw new ServletException("Could not connect to ZooKeeper " + accumuloName + " " + zooKeeperList);
-        }
-
-	try {
-	    connector = zooKeeperInstance.getConnector(userId, password.getBytes());
-	}
-	catch (AccumuloException exception) {
-	    throw new ServletException("Could not create connector from ZooKeeper instance (AccumuloException)");
-	}
-	catch (AccumuloSecurityException exception) {
-	    throw new ServletException("Could not create connector from ZooKeeper instance (AccumuloSecurityException)");
-	}
-
-	try {
-	    scanner = connector.createScanner(tableName, Constants.NO_AUTHS);
-	}
-	catch (TableNotFoundException exception) {
-	    throw new ServletException("Could not create scanner from connector (TableNotFoundException)");
-	}
-
 	System.out.println("end startup()");
     }
 
@@ -94,7 +89,27 @@ public class MatsuServlet extends HttpServlet {
 	System.out.println("begin processRequest()");
 
 	PrintWriter printWriter = response.getWriter();
-	printWriter.write("hello");
+	printWriter.write("before");
+
+	if (zooKeeperInstance == null  ||  connector == null) { return; }
+
+	Scanner scanner;
+	try {
+	    scanner = connector.createScanner(tableName, Constants.NO_AUTHS);
+	}
+	catch (TableNotFoundException exception) {
+	    return;
+	}
+	scanner.setRange(new Range("T10-01561-01485-RGB"));
+
+	for (Entry<Key, Value> entry : scanner) {
+	    String columnName = entry.getKey().getColumnQualifier().toString();
+	    if (columnName.equals("metadata")) {
+		printWriter.write(entry.getValue().toString());
+	    }
+	}
+
+	printWriter.write("after");
 	printWriter.close();
 
 	System.out.println("end processRequest()");
