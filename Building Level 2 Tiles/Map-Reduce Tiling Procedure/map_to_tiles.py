@@ -27,111 +27,115 @@ def map_to_tiles(inputStream, outputStream, depth=10, longpixels=512, latpixels=
         * splineOrder: order of the spline used to calculate the affine_transformation (see SciPy docs); must be between 0 and 5
     """
 
-    # get the Level-1 image
-    geoPicture = GeoPictureSerializer.deserialize(inputStream)
+    while True:
+        line = inputStream.readline()
+        if not line: break
 
-    # convert GeoTIFF coordinates into degrees
-    tlx, weres, werot, tly, nsrot, nsres = json.loads(geoPicture.metadata["GeoTransform"])
-    spatialReference = osr.SpatialReference()
-    spatialReference.ImportFromWkt(geoPicture.metadata["Projection"])
-    coordinateTransform = osr.CoordinateTransformation(spatialReference, spatialReference.CloneGeogCS())
-    rasterXSize = geoPicture.picture.shape[1]
-    rasterYSize = geoPicture.picture.shape[0]
-    rasterDepth = geoPicture.picture.shape[2]
+        # get the Level-1 image
+        geoPicture = GeoPictureSerializer.deserialize(line)
 
-    # get the timestamp to use as part of the key
-    timestamp = time.mktime(datetime.datetime.strptime(json.loads(geoPicture.metadata["L1T"])["PRODUCT_METADATA"]["START_TIME"], "%Y %j %H:%M:%S").timetuple())
+        # convert GeoTIFF coordinates into degrees
+        tlx, weres, werot, tly, nsrot, nsres = json.loads(geoPicture.metadata["GeoTransform"])
+        spatialReference = osr.SpatialReference()
+        spatialReference.ImportFromWkt(geoPicture.metadata["Projection"])
+        coordinateTransform = osr.CoordinateTransformation(spatialReference, spatialReference.CloneGeogCS())
+        rasterXSize = geoPicture.picture.shape[1]
+        rasterYSize = geoPicture.picture.shape[0]
+        rasterDepth = geoPicture.picture.shape[2]
 
-    for section in xrange(numLatitudeSections):
-        bottom = (section + 0.0)/numLatitudeSections
-        middle = (section + 0.5)/numLatitudeSections
-        thetop = (section + 1.0)/numLatitudeSections
+        # get the timestamp to use as part of the key
+        timestamp = time.mktime(datetime.datetime.strptime(json.loads(geoPicture.metadata["L1T"])["PRODUCT_METADATA"]["START_TIME"], "%Y %j %H:%M:%S").timetuple())
 
-        # find the corners to determine which tile(s) this section belongs in
-        corner1Long, corner1Lat, altitude = coordinateTransform.TransformPoint(tlx + 0.0*weres*rasterXSize, tly + bottom*nsres*rasterYSize)
-        corner2Long, corner2Lat, altitude = coordinateTransform.TransformPoint(tlx + 0.0*weres*rasterXSize, tly + thetop*nsres*rasterYSize)
-        corner3Long, corner3Lat, altitude = coordinateTransform.TransformPoint(tlx + 1.0*weres*rasterXSize, tly + bottom*nsres*rasterYSize)
-        corner4Long, corner4Lat, altitude = coordinateTransform.TransformPoint(tlx + 1.0*weres*rasterXSize, tly + thetop*nsres*rasterYSize)
+        for section in xrange(numLatitudeSections):
+            bottom = (section + 0.0)/numLatitudeSections
+            middle = (section + 0.5)/numLatitudeSections
+            thetop = (section + 1.0)/numLatitudeSections
 
-        longIndexes = []
-        latIndexes = []
-        for ti in tileIndex(depth, corner1Long, corner1Lat), tileIndex(depth, corner2Long, corner2Lat), tileIndex(depth, corner3Long, corner3Lat), tileIndex(depth, corner4Long, corner4Lat):
-            longIndexes.append(ti[1])
-            latIndexes.append(ti[2])
+            # find the corners to determine which tile(s) this section belongs in
+            corner1Long, corner1Lat, altitude = coordinateTransform.TransformPoint(tlx + 0.0*weres*rasterXSize, tly + bottom*nsres*rasterYSize)
+            corner2Long, corner2Lat, altitude = coordinateTransform.TransformPoint(tlx + 0.0*weres*rasterXSize, tly + thetop*nsres*rasterYSize)
+            corner3Long, corner3Lat, altitude = coordinateTransform.TransformPoint(tlx + 1.0*weres*rasterXSize, tly + bottom*nsres*rasterYSize)
+            corner4Long, corner4Lat, altitude = coordinateTransform.TransformPoint(tlx + 1.0*weres*rasterXSize, tly + thetop*nsres*rasterYSize)
 
-        for ti in [(depth, x, y) for x in xrange(min(longIndexes), max(longIndexes)+1) for y in xrange(min(latIndexes), max(latIndexes)+1)]:
-            longmin, longmax, latmin, latmax = tileCorners(*ti)
+            longIndexes = []
+            latIndexes = []
+            for ti in tileIndex(depth, corner1Long, corner1Lat), tileIndex(depth, corner2Long, corner2Lat), tileIndex(depth, corner3Long, corner3Lat), tileIndex(depth, corner4Long, corner4Lat):
+                longIndexes.append(ti[1])
+                latIndexes.append(ti[2])
 
-            # find the origin and orientation of the image (not always exactly north-south-east-west)
-            cornerLong, cornerLat, altitude   = coordinateTransform.TransformPoint(tlx, tly)
-            originLong, originLat, altitude   = coordinateTransform.TransformPoint(tlx + 0.5*weres*rasterXSize, tly + middle*nsres*rasterYSize)
-            leftLong, leftLat, altitude       = coordinateTransform.TransformPoint(tlx + 0.0*weres*rasterXSize, tly + middle*nsres*rasterYSize)
-            rightLong, rightLat, altitude     = coordinateTransform.TransformPoint(tlx + 1.0*weres*rasterXSize, tly + middle*nsres*rasterYSize)
-            upLong, upLat, altitude           = coordinateTransform.TransformPoint(tlx + 0.5*weres*rasterXSize, tly + bottom*nsres*rasterYSize)
-            downLong, downLat, altitude       = coordinateTransform.TransformPoint(tlx + 0.5*weres*rasterXSize, tly + thetop*nsres*rasterYSize)
+            for ti in [(depth, x, y) for x in xrange(min(longIndexes), max(longIndexes)+1) for y in xrange(min(latIndexes), max(latIndexes)+1)]:
+                longmin, longmax, latmin, latmax = tileCorners(*ti)
 
-            # do some linear algebra to convert coordinates
-            L2PNG_to_geo_trans = numpy.matrix([[(latmin - latmax)/float(latpixels), 0.], [0., (longmax - longmin)/float(longpixels)]])
+                # find the origin and orientation of the image (not always exactly north-south-east-west)
+                cornerLong, cornerLat, altitude   = coordinateTransform.TransformPoint(tlx, tly)
+                originLong, originLat, altitude   = coordinateTransform.TransformPoint(tlx + 0.5*weres*rasterXSize, tly + middle*nsres*rasterYSize)
+                leftLong, leftLat, altitude       = coordinateTransform.TransformPoint(tlx + 0.0*weres*rasterXSize, tly + middle*nsres*rasterYSize)
+                rightLong, rightLat, altitude     = coordinateTransform.TransformPoint(tlx + 1.0*weres*rasterXSize, tly + middle*nsres*rasterYSize)
+                upLong, upLat, altitude           = coordinateTransform.TransformPoint(tlx + 0.5*weres*rasterXSize, tly + bottom*nsres*rasterYSize)
+                downLong, downLat, altitude       = coordinateTransform.TransformPoint(tlx + 0.5*weres*rasterXSize, tly + thetop*nsres*rasterYSize)
 
-            L1TIFF_to_geo_trans = numpy.matrix([[(downLat - upLat)/((thetop - bottom)*rasterYSize), (rightLat - leftLat)/rasterXSize], [(downLong - upLong)/((thetop - bottom)*rasterYSize), (rightLong - leftLong)/rasterXSize]])
-            geo_to_L1TIFF_trans = L1TIFF_to_geo_trans.I
+                # do some linear algebra to convert coordinates
+                L2PNG_to_geo_trans = numpy.matrix([[(latmin - latmax)/float(latpixels), 0.], [0., (longmax - longmin)/float(longpixels)]])
 
-            trans = geo_to_L1TIFF_trans * L2PNG_to_geo_trans
+                L1TIFF_to_geo_trans = numpy.matrix([[(downLat - upLat)/((thetop - bottom)*rasterYSize), (rightLat - leftLat)/rasterXSize], [(downLong - upLong)/((thetop - bottom)*rasterYSize), (rightLong - leftLong)/rasterXSize]])
+                geo_to_L1TIFF_trans = L1TIFF_to_geo_trans.I
 
-            offset_in_deg = numpy.matrix([[latmax - cornerLat], [longmin - cornerLong]], dtype=numpy.double)
+                trans = geo_to_L1TIFF_trans * L2PNG_to_geo_trans
 
-            # correct for the bottom != 0. case (only if section > 0)
-            truncate_correction = L1TIFF_to_geo_trans * numpy.matrix([[int(floor(bottom*rasterYSize))], [0.]], dtype=numpy.double)
+                offset_in_deg = numpy.matrix([[latmax - cornerLat], [longmin - cornerLong]], dtype=numpy.double)
 
-            # correct for the curvature of the Earth between the top of the section and the bottom of the section (that's why we cut into latitude sections)
-            curvature_correction = L1TIFF_to_geo_trans * (geo_to_L1TIFF_trans * numpy.matrix([[leftLat - cornerLat], [leftLong - cornerLong]], dtype=numpy.double) - numpy.matrix([[(middle*rasterYSize)], [0.]], dtype=numpy.double))
+                # correct for the bottom != 0. case (only if section > 0)
+                truncate_correction = L1TIFF_to_geo_trans * numpy.matrix([[int(floor(bottom*rasterYSize))], [0.]], dtype=numpy.double)
 
-            offset = L1TIFF_to_geo_trans.I * (offset_in_deg - truncate_correction - curvature_correction)
+                # correct for the curvature of the Earth between the top of the section and the bottom of the section (that's why we cut into latitude sections)
+                curvature_correction = L1TIFF_to_geo_trans * (geo_to_L1TIFF_trans * numpy.matrix([[leftLat - cornerLat], [leftLong - cornerLong]], dtype=numpy.double) - numpy.matrix([[(middle*rasterYSize)], [0.]], dtype=numpy.double))
 
-            offset = offset[0,0], offset[1,0]
+                offset = L1TIFF_to_geo_trans.I * (offset_in_deg - truncate_correction - curvature_correction)
 
-            # lay the GeoTIFF into the output image array
-            inputPicture = geoPicture.picture[int(floor(bottom*rasterYSize)):int(ceil(thetop*rasterYSize)),:,:]
-            inputMask = (inputPicture[:,:,0] > 0.)
-            for i in xrange(1, rasterDepth):
-                numpy.logical_and(inputMask, (inputPicture[:,:,i] > 0.), inputMask)
+                offset = offset[0,0], offset[1,0]
 
-            outputMask = numpy.zeros((latpixels, longpixels), dtype=geoPicture.picture.dtype)
-            affine_transform(inputMask, trans, offset, (latpixels, longpixels), outputMask, splineOrder)
-            if numpy.count_nonzero(outputMask > 0.5) == 0: continue
+                # lay the GeoTIFF into the output image array
+                inputPicture = geoPicture.picture[int(floor(bottom*rasterYSize)):int(ceil(thetop*rasterYSize)),:,:]
+                inputMask = (inputPicture[:,:,0] > 0.)
+                for i in xrange(1, rasterDepth):
+                    numpy.logical_and(inputMask, (inputPicture[:,:,i] > 0.), inputMask)
 
-            offset = offset[0], offset[1], 0.
-            trans = numpy.matrix([[trans[0,0], trans[0,1], 0.], [trans[1,0], trans[1,1], 0.], [0., 0., 1.]])
+                outputMask = numpy.zeros((latpixels, longpixels), dtype=geoPicture.picture.dtype)
+                affine_transform(inputMask, trans, offset, (latpixels, longpixels), outputMask, splineOrder)
+                if numpy.count_nonzero(outputMask > 0.5) == 0: continue
 
-            outputPicture = numpy.zeros((latpixels, longpixels, rasterDepth), dtype=geoPicture.picture.dtype)
-            affine_transform(inputPicture, trans, offset, (latpixels, longpixels, rasterDepth), outputPicture, splineOrder)
+                offset = offset[0], offset[1], 0.
+                trans = numpy.matrix([[trans[0,0], trans[0,1], 0.], [trans[1,0], trans[1,1], 0.], [0., 0., 1.]])
 
-            # suppress regions that should be zero but might not be because of numerical error in affine_transform
-            # this will make more of the picture eligible for zero-suppression (which checks for pixels exactly equal to zero)
-            cutMask = (outputMask < 0.01)
-            outputBands = []
-            for i in xrange(rasterDepth):
-                outputBands.append(outputPicture[:,:,i])
+                outputPicture = numpy.zeros((latpixels, longpixels, rasterDepth), dtype=geoPicture.picture.dtype)
+                affine_transform(inputPicture, trans, offset, (latpixels, longpixels, rasterDepth), outputPicture, splineOrder)
+
+                # suppress regions that should be zero but might not be because of numerical error in affine_transform
+                # this will make more of the picture eligible for zero-suppression (which checks for pixels exactly equal to zero)
+                cutMask = (outputMask < 0.01)
+                outputBands = []
+                for i in xrange(rasterDepth):
+                    outputBands.append(outputPicture[:,:,i])
+                    outputBands[-1][cutMask] = 0.
+                outputBands.append(outputMask)
                 outputBands[-1][cutMask] = 0.
-            outputBands.append(outputMask)
-            outputBands[-1][cutMask] = 0.
 
-            outputGeoPicture = GeoPictureSerializer.GeoPicture()
-            outputGeoPicture.picture = numpy.dstack(outputBands)
-            outputGeoPicture.metadata = geoPicture.metadata
-            outputGeoPicture.bands = geoPicture.bands + ["MASK"]
+                outputGeoPicture = GeoPictureSerializer.GeoPicture()
+                outputGeoPicture.picture = numpy.dstack(outputBands)
+                outputGeoPicture.metadata = geoPicture.metadata
+                outputGeoPicture.bands = geoPicture.bands + ["MASK"]
 
-            ### DEBUGGING CODE
-            # global prefix, number
-            # mask = numpy.cast["uint8"](numpy.minimum(outputMask * 255, 255))
-            # image = Image.fromarray(numpy.dstack((numpy.array(outputPicture[:,:,0], dtype=numpy.uint8), numpy.array(outputPicture[:,:,1], dtype=numpy.uint8), numpy.array(outputPicture[:,:,2], dtype=numpy.uint8), mask)))
-            # # image = Image.fromarray(mask)
-            # image.save("%s%d.png" % (prefix, number), "PNG", options="optimize")
-            # number += 1
+                ### DEBUGGING CODE
+                # global prefix, number
+                # mask = numpy.cast["uint8"](numpy.minimum(outputMask * 255, 255))
+                # image = Image.fromarray(numpy.dstack((numpy.array(outputPicture[:,:,0], dtype=numpy.uint8), numpy.array(outputPicture[:,:,1], dtype=numpy.uint8), numpy.array(outputPicture[:,:,2], dtype=numpy.uint8), mask)))
+                # # image = Image.fromarray(mask)
+                # image.save("%s%d.png" % (prefix, number), "PNG", options="optimize")
+                # number += 1
 
-            outputStream.write("%s-%010d\t" % (tileName(*ti), timestamp))
-            outputGeoPicture.serialize(outputStream)
-            outputStream.write("\n")
+                outputStream.write("%s-%010d\t" % (tileName(*ti), timestamp))
+                outputGeoPicture.serialize(outputStream)
+                outputStream.write("\n")
 
 ### DEBUGGING CODE
 # from PIL import Image
