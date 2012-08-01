@@ -1,0 +1,15 @@
+<web-app>
+
+  <display-name>Matsu Tile Mapping Server</display-name>
+
+  <servlet>
+    <servlet-name>GetTile</servlet-name>
+    <servlet-class>org.occ.matsu.MatsuServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>GetTile</servlet-name>
+    <url-pattern>/getTile</url-pattern>
+  </servlet-mapping>
+
+</web-app>
