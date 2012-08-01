@@ -95,7 +95,11 @@ public class MatsuServlet extends HttpServlet {
 	catch (TableNotFoundException exception) {
 	    return;
 	}
-	scanner.setRange(new Range("T10-01561-01485-RGB"));
+
+	String key = request.getParameter("key");
+	if (key == null) { return; }
+
+	scanner.setRange(new Range(key));
 
 	for (Entry<Key, Value> entry : scanner) {
 	    String columnName = entry.getKey().getColumnQualifier().toString();

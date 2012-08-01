@@ -13,7 +13,7 @@
                 <include name="**/*.class"/>
             </fileset>
             <fileset dir="./">
-                <include name="TileMappingServer.war"/>
+                <include name="TileServer.war"/>
             </fileset>
         </delete>
     </target>
@@ -27,7 +27,7 @@
     </target>
 
     <target name="link" depends="compile">
-        <war destfile="TileMappingServer.war" webxml="WebContent/WEB-INF/web.xml">
+        <war destfile="TileServer.war" webxml="WebContent/WEB-INF/web.xml">
             <fileset dir="WebContent/">
                 <include name="**/*.jsp"/>
                 <include name="**/*.css"/>
