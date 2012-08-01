@@ -1,7 +1,5 @@
 package org.occ.matsu;
 
-import java.io.PrintWriter;
-
 import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.Instance;
@@ -88,9 +86,6 @@ public class MatsuServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
 	System.out.println("begin processRequest()");
 
-	PrintWriter printWriter = response.getWriter();
-	printWriter.write("before");
-
 	if (zooKeeperInstance == null  ||  connector == null) { return; }
 
 	Scanner scanner;
@@ -104,13 +99,19 @@ public class MatsuServlet extends HttpServlet {
 
 	for (Entry<Key, Value> entry : scanner) {
 	    String columnName = entry.getKey().getColumnQualifier().toString();
-	    if (columnName.equals("metadata")) {
-		printWriter.write(entry.getValue().toString());
+	    if (columnName.equals("l2png")) {
+		byte[] l2png = entry.getValue().get();
+
+		response.setContentType("image/png");
+		response.setContentLength(l2png.length);
+
+		ServletOutputStream servletOutputStream = response.getOutputStream();
+		servletOutputStream.write(l2png);
+		servletOutputStream.close();
+
+		break;
 	    }
 	}
-
-	printWriter.write("after");
-	printWriter.close();
 
 	System.out.println("end processRequest()");
     }
