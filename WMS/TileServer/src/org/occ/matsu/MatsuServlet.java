@@ -37,8 +37,6 @@ public class MatsuServlet extends HttpServlet {
     protected static Connector connector = null;
 
     static {
-	System.out.println("begin static");
-
 	zooKeeperInstance = new ZooKeeperInstance(accumuloName, zooKeeperList);
 
 	try {
@@ -50,29 +48,13 @@ public class MatsuServlet extends HttpServlet {
 	catch (AccumuloSecurityException exception) {
 	    connector = null;
 	}
-
-	System.out.println("end static");
     }
 
     @Override public void init(ServletConfig servletConfig) throws ServletException {
-	System.out.println("begin init()");
-
 	super.init(servletConfig);
-
-	System.out.println("really begin init()");
 
 	ServletContext servletContext = servletConfig.getServletContext();
 	configPath = servletContext.getRealPath(servletConfig.getInitParameter("config.path"));
-
-	System.out.println("go do startup()");
-	startup();
-
-	System.out.println("end init()");
-    }
-
-    public void startup() throws ServletException {
-	System.out.println("begin startup()");
-	System.out.println("end startup()");
     }
 
     @Override protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -84,8 +66,6 @@ public class MatsuServlet extends HttpServlet {
     }
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
-	System.out.println("begin processRequest()");
-
 	if (zooKeeperInstance == null  ||  connector == null) { return; }
 
 	Scanner scanner;
@@ -116,8 +96,6 @@ public class MatsuServlet extends HttpServlet {
 		break;
 	    }
 	}
-
-	System.out.println("end processRequest()");
     }
 
 }
