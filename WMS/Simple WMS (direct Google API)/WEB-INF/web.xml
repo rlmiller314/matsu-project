@@ -2,14 +2,4 @@
 
   <display-name>Simple WMS</display-name>
 
-  <servlet>
-    <servlet-name>TestServlet</servlet-name>
-    <servlet-class>TestServlet</servlet-class>
-  </servlet>
-
-  <servlet-mapping>
-    <servlet-name>TestServlet</servlet-name>
-    <url-pattern>/hello</url-pattern>
-  </servlet-mapping>
-
 </web-app>
