@@ -99,7 +99,7 @@ def collate(depth, tiles, outputDirectory=None, outputAccumulo=None, layer="RGB"
             outputBlue[latSlice,longSlice] = inputBlue[0:rasterYSize/2,0:rasterXSize/2]
             outputMask[latSlice,longSlice] = inputMask[0:rasterYSize/2,0:rasterXSize/2]
 
-            image = Image.fromarray(numpy.dstack((outputRed, outputGreen, outputBlue)))
+            image = Image.fromarray(numpy.dstack((outputRed, outputGreen, outputBlue, outputMask)))
             if outputDirectory is not None:
                 image.save("%s/%s.png" % (outputDirectory, tileName(parentDepth, parentLongIndex, parentLatIndex)), "PNG", options="optimize")
             if outputAccumulo is not None:
