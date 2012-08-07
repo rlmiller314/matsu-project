@@ -22,6 +22,7 @@ parser.add_argument("inputDirectory", help="local filesystem directory containin
 parser.add_argument("outputFilename", help="HDFS filename for the output (make sure the directory exists)")
 parser.add_argument("--bands", nargs="+", default=["B029", "B023", "B016"], help="list of bands to retrieve, like \"B029 B023 B016\"")
 parser.add_argument("--requireAllBands", action="store_true", help="if any bands are missing, skip this image; default is to simply ignore the missing bands and include the others")
+parser.add_argument("--toLocalFile", action="store_true", help="save the serialized result to a local file instead of HDFS")
 args = parser.parse_args()
 
 import GeoPictureSerializer
@@ -83,6 +84,11 @@ for index, key in enumerate(geoPicture.bands):
 
 geoPicture.picture = array
 
-hadoop = subprocess.Popen([HADOOP, "dfs", "-put", "-", args.outputFilename], stdin=subprocess.PIPE)
-geoPicture.serialize(hadoop.stdin)
-hadoop.stdin.write("\n")
+if args.toLocalFile:
+    output = open(args.outputFilename, "w")
+    geoPicture.serialize(output)
+    output.write("\n")
+else:
+    hadoop = subprocess.Popen([HADOOP, "dfs", "-put", "-", args.outputFilename], stdin=subprocess.PIPE)
+    geoPicture.serialize(hadoop.stdin)
+    hadoop.stdin.write("\n")
