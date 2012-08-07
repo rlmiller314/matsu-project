@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys
 import json
 import datetime
@@ -10,15 +12,47 @@ from osgeo import osr
 
 import GeoPictureSerializer
 
-from tile_definition import *
+from math import floor
+
+def tileIndex(depth, longitude, latitude):  
+    "Inputs a depth and floating-point longitude and latitude, outputs a triple of index integers."
+    if abs(latitude) > 90.: raise ValueError("Latitude cannot be %s" % str(latitude))
+    longitude += 180.
+    latitude += 90.
+    while longitude <= 0.: longitude += 360.
+    while longitude > 360.: longitude -= 360.
+    longitude = int(floor(longitude/360. * 2**(depth+1)))
+    latitude = min(int(floor(latitude/180. * 2**(depth+1))), 2**(depth+1) - 1)
+    return depth, longitude, latitude
+
+def tileName(depth, longIndex, latIndex):
+    "Inputs an index-triple, outputs a string-valued name for the index."
+    return "T%02d-%05d-%05d" % (depth, longIndex, latIndex)  # constant length up to depth 15
+
+def tileCorners(depth, longIndex, latIndex):
+    "Inputs an index-triple, outputs the floating-point corners of the tile."
+    longmin = longIndex*360./2**(depth+1) - 180.
+    longmax = (longIndex + 1)*360./2**(depth+1) - 180.
+    latmin = latIndex*180./2**(depth+1) - 90.
+    latmax = (latIndex + 1)*180./2**(depth+1) - 90.
+    return longmin, longmax, latmin, latmax
+
+def tileParent(depth, longIndex, latIndex):
+    "Returns the (depth-1, longIndex, latIndex) that contains this tile."
+    return depth - 1, longIndex // 2, latIndex // 2
+
+def tileOffset(depth, longIndex, latIndex):
+    "Returns the corner this tile occupies in its parent's frame."
+    return longIndex % 2, latIndex % 2
 
 osr.UseExceptions()
 
 def map_to_tiles(inputStream, outputStream, depth=10, longpixels=512, latpixels=256, numLatitudeSections=1, splineOrder=3):
     """Performs the mapping step of the Hadoop map-reduce job.
 
-    Map: read L1G, possibly split by latitude, split by tile, transform pictures into tile coordinates, and output (tile coordinate and timestamp, transformed picture) key-value pairs.
-
+    Map: read L1G, possibly split by latitude, split by tile, transform pictures into tile coordinates, and output (tile coordinate and timestamp, transformed
+ picture) key-value pairs.
+                                            
         * inputStream: usually sys.stdin; should be a serialized L1G picture.
         * outputStream: usually sys.stdout; keys and values are separated by a tab, key-value pairs are separated by a newline.
         * depth: logarithmic scale of the tile; 10 is the limit of Hyperion's resolution
@@ -125,21 +159,8 @@ def map_to_tiles(inputStream, outputStream, depth=10, longpixels=512, latpixels=
                 outputGeoPicture.metadata = geoPicture.metadata
                 outputGeoPicture.bands = geoPicture.bands + ["MASK"]
 
-                ### DEBUGGING CODE
-                # global prefix, number
-                # mask = numpy.cast["uint8"](numpy.minimum(outputMask * 255, 255))
-                # image = Image.fromarray(numpy.dstack((numpy.array(outputPicture[:,:,0], dtype=numpy.uint8), numpy.array(outputPicture[:,:,1], dtype=numpy.uint8), numpy.array(outputPicture[:,:,2], dtype=numpy.uint8), mask)))
-                # # image = Image.fromarray(mask)
-                # image.save("%s%d.png" % (prefix, number), "PNG", options="optimize")
-                # number += 1
-
                 outputStream.write("%s-%010d\t" % (tileName(*ti), timestamp))
                 outputGeoPicture.serialize(outputStream)
                 outputStream.write("\n")
-
-### DEBUGGING CODE
-# from PIL import Image
-# prefix = "/var/www/quick-look/maptmp"
-# number = 0
 
 map_to_tiles(sys.stdin, sys.stdout)

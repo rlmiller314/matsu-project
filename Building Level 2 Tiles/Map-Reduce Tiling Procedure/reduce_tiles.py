@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys
 import subprocess
 from io import BytesIO
@@ -11,9 +13,48 @@ import jpype
 
 import GeoPictureSerializer
 
-from tile_definition import *
+from math import floor
 
-def reduce_tiles(tiles, inputStream, outputDirectory=None, outputAccumulo=None, bands=["B029", "B023", "B016"], layer="RGB", minRadiance=0., maxRadiance=300.):
+ACCUMULO_INTERFACE = "/opt/matsuAccumuloInterface.jar"
+ACCUMULO_DB_NAME = "???"
+ZOOKEEPER_LIST = "???"
+ACCUMULO_USER_NAME = "???"
+ACCUMULO_PASSWORD = "???"
+ACCUMULO_TABLE_NAME = "MatsuLevel2Tiles"
+
+def tileIndex(depth, longitude, latitude):
+    "Inputs a depth and floating-point longitude and latitude, outputs a triple of index integers."
+    if abs(latitude) > 90.: raise ValueError("Latitude cannot be %s" % str(latitude))
+    longitude += 180.
+    latitude += 90.
+    while longitude <= 0.: longitude += 360.
+    while longitude > 360.: longitude -= 360.
+    longitude = int(floor(longitude/360. * 2**(depth+1)))
+    latitude = min(int(floor(latitude/180. * 2**(depth+1))), 2**(depth+1) - 1)
+    return depth, longitude, latitude
+
+def tileName(depth, longIndex, latIndex):
+    "Inputs an index-triple, outputs a string-valued name for the index."
+    return "T%02d-%05d-%05d" % (depth, longIndex, latIndex)  # constant length up to depth 15
+
+def tileCorners(depth, longIndex, latIndex):
+    "Inputs an index-triple, outputs the floating-point corners of the tile."
+    longmin = longIndex*360./2**(depth+1) - 180.
+    longmax = (longIndex + 1)*360./2**(depth+1) - 180.
+    latmin = latIndex*180./2**(depth+1) - 90.
+    latmax = (latIndex + 1)*180./2**(depth+1) - 90.
+    return longmin, longmax, latmin, latmax
+
+def tileParent(depth, longIndex, latIndex):
+    "Returns the (depth-1, longIndex, latIndex) that contains this tile."
+    return depth - 1, longIndex // 2, latIndex // 2
+
+def tileOffset(depth, longIndex, latIndex):
+    "Returns the corner this tile occupies in its parent's frame."
+    return longIndex % 2, latIndex % 2
+
+def reduce_tiles(tiles, inputStream, outputDirectory=None, outputAccumulo=None, bands=["B029", "B023", "B016"], layer="RGB", minRadiance=0., maxRadiance=300.)
+:
     while True:
         line = inputStream.readline()
         if not line: break
@@ -75,7 +116,7 @@ def collate(depth, tiles, outputDirectory=None, outputAccumulo=None, layer="RGB"
             rasterYSize, rasterXSize = outputRed.shape
 
             inputRed, inputGreen, inputBlue, inputMask = tiles[depthIndex, longIndex, latIndex]
-            
+
             trans = numpy.matrix([[2., 0.], [0., 2.]])
             offset = 0., 0.
 
@@ -107,23 +148,15 @@ def collate(depth, tiles, outputDirectory=None, outputAccumulo=None, layer="RGB"
                 image.save(buff, "PNG", options="optimize")
                 outputAccumulo.write("%s-%s" % (tileName(parentDepth, parentLongIndex, parentLatIndex), layer), "{}", buff.getvalue())
 
-### tiles = {}
-### reduce_tiles(tiles, sys.stdin, outputDirectory="/tmp/map-reduce")
-### for depth in xrange(10, 1, -1):
-###     collate(depth, tiles, outputDirectory="/tmp/map-reduce")
-
-
-
-classpath = "/home/export/tanya/matsu-project/Libraries/Accumulo Interface/matsuAccumuloInterface.jar"
-jpype.startJVM(jpype.getDefaultJVMPath(), "-Djava.class.path=%s" % classpath)
+jpype.startJVM(jpype.getDefaultJVMPath(), "-Djava.class.path=%s" % ACCUMULO_INTERFACE)
 AccumuloInterface = jpype.JClass("org.occ.matsu.AccumuloInterface")
 
-AccumuloInterface.connectForWriting("accumulo", "192.168.18.101:2181", "root", "password", "MatsuLevel2Tiles")
+AccumuloInterface.connectForWriting(ACCUMULO_DB_NAME, ZOOKEEPER_LIST, ACCUMULO_USER_NAME, ACCUMULO_PASSWORD, ACCUMULO_TABLE_NAME)
 
 tiles = {}
-reduce_tiles(tiles, sys.stdin, outputDirectory="/tmp/map-reduce", outputAccumulo=AccumuloInterface)
-
+reduce_tiles(tiles, sys.stdin, outputAccumulo=AccumuloInterface)
+                                   
 for depth in xrange(10, 1, -1):
-    collate(depth, tiles, outputDirectory="/tmp/map-reduce", outputAccumulo=AccumuloInterface)
+    collate(depth, tiles, outputAccumulo=AccumuloInterface)
 
 AccumuloInterface.finishedWriting()
