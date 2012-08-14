@@ -20,7 +20,7 @@ osr.UseExceptions()
 parser = argparse.ArgumentParser(description="Glue together a set of image bands with their metadata, serialize, and put the result in HDFS.")
 parser.add_argument("inputDirectory", help="local filesystem directory containing TIF and L1T files")
 parser.add_argument("outputFilename", help="HDFS filename for the output (make sure the directory exists)")
-parser.add_argument("--bands", nargs="+", default=["B029", "B023", "B016"], help="list of bands to retrieve, like \"B029 B023 B016\"")
+parser.add_argument("--bands", nargs="+", default=["B029", "B023", "B016"], help="list of bands to retrieve, like \"B029 B023 B016\" for Hyperion or \"B01 B02 B03 B04 B05 B06 B07 B08 B09 B10\" for ALI")
 parser.add_argument("--requireAllBands", action="store_true", help="if any bands are missing, skip this image; default is to simply ignore the missing bands and include the others")
 parser.add_argument("--toLocalFile", action="store_true", help="save the serialized result to a local file instead of HDFS")
 args = parser.parse_args()
@@ -31,7 +31,8 @@ geoPicture = GeoPictureSerializer.GeoPicture()
 # convert the NASA-format L1T file into a JSON-formatted string
 l1t = {}
 try:
-    l1tFileName = glob.glob(args.inputDirectory + "/*.L1T")[0]
+    # ask for both the Hyperion metadata file and the ALI metadata file; you'll only get one; take the first
+    l1tFileName = (glob.glob(args.inputDirectory + "/*.L1T") + glob.glob(args.inputDirectory + "/*_MTL_L1T.TIF"))[0]
 except IndexError:
     raise Exception("%s doesn't have a L1T metadata file" % args.inputDirectory)
 
@@ -52,7 +53,7 @@ with open(l1tFileName) as l1tFile:
             last[name] = value
     geoPicture.metadata["L1T"] = json.dumps(l1t)
 
-tiffs = glob.glob(args.inputDirectory + "/EO1H*_B[0-9][0-9][0-9]_L1T.TIF")
+tiffs = glob.glob(args.inputDirectory + "/EO1*_B[0-9][0-9]*_L1T.TIF")   # Hyperion band names have three digits, ALI have two
 
 tiffs = dict((t[-12:-8], gdal.Open(t, gdalconst.GA_ReadOnly)) for t in tiffs)
 try:
@@ -74,13 +75,26 @@ if len(geoPicture.bands) == 0:
 array = numpy.empty((sampletiff.RasterYSize, sampletiff.RasterXSize, len(geoPicture.bands)), dtype=numpy.float)
 
 for index, key in enumerate(geoPicture.bands):
-    if int(key[1:]) <= 70:
-        scaleFactor = 1./float(l1t["RADIANCE_SCALING"]["SCALING_FACTOR_VNIR"])
-    else:
-        scaleFactor = 1./float(l1t["RADIANCE_SCALING"]["SCALING_FACTOR_SWIR"])
+    bandNumber = int(key[1:])
+
+    radianceScaling = l1t["RADIANCE_SCALING"]
+    if "SCALING_FACTOR_VNIR" in radianceScaling:   # if Hyperion:
+        scaleOffset = 0.
+        if bandNumber <= 70:
+            scaleFactor = 1./float(radianceScaling["SCALING_FACTOR_VNIR"])
+        else:
+            scaleFactor = 1./float(radianceScaling["SCALING_FACTOR_SWIR"])
+
+    else:   # else ALI:
+        scaleOffset = 0.
+        scaleFactor = 1./300.  # from the EO-1 User Guide Version 2.3, FAQ on ALI
+
+        ### According to (my uncertain reading of) the User Guide, these corrections were already applied in the Level-0 to Level-1 step:
+        # scaleOffset = float(radianceScaling["BAND%d_OFFSET" % bandNumber])
+        # scaleFactor = 1./float(radianceScaling["BAND%d_SCALING_FACTOR" % bandNumber])
 
     band = tiffs[key].GetRasterBand(1).ReadAsArray()
-    array[:,:,index] = numpy.multiply(band, scaleFactor)
+    array[:,:,index] = (band * scaleFactor) + scaleOffset
 
 geoPicture.picture = array
 
