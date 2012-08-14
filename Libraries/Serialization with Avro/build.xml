@@ -1,0 +1,28 @@
+<project default="link">
+    <target name="clean">
+        <delete dir="build" />
+        <delete file="geoPictureSerializer.jar" />
+    </target>
+
+    <target name="compile">
+        <mkdir dir="build" />
+        <javac srcdir="src" destdir="build">
+            <classpath>
+                <pathelement location="/home/pivarski/matsu-project/Libraries/Serialization with Avro/avro-1.7.1.jar" />
+                <pathelement location="/home/pivarski/matsu-project/Libraries/Serialization with Avro/jackson-core-asl-1.9.9.jar" />
+                <pathelement location="/home/pivarski/matsu-project/Libraries/Serialization with Avro/jackson-mapper-asl-1.9.9.jar" />
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="link" depends="compile">
+        <jar jarfile="geoPictureSerializer.jar" basedir="build">
+	    <manifest>
+		<attribute name="Main-Class" value="org.occ.matsu.GeoPictureSerializer" />
+	    </manifest>
+            <zipfileset src="/home/pivarski/matsu-project/Libraries/Serialization with Avro/avro-1.7.1.jar" includes="**/*.class" />
+            <zipfileset src="/home/pivarski/matsu-project/Libraries/Serialization with Avro/jackson-core-asl-1.9.9.jar" includes="**/*.class" />
+            <zipfileset src="/home/pivarski/matsu-project/Libraries/Serialization with Avro/jackson-mapper-asl-1.9.9.jar" includes="**/*.class" />
+	</jar>
+    </target>
+</project>

@@ -1,0 +1,16 @@
+{"type": "record", "name": "GeoPictureWithMetadata", "fields":
+    [{"name": "metadata", "type": {"type": "map", "values": "string"}},
+     {"name": "bands", "type": {"type": "array", "items": "string"}},
+     {"name": "height", "type": "int"},
+     {"name": "width", "type": "int"},
+     {"name": "depth", "type": "int"},
+     {"name": "dtype", "type": "int"},
+     {"name": "itemsize", "type": "int"},
+     {"name": "nbytes", "type": "long"},
+     {"name": "fortran", "type": "boolean"},
+     {"name": "byteorder", "type": {"type": "enum", "name": "ByteOrder", "symbols": ["LittleEndian", "BigEndian", "NativeEndian", "IgnoreEndian"]}},
+     {"name": "data", "type":
+        {"type": "array", "items":
+            {"type": "record", "name": "ZeroSuppressed", "fields":
+                [{"name": "index", "type": "long"}, {"name": "strip", "type": "bytes"}]}}}
+     ]}
