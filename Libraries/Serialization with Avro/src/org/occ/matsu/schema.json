@@ -1,4 +1,4 @@
-{"type": "record", "name": "GeoPictureWithMetadata", "fields":
+{"namespace": "org.occ.matsu", "type": "record", "name": "GeoPictureWithMetadata", "fields":
     [{"name": "metadata", "type": {"type": "map", "values": "string"}},
      {"name": "bands", "type": {"type": "array", "items": "string"}},
      {"name": "height", "type": "int"},
