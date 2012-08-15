@@ -12,6 +12,10 @@ export IMAGELIBRARY_DIRECTORY=/opt/imagelibraries
 #   You can delete this after installation and everything should still work.
 export PACKAGE_CACHE_DIRECTORY=/tmp/package_cache
 #
+#   JPype will require JAVA_HOME to be correctly set.  I haven't tested this
+#   on a system with Java yet.
+# export JAVA_HOME=
+#
 #   This is a script that you should source ("source setup_environment.sh")
 #   after each login to use the compiled Python and libraries, rather than
 #   the default ones.  (Note: "./setup_environment.sh" is not sufficient.)
@@ -69,7 +73,7 @@ yum -y install zlib-devel.x86_64          # for PIL's PNG support
 
 # 2. Install Python 2.7.3 (there wasn't any particular reason for 2.7 rather than 2.6)
 
-wget http://python.org/ftp/python/2.7.3/Python-2.7.3.tgz
+wget http://python.org/ftp/python/2.7.3/Python-2.7.3.tgz -O Python-2.7.3.tgz
 tar -xzvf Python-2.7.3.tgz
 cd Python-2.7.3
 ./configure --prefix=$IMAGELIBRARY_DIRECTORY
@@ -79,7 +83,7 @@ cd ..
 
 # 3. Install NumPy 1.6.2
 
-wget 'http://downloads.sourceforge.net/project/numpy/NumPy/1.6.2/numpy-1.6.2.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fnumpy%2Ffiles%2FNumPy%2F1.6.2%2F&ts=1339612771&use_mirror=voxel'
+wget 'http://downloads.sourceforge.net/project/numpy/NumPy/1.6.2/numpy-1.6.2.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fnumpy%2Ffiles%2FNumPy%2F1.6.2%2F&ts=1339612771&use_mirror=voxel' -O numpy-1.6.2.tar.gz
 tar -xzvf numpy-1.6.2.tar.gz
 cd numpy-1.6.2
 python setup.py install --home=$IMAGELIBRARY_DIRECTORY
@@ -87,7 +91,7 @@ cd ..
 
 # 4. Install SciPy 0.10.1
 
-wget 'http://downloads.sourceforge.net/project/scipy/scipy/0.10.1/scipy-0.10.1.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fscipy%2Ffiles%2Fscipy%2F0.10.1%2F&ts=1339612599&use_mirror=hivelocity'
+wget 'http://downloads.sourceforge.net/project/scipy/scipy/0.10.1/scipy-0.10.1.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fscipy%2Ffiles%2Fscipy%2F0.10.1%2F&ts=1339612599&use_mirror=hivelocity' -O scipy-0.10.1.tar.gz
 tar -xzvf scipy-0.10.1.tar.gz
 cd scipy-0.10.1
 python setup.py install --home=$IMAGELIBRARY_DIRECTORY
@@ -95,7 +99,7 @@ cd ..
 
 # 5. Install PIL 1.1.7
 
-wget http://effbot.org/downloads/Imaging-1.1.7.tar.gz
+wget http://effbot.org/downloads/Imaging-1.1.7.tar.gz -O Imaging-1.1.7.tar.gz
 tar -xzvf Imaging-1.1.7.tar.gz
 cd Imaging-1.1.7
 sed 's/^ZLIB_ROOT = None$/ZLIB_ROOT = "\/usr\/lib64", "\/usr\/include"/' < setup.py > /tmp/TMP
@@ -105,7 +109,7 @@ cd ..
 
 # 6. Install PROJ.4 from source
 
-wget http://download.osgeo.org/proj/proj-4.8.0.tar.gz
+wget http://download.osgeo.org/proj/proj-4.8.0.tar.gz -O proj-4.8.0.tar.gz
 tar -xzvf proj-4.8.0.tar.gz
 cd proj-4.8.0
 ./configure --prefix=$IMAGELIBRARY_DIRECTORY
@@ -115,7 +119,7 @@ cd ..
 
 # 7. Install GDAL with its Python bindings
 
-wget http://download.osgeo.org/gdal/gdal191.zip
+wget http://download.osgeo.org/gdal/gdal191.zip -O gdal191.zip
 unzip gdal191.zip
 cd gdal-1.9.1/
 ./configure --prefix=$IMAGELIBRARY_DIRECTORY --with-python
@@ -141,7 +145,7 @@ export BOOST_LIBRARYDIR=/usr/lib64/boost141
 
 # 2. Install Avro
 
-wget http://mirrors.sonic.net/apache/avro/avro-1.7.1/cpp/avro-cpp-1.7.1.tar.gz
+wget http://mirrors.sonic.net/apache/avro/avro-1.7.1/cpp/avro-cpp-1.7.1.tar.gz -O avro-cpp-1.7.1.tar.gz
 tar -xzvf avro-cpp-1.7.1.tar.gz
 cd avro-cpp-1.7.1
 cmake -G "Unix Makefiles"
@@ -161,3 +165,17 @@ cd opencloudconsortium-matsu-project-*
 cd Libraries/Serialization\ with\ Avro/
 python setup.py install --home=$IMAGELIBRARY_DIRECTORY --with-avro=$IMAGELIBRARY_DIRECTORY --with-boostinclude=$BOOST_INCLUDEDIR --with-boostlib=$BOOST_LIBRARYDIR
 cd ../../..
+
+################################################################################
+#
+#   Third part: JPype (untested)
+#
+################################################################################
+
+# 1. Install JPype
+
+wget "https://downloads.sourceforge.net/project/jpype/JPype/0.5.4/JPype-0.5.4.2.zip?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fjpype%2Ffiles%2F&ts=1345046559&use_mirror=iweb" -O JPype-0.5.4.2.zip
+unzip JPype-0.5.4.2.zip
+cd JPype-0.5.4.2.zip
+python setup.py install
+cd ..
