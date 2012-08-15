@@ -5,6 +5,7 @@ import glob
 import json
 import argparse
 import subprocess
+import re
 
 import numpy
 from PIL import Image
@@ -55,7 +56,7 @@ with open(l1tFileName) as l1tFile:
 
 tiffs = glob.glob(args.inputDirectory + "/EO1*_B[0-9][0-9]*_L1T.TIF")   # Hyperion band names have three digits, ALI have two
 
-tiffs = dict((t[-12:-8], gdal.Open(t, gdalconst.GA_ReadOnly)) for t in tiffs)
+tiffs = dict((re.search("_(B[0-9]+)_", t).group(1), gdal.Open(t, gdalconst.GA_ReadOnly)) for t in tiffs)
 try:
     sampletiff = tiffs.values()[0]
 except IndexError:
