@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.ByteBuffer;
 
 class GeoPictureSerializer {
     public static final Schema schema = new Schema.Parser().parse(
@@ -37,44 +38,82 @@ class GeoPictureSerializer {
 	"                [{\"name\": \"index\", \"type\": \"long\"}, {\"name\": \"strip\", \"type\": \"bytes\"}]}}}\n" +
 	"     ]}");
 
+    public static double[][][] data;
+
     public static void main(String[] argv) throws IOException {
 	System.out.println("begin");
 
 	InputStream inputStream = new Base64InputStream(new FileInputStream(new File("/home/pivarski/matsu-project/Libraries/Serialization with Avro/tests/test.serialized")));
-	// InputStream inputStream = new FileInputStream(new File("/home/pivarski/matsu-project/Libraries/Serialization with Avro/tests/test.binary"));
 
 	DecoderFactory decoderFactory = new DecoderFactory();
-	ValidatingDecoder decoder = decoderFactory.validatingDecoder(schema, decoderFactory.binaryDecoder(inputStream, null));
-
-	// GeoPictureWithMetadata p = new GeoPictureWithMetadata();
-	// SpecificDatumReader<GeoPictureWithMetadata> reader = new SpecificDatumReader<GeoPictureWithMetadata>(schema);
-	// SpecificData<GeoPictureWithMetadata> p = reader.read(null, d);
-
-	// DatumReader reader = new SpecificDatumReader(GeoPictureWithMetadata.class);
-	// GeoPictureWithMetadata result = new GeoPictureWithMetadata();
-	// reader.read(result, decoder);
+	ValidatingDecoder d = decoderFactory.validatingDecoder(schema, decoderFactory.binaryDecoder(inputStream, null));
 
 	DatumReader<GeoPictureWithMetadata> reader = new SpecificDatumReader<GeoPictureWithMetadata>(GeoPictureWithMetadata.class);
-	GeoPictureWithMetadata result = reader.read(null, decoder);
+	GeoPictureWithMetadata p = reader.read(null, d);
 
-	// DatumReader<GeoPictureWithMetadata> reader = SpecificData.createDatumReader(schema);
+	System.out.println(p.getBands());
+	System.out.println(p.getMetadata());
+	System.out.println(p.getHeight());
+	System.out.println(p.getWidth());
+	System.out.println(p.getDepth());
+	System.out.println(p.getDtype());
+	System.out.println(p.getByteorder());
+	System.out.println(p.getItemsize());
+	System.out.println(p.getNbytes());
+	System.out.println(p.getFortran());
+	System.out.println(p.getData());
 
-	
+	data = new double[p.getHeight()][p.getWidth()][p.getDepth()];
+	for (int i = 0;  i < p.getHeight();  i++) {
+	    for (int j = 0;  j < p.getWidth();  j++) {
+		for (int k = 0;  k < p.getDepth();  k++) {
+		    data[i][j][k] = 0.;
+		}
+	    }
+	}
 
+	for (ZeroSuppressed zs : p.getData()) {
+	    long index = zs.getIndex();
 
-	System.out.println(result.getBands());
-	System.out.println(result.getMetadata());
-	System.out.println(result.getHeight());
-	System.out.println(result.getWidth());
-	System.out.println(result.getDepth());
-	System.out.println(result.getDtype());
-	System.out.println(result.getByteorder());
-	System.out.println(result.getItemsize());
-	System.out.println(result.getNbytes());
-	System.out.println(result.getFortran());
-	System.out.println(result.getData());
+	    ByteBuffer strip = zs.getStrip();
+	    if (! p.getByteorder().equals(ByteOrder.BigEndian)) {
+		strip.order(java.nio.ByteOrder.LITTLE_ENDIAN);
+	    }
 
+	    while (strip.hasRemaining()) {
+		int i, j, k;
+		if (p.getFortran()) {
+		    i = (int)((index / p.getHeight() / p.getWidth()) % p.getDepth());
+		    j = (int)((index / p.getHeight()) % p.getWidth());
+		    k = (int)(index % p.getHeight());
+		}
+		else {
+		    i = (int)((index / p.getDepth() / p.getWidth()) % p.getHeight());
+		    j = (int)((index / p.getDepth()) % p.getWidth());
+		    k = (int)(index % p.getDepth());
+		}
+		index++;
 
+		data[i][j][k] = strip.getDouble();
+
+		System.out.println(String.format("%d %g", index, data[i][j][k]));
+
+	    }
+	}
+
+	p.setData(null);
+
+	for (int i = 0;  i < p.getHeight();  i++) {
+	    for (int j = 0;  j < p.getWidth();  j++) {
+		System.out.print("[");
+		for (int k = 0;  k < p.getDepth();  k++) {
+		    System.out.print(data[i][j][k]);
+		    System.out.print(" ");
+		}
+		System.out.println("]");
+	    }
+	    System.out.println();
+	}
 
 	System.out.println("end");
     }
