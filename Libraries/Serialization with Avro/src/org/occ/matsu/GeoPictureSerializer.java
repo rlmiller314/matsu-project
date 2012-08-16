@@ -63,8 +63,19 @@ class GeoPictureSerializer extends Object {
 
     public GeoPictureSerializer() {}
 
-    public String[] bandNames() {
-	return bands;
+    public String bandNames() throws InvalidGeoPictureException {
+    	if (!valid) { throw new InvalidGeoPictureException(); }
+
+	StringBuilder stringBuilder = new StringBuilder();
+	stringBuilder.append("[");
+
+	for (int k = 0;  k < depth;  k++) {
+	    if (k != 0) { stringBuilder.append(","); }
+	    stringBuilder.append(String.format("\"%s\"", bands[k]));
+	}
+	stringBuilder.append("]");
+
+	return stringBuilder.toString();
     }
 
     public void loadSerialized(String serialized) throws IOException {
