@@ -1,0 +1,15 @@
+<web-app>
+
+  <display-name>Matsu Interactive Analysis</display-name>
+
+  <servlet>
+    <servlet-name>PictureData</servlet-name>
+    <servlet-class>org.occ.matsu.GeoPictureServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>PictureData</servlet-name>
+    <url-pattern>/pictureData</url-pattern>
+  </servlet-mapping>
+
+</web-app>

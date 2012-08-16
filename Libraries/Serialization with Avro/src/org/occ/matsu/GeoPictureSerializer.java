@@ -3,6 +3,7 @@ package org.occ.matsu;
 import org.occ.matsu.ByteOrder;
 import org.occ.matsu.ZeroSuppressed;
 import org.occ.matsu.GeoPictureWithMetadata;
+import org.occ.matsu.InvalidGeoPictureException;
 
 import org.apache.avro.Schema;
 import org.apache.avro.io.DecoderFactory;
@@ -33,9 +34,8 @@ import javax.script.ScriptException;
 
 import javax.imageio.ImageIO;
 
-class InvalidGeoPictureException extends Exception { }
-
 class GeoPictureSerializer extends Object {
+
     public static final Schema schema = new Schema.Parser().parse(
         "{\"type\": \"record\", \"name\": \"GeoPictureWithMetadata\", \"fields\":\n" +
 	"    [{\"name\": \"metadata\", \"type\": {\"type\": \"map\", \"values\": \"string\"}},\n" +
