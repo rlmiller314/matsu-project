@@ -8,7 +8,7 @@
                 <include name="**/*.class"/>
             </fileset>
             <fileset dir="./">
-                <include name="MatsuInteractiveAnalysis.war"/>
+                <include name="GeoPictureServlet.war"/>
             </fileset>
         </delete>
     </target>
@@ -44,7 +44,7 @@
 	    </fileset>
 	</copy>	    
 
-        <war destfile="MatsuInteractiveAnalysis.war" webxml="WebContent/WEB-INF/web.xml">
+        <war destfile="GeoPictureServlet.war" webxml="WebContent/WEB-INF/web.xml">
             <fileset dir="WebContent/">
                 <include name="**/*.jsp"/>
                 <include name="**/*.css"/>

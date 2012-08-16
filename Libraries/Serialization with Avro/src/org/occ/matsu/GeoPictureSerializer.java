@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.lang.Double;
 import java.util.List;
@@ -76,6 +77,11 @@ class GeoPictureSerializer extends Object {
 	stringBuilder.append("]");
 
 	return stringBuilder.toString();
+    }
+
+    public String dimensions() throws InvalidGeoPictureException {
+    	if (!valid) { throw new InvalidGeoPictureException(); }
+	return String.format("[%d,%d,%d]", width, height, depth);
     }
 
     public void loadSerialized(String serialized) throws IOException {
@@ -142,6 +148,10 @@ class GeoPictureSerializer extends Object {
 
     public String spectrum(int x1, int y1, int x2, int y2, boolean log) throws IOException, InvalidGeoPictureException {
     	if (!valid) { throw new InvalidGeoPictureException(); }
+	if (x1 < 0) { x1 = 0; }
+	if (y1 < 0) { y1 = 0; }
+	if (x2 >= width) { x2 = width - 1; }
+	if (y2 >= height) { y2 = height - 1; }
 
     	double[] numer = new double[depth];
     	double[] denom = new double[depth];
@@ -168,6 +178,7 @@ class GeoPictureSerializer extends Object {
 	stringBuilder.append("[");
 
 	int i = 0;
+	boolean first = true;
 	for (int k = 0;  k < depth;  k++) {
 	    if (denom[k] > 0.) {
 		double output;
@@ -180,8 +191,10 @@ class GeoPictureSerializer extends Object {
 		}
 		i++;
 
-		if (k != 0) { stringBuilder.append(","); }
-		stringBuilder.append(String.format("[\"%s\", %g]", bands[k], output));
+		if (!first) { stringBuilder.append(","); }
+		first = false;
+
+		stringBuilder.append(String.format("[\"%s\",%g]", bands[k], output));
 	    }
 	}
 		
@@ -192,6 +205,10 @@ class GeoPictureSerializer extends Object {
 
     public String scatter(int x1, int y1, int x2, int y2, String horiz, String vert) throws InvalidGeoPictureException, ScriptException {
 	if (!valid) { throw new InvalidGeoPictureException(); }
+	if (x1 < 0) { x1 = 0; }
+	if (y1 < 0) { y1 = 0; }
+	if (x2 >= width) { x2 = width - 1; }
+	if (y2 >= height) { y2 = height - 1; }
 
 	int horizSimple = -1;
 	int vertSimple = -1;
@@ -247,11 +264,14 @@ class GeoPictureSerializer extends Object {
 
 	StringBuilder stringBuilder = new StringBuilder();
 	stringBuilder.append("[");
+	boolean first = true;
 	for (int i = 0;  i < x2 - x1;  i++) {
 	    for (int j = 0;  j < y2 - y1;  j++) {
 		if (alphas[i][j]) {
-		    if (i != 0  ||  j != 0) { stringBuilder.append(","); }
-		    stringBuilder.append(String.format("[%g, %g]", horizs[i][j], verts[i][j]));
+		    if (!first) { stringBuilder.append(","); }
+		    first = false;
+
+		    stringBuilder.append(String.format("[%g,%g]", horizs[i][j], verts[i][j]));
 		}
 	    }
 	}
@@ -260,13 +280,31 @@ class GeoPictureSerializer extends Object {
 	return stringBuilder.toString();
     }
 
-    public void image(String red, String green, String blue, OutputStream output) throws IOException, InvalidGeoPictureException, ScriptException {
+    public byte[] image(String red, String green, String blue, double min, double max) throws IOException, InvalidGeoPictureException, ScriptException {
 	if (!valid) { throw new InvalidGeoPictureException(); }
-	image(0, 0, width, height, red, green, blue, output);
+
+	int redSimple = -1;
+	int greenSimple = -1;
+	int blueSimple = -1;
+	for (int k = 0;  k < depth;  k++) {
+	    if (bands[k].equals(red)) { redSimple = k; }
+	    if (bands[k].equals(green)) { greenSimple = k; }
+	    if (bands[k].equals(blue)) { blueSimple = k; }
+	}
+
+	if (redSimple == -1  ||  greenSimple == -1  ||  blueSimple == -1) {
+	    throw new ScriptException("Javascript is only allowed for sub-images (it's slow!)");
+	}
+
+	return image(0, 0, width, height, red, green, blue, min, max);
     }
 
-    public void image(int x1, int y1, int x2, int y2, String red, String green, String blue, OutputStream output) throws IOException, InvalidGeoPictureException, ScriptException {
+    public byte[] image(int x1, int y1, int x2, int y2, String red, String green, String blue, double min, double max) throws IOException, InvalidGeoPictureException, ScriptException {
 	if (!valid) { throw new InvalidGeoPictureException(); }
+	if (x1 < 0) { x1 = 0; }
+	if (y1 < 0) { y1 = 0; }
+	if (x2 >= width) { x2 = width - 1; }
+	if (y2 >= height) { y2 = height - 1; }
 
 	int redSimple = -1;
 	int greenSimple = -1;
@@ -334,7 +372,7 @@ class GeoPictureSerializer extends Object {
 		    if (blues[i][j] == 0.) { alphas[i][j] = false; }
 		}
 
-		if (alphas[i][j]) {
+		if (min == max  &&  alphas[i][j]) {
 		    redrad.add(reds[i][j]);
 		    greenrad.add(greens[i][j]);
 		    bluerad.add(blues[i][j]);
@@ -342,34 +380,36 @@ class GeoPictureSerializer extends Object {
 	    }
 	}
 
-	if (redrad.size() == 0) {
-	    throw new ScriptException("No non-empty pixels were found");
-	}
+	if (min == max) {
+	    if (redrad.size() == 0) {
+		throw new ScriptException("No non-empty pixels were found");
+	    }
 
-	Collections.sort(redrad);
-	Collections.sort(greenrad);
-	Collections.sort(bluerad);
+	    Collections.sort(redrad);
+	    Collections.sort(greenrad);
+	    Collections.sort(bluerad);
 	
-	int redIndex5 = Math.max((int)Math.floor(redrad.size() * 0.05), 0);
-	int redIndex95 = Math.min((int)Math.ceil(redrad.size() * 0.95), redrad.size() - 1);
+	    int redIndex5 = Math.max((int)Math.floor(redrad.size() * 0.05), 0);
+	    int redIndex95 = Math.min((int)Math.ceil(redrad.size() * 0.95), redrad.size() - 1);
 
-	int greenIndex5 = Math.max((int)Math.floor(greenrad.size() * 0.05), 0);
-	int greenIndex95 = Math.min((int)Math.ceil(greenrad.size() * 0.95), greenrad.size() - 1);
+	    int greenIndex5 = Math.max((int)Math.floor(greenrad.size() * 0.05), 0);
+	    int greenIndex95 = Math.min((int)Math.ceil(greenrad.size() * 0.95), greenrad.size() - 1);
 
-	int blueIndex5 = Math.max((int)Math.floor(bluerad.size() * 0.05), 0);
-	int blueIndex95 = Math.min((int)Math.ceil(bluerad.size() * 0.95), bluerad.size() - 1);
+	    int blueIndex5 = Math.max((int)Math.floor(bluerad.size() * 0.05), 0);
+	    int blueIndex95 = Math.min((int)Math.ceil(bluerad.size() * 0.95), bluerad.size() - 1);
 
-	double minvalue = Math.min(redrad.get(redIndex5), Math.min(greenrad.get(greenIndex5), bluerad.get(blueIndex5)));
-	double maxvalue = Math.max(redrad.get(redIndex95), Math.max(greenrad.get(greenIndex95), bluerad.get(blueIndex95)));
+	    min = Math.min(redrad.get(redIndex5), Math.min(greenrad.get(greenIndex5), bluerad.get(blueIndex5)));
+	    max = Math.max(redrad.get(redIndex95), Math.max(greenrad.get(greenIndex95), bluerad.get(blueIndex95)));
+	}
 
 	BufferedImage bufferedImage = new BufferedImage(x2 - x1, y2 - y1, BufferedImage.TYPE_4BYTE_ABGR);
 	for (int i = 0;  i < x2 - x1;  i++) {
 	    for (int j = 0;  j < y2 - y1;  j++) {
-		int r = Math.min(Math.max((int)Math.floor((reds[i][j] - minvalue) / (maxvalue - minvalue) * 256), 0), 255);
-		int g = Math.min(Math.max((int)Math.floor((greens[i][j] - minvalue) / (maxvalue - minvalue) * 256), 0), 255);
-		int b = Math.min(Math.max((int)Math.floor((blues[i][j] - minvalue) / (maxvalue - minvalue) * 256), 0), 255);
+		int r = Math.min(Math.max((int)Math.floor((reds[i][j] - min) / (max - min) * 256), 0), 255);
+		int g = Math.min(Math.max((int)Math.floor((greens[i][j] - min) / (max - min) * 256), 0), 255);
+		int b = Math.min(Math.max((int)Math.floor((blues[i][j] - min) / (max - min) * 256), 0), 255);
 
-		int abgr = new Color(b, g, r).getRGB();
+		int abgr = new Color(r, g, b).getRGB();
 		if (!alphas[i][j]) {
 		    abgr &= 0x00ffffff;
 		}
@@ -377,7 +417,9 @@ class GeoPictureSerializer extends Object {
 	    }
 	}
 
-	ImageIO.write(bufferedImage, "PNG", output);
+	ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+	ImageIO.write(bufferedImage, "PNG", byteArrayOutputStream);
+	return byteArrayOutputStream.toByteArray();
     }
 
 }
