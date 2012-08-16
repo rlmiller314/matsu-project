@@ -79,7 +79,7 @@ class GeoPictureSerializer extends Object {
     }
 
     public void loadSerialized(String serialized) throws IOException {
-	loadSerialized(new ByteArrayInputStream(serialized.getBytes()));
+    	loadSerialized(new ByteArrayInputStream(serialized.getBytes()));
     }
 
     public void loadSerialized(InputStream serialized) throws IOException {
