@@ -16,6 +16,7 @@ import it.sauronsoftware.base64.Base64InputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.File;
+import java.io.OutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ByteArrayInputStream;
@@ -29,6 +30,7 @@ import java.util.Collections;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.lang.Math;
+import java.lang.StringBuilder;
 
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptEngine;
@@ -132,13 +134,133 @@ class GeoPictureSerializer extends Object {
 	valid = true;
     }
 
-    public byte[] image(String red, String green, String blue) throws IOException, InvalidGeoPictureException, ScriptException {
-	if (!valid) throw new InvalidGeoPictureException();
-	return subImage(0, 0, width, height, red, green, blue);
+    public String spectrum(int x1, int y1, int x2, int y2, boolean log) throws IOException, InvalidGeoPictureException {
+    	if (!valid) { throw new InvalidGeoPictureException(); }
+
+    	double[] numer = new double[depth];
+    	double[] denom = new double[depth];
+
+	int numNonzero = 0;
+    	for (int k = 0;  k < depth;  k++) {
+    	    numer[k] = 0.;
+    	    denom[k] = 0.;
+
+    	    for (int i = 0;  i < x2 - x1;  i++) {
+    		for (int j = 0;  j < y2 - y1;  j++) {
+    		    double v = data[j + y1][i + x1][k];
+		    if (v > 0.) {
+			numer[k] += v;
+			denom[k] += 1.;
+		    }
+		}
+	    }
+
+	    if (denom[k] > 0.) { numNonzero++; }
+	}
+
+	StringBuilder stringBuilder = new StringBuilder();
+	stringBuilder.append("[");
+
+	int i = 0;
+	for (int k = 0;  k < depth;  k++) {
+	    if (denom[k] > 0.) {
+		double output;
+
+		if (log) {
+		    output = Math.log(numer[k]) - Math.log(denom[k]);
+		}
+		else {
+		    output = numer[k] / denom[k];
+		}
+		i++;
+
+		if (k != 0) { stringBuilder.append(","); }
+		stringBuilder.append(String.format("[\"%s\", %g]", bands[k], output));
+	    }
+	}
+		
+	stringBuilder.append("]");
+
+	return stringBuilder.toString();
     }
 
-    public byte[] subImage(int x1, int y1, int x2, int y2, String red, String green, String blue) throws IOException, InvalidGeoPictureException, ScriptException {
-	if (!valid) throw new InvalidGeoPictureException();
+    public String scatter(int x1, int y1, int x2, int y2, String horiz, String vert) throws InvalidGeoPictureException, ScriptException {
+	if (!valid) { throw new InvalidGeoPictureException(); }
+
+	int horizSimple = -1;
+	int vertSimple = -1;
+	for (int k = 0;  k < depth;  k++) {
+	    if (bands[k].equals(horiz)) { horizSimple = k; }
+	    if (bands[k].equals(vert)) { vertSimple = k; }
+	}
+
+	ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+	ScriptEngine scriptEngine = scriptEngineManager.getEngineByName("JavaScript");
+
+	boolean[] goodBands = new boolean[depth];
+	for (int k = 0;  k < depth;  k++) {
+	    goodBands[k] = false;
+	    if (horiz.indexOf(bands[k]) != -1) { goodBands[k] = true; }
+	    if (vert.indexOf(bands[k]) != -1) { goodBands[k] = true; }
+	}
+
+	double[][] horizs = new double[x2 - x1][y2 - y1];
+	double[][] verts = new double[x2 - x1][y2 - y1];
+	boolean[][] alphas = new boolean[x2 - x1][y2 - y1];
+
+	for (int i = 0;  i < x2 - x1;  i++) {
+	    for (int j = 0;  j < y2 - y1;  j++) {
+		alphas[i][j] = true;
+
+		if (horizSimple == -1  ||  vertSimple == -1) {
+		    for (int k = 0;  k < depth;  k++) {
+			if (goodBands[k]) {
+			    scriptEngine.put(bands[k], data[j + y1][i + x1][k]);
+			    if (data[j + y1][i + x1][k] == 0.) { alphas[i][j] = false; }
+			}
+		    }
+		}
+
+		if (horizSimple == -1) {
+		    horizs[i][j] = (Double)scriptEngine.eval(horiz);
+		}
+		else {
+		    horizs[i][j] = data[j + y1][i + x1][horizSimple];
+		    if (horizs[i][j] == 0.) { alphas[i][j] = false; }
+		}
+		if (vertSimple == -1) {
+		    verts[i][j] = (Double)scriptEngine.eval(vert);
+		}
+		else {
+		    verts[i][j] = data[j + y1][i + x1][vertSimple];
+		    if (verts[i][j] == 0.) { alphas[i][j] = false; }
+		}
+
+	    }
+	}
+
+	StringBuilder stringBuilder = new StringBuilder();
+	stringBuilder.append("[");
+	for (int i = 0;  i < x2 - x1;  i++) {
+	    for (int j = 0;  j < y2 - y1;  j++) {
+		if (alphas[i][j]) {
+		    if (i != 0  ||  j != 0) { stringBuilder.append(","); }
+		    stringBuilder.append(String.format("[%g, %g]", horizs[i][j], verts[i][j]));
+		}
+	    }
+	}
+	stringBuilder.append("]");
+
+	return stringBuilder.toString();
+    }
+
+    public void image(String red, String green, String blue) throws IOException, InvalidGeoPictureException, ScriptException {
+	if (!valid) { throw new InvalidGeoPictureException(); }
+	image(0, 0, width, height, red, green, blue);
+    }
+
+    public void image(int x1, int y1, int x2, int y2, String red, String green, String blue, OutputStream output) throws IOException, InvalidGeoPictureException, ScriptException {
+	if (!valid) { throw new InvalidGeoPictureException(); }
 
 	int redSimple = -1;
 	int greenSimple = -1;
@@ -152,6 +274,14 @@ class GeoPictureSerializer extends Object {
 	ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
 	ScriptEngine scriptEngine = scriptEngineManager.getEngineByName("JavaScript");
 
+	boolean[] goodBands = new boolean[depth];
+	for (int k = 0;  k < depth;  k++) {
+	    goodBands[k] = false;
+	    if (red.indexOf(bands[k]) != -1) { goodBands[k] = true; }
+	    if (green.indexOf(bands[k]) != -1) { goodBands[k] = true; }
+	    if (blue.indexOf(bands[k]) != -1) { goodBands[k] = true; }
+	}
+
 	double[][] reds = new double[x2 - x1][y2 - y1];
 	double[][] greens = new double[x2 - x1][y2 - y1];
 	double[][] blues = new double[x2 - x1][y2 - y1];
@@ -160,15 +290,17 @@ class GeoPictureSerializer extends Object {
 	List<Double> redrad = new ArrayList<Double>();
 	List<Double> greenrad = new ArrayList<Double>();
 	List<Double> bluerad = new ArrayList<Double>();
-
+	
 	for (int i = 0;  i < x2 - x1;  i++) {
 	    for (int j = 0;  j < y2 - y1;  j++) {
 		alphas[i][j] = true;
 
 		if (redSimple == -1  ||  greenSimple == -1  ||  blueSimple == -1) {
 		    for (int k = 0;  k < depth;  k++) {
-			scriptEngine.put(bands[k], data[j + y1][i + x1][k]);
-			if (data[j + y1][i + x1][k] == 0.) { alphas[i][j] = false; }
+			if (goodBands[k]) {
+			    scriptEngine.put(bands[k], data[j + y1][i + x1][k]);
+			    if (data[j + y1][i + x1][k] == 0.) { alphas[i][j] = false; }
+			}
 		    }
 		}
 
@@ -204,18 +336,22 @@ class GeoPictureSerializer extends Object {
 	    }
 	}
 
+	if (redrad.size() == 0) {
+	    throw new ScriptException("No non-empty pixels were found");
+	}
+
 	Collections.sort(redrad);
 	Collections.sort(greenrad);
 	Collections.sort(bluerad);
 	
-	int redIndex5 = Math.max((int)Math.ceil(redrad.size() * 0.05), 0);
-	int redIndex95 = Math.min((int)Math.floor(redrad.size() * 0.95), redrad.size() - 1);
+	int redIndex5 = Math.max((int)Math.floor(redrad.size() * 0.05), 0);
+	int redIndex95 = Math.min((int)Math.ceil(redrad.size() * 0.95), redrad.size() - 1);
 
-	int greenIndex5 = Math.max((int)Math.ceil(greenrad.size() * 0.05), 0);
-	int greenIndex95 = Math.min((int)Math.floor(greenrad.size() * 0.95), greenrad.size() - 1);
+	int greenIndex5 = Math.max((int)Math.floor(greenrad.size() * 0.05), 0);
+	int greenIndex95 = Math.min((int)Math.ceil(greenrad.size() * 0.95), greenrad.size() - 1);
 
-	int blueIndex5 = Math.max((int)Math.ceil(bluerad.size() * 0.05), 0);
-	int blueIndex95 = Math.min((int)Math.floor(bluerad.size() * 0.95), bluerad.size() - 1);
+	int blueIndex5 = Math.max((int)Math.floor(bluerad.size() * 0.05), 0);
+	int blueIndex95 = Math.min((int)Math.ceil(bluerad.size() * 0.95), bluerad.size() - 1);
 
 	double minvalue = Math.min(redrad.get(redIndex5), Math.min(greenrad.get(greenIndex5), bluerad.get(blueIndex5)));
 	double maxvalue = Math.max(redrad.get(redIndex95), Math.max(greenrad.get(greenIndex95), bluerad.get(blueIndex95)));
@@ -235,15 +371,7 @@ class GeoPictureSerializer extends Object {
 	    }
 	}
 
-	ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-	ImageIO.write(bufferedImage, "PNG", byteArrayOutputStream);
-
-	System.out.println("hey");
-
-	FileOutputStream tmp = new FileOutputStream("test.png");
-	byteArrayOutputStream.writeTo(tmp);
-
-	return null; // byteArrayOutputStream.toByteArray();
+	ImageIO.write(bufferedImage, "PNG", output);
     }
 
 }

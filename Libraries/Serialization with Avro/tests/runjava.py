@@ -11,7 +11,11 @@ geoPictureSerializer.loadSerialized(open("/home/pivarski/NOBACKUP/matsu_serializ
 
 print geoPictureSerializer.bandNames()
 
-picture = geoPictureSerializer.image("B016", "B023", "B029")
+# picture = geoPictureSerializer.image(700, 0, 1000, 300, "B016", "(B023*B029)", "B029")
+
+print geoPictureSerializer.spectrum(700, 0, 1000, 300, False)
+
+# print geoPictureSerializer.scatter(700, 0, 1000, 300, "2*B016", "B029")
 
 # file = open("test.png", "wb")
 # for i in picture:
