@@ -9,18 +9,13 @@ import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.ValidatingDecoder;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.specific.SpecificDatumReader;
-import org.apache.avro.specific.SpecificData;
 
 import it.sauronsoftware.base64.Base64InputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.File;
 import java.io.OutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.lang.Double;
 import java.util.List;
@@ -254,9 +249,9 @@ class GeoPictureSerializer extends Object {
 	return stringBuilder.toString();
     }
 
-    public void image(String red, String green, String blue) throws IOException, InvalidGeoPictureException, ScriptException {
+    public void image(String red, String green, String blue, OutputStream output) throws IOException, InvalidGeoPictureException, ScriptException {
 	if (!valid) { throw new InvalidGeoPictureException(); }
-	image(0, 0, width, height, red, green, blue);
+	image(0, 0, width, height, red, green, blue, output);
     }
 
     public void image(int x1, int y1, int x2, int y2, String red, String green, String blue, OutputStream output) throws IOException, InvalidGeoPictureException, ScriptException {
