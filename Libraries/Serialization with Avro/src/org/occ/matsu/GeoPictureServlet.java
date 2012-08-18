@@ -60,24 +60,28 @@ public class GeoPictureServlet extends HttpServlet {
 		geoPictureSerializer.loadSerialized(fileInputStream);
 		double after = System.nanoTime() / 1e9 / 60.;
 
+		response.setContentType("text/plain");
 		PrintWriter printWriter = response.getWriter();
 		printWriter.println(String.format("Loaded %s in %g minutes.", fileName, after - before));
 		printWriter.close();
 	    }
 
 	    else if (command.equals("bandNames")) {
+		response.setContentType("text/plain");
 		PrintWriter printWriter = response.getWriter();
 		printWriter.println(geoPictureSerializer.bandNames());
 		printWriter.close();
 	    }
 
 	    else if (command.equals("dimensions")) {
+		response.setContentType("text/plain");
 		PrintWriter printWriter = response.getWriter();
 		printWriter.println(geoPictureSerializer.dimensions());
 		printWriter.close();
 	    }
 
 	    else if (command.equals("spectrum")) {
+		response.setContentType("text/plain");
 		PrintWriter printWriter = response.getWriter();
 
 		try {
@@ -104,6 +108,7 @@ public class GeoPictureServlet extends HttpServlet {
 	    }
 
 	    else if (command.equals("scatter")) {
+		response.setContentType("text/plain");
 		PrintWriter printWriter = response.getWriter();
 
 		try {
@@ -174,7 +179,13 @@ public class GeoPictureServlet extends HttpServlet {
 		String green = request.getParameter("green");
 		String blue = request.getParameter("blue");
 
+		boolean base64 = false;
+		if (request.getParameter("base64") != null) {
+		    base64 = true;
+		}
+
 		if (red == null  ||  green == null  ||  blue == null) {
+		    response.setContentType("text/plain");
 		    PrintWriter printWriter = response.getWriter();
 		    printWriter.println("Missing red, green, or blue.");
 		    printWriter.close();
@@ -183,17 +194,27 @@ public class GeoPictureServlet extends HttpServlet {
 		    try {
 			byte[] picture;
 			if (subImage) {
-			    picture = geoPictureSerializer.image(x1, y1, x2, y2, red, green, blue, min, max);
+			    picture = geoPictureSerializer.image(x1, y1, x2, y2, red, green, blue, min, max, base64);
 			}
 			else {
-			    picture = geoPictureSerializer.image(red, green, blue, min, max);
+			    picture = geoPictureSerializer.image(red, green, blue, min, max, base64);
 			}
-			response.setContentType("image/png");
-			ServletOutputStream servletOutputStream = response.getOutputStream();
-			servletOutputStream.write(picture);
-			servletOutputStream.close();
+
+			if (base64) {
+			    response.setContentType("text/plain");
+			    PrintWriter printWriter = response.getWriter();
+			    printWriter.println(new String(picture));
+			    printWriter.close();
+			}
+			else {
+			    response.setContentType("image/png");
+			    ServletOutputStream servletOutputStream = response.getOutputStream();
+			    servletOutputStream.write(picture);
+			    servletOutputStream.close();
+			}
 		    }
 		    catch (ScriptException exception) {
+			response.setContentType("text/plain");
 			PrintWriter printWriter = response.getWriter();
 			printWriter.println(String.format("Javascript error in red, green, or blue: %s.", exception.getMessage()));
 			printWriter.close();
@@ -202,6 +223,7 @@ public class GeoPictureServlet extends HttpServlet {
 	    }
 
 	    else {
+		response.setContentType("text/plain");
 		PrintWriter printWriter = response.getWriter();
 		printWriter.println(String.format("Unrecognized command \"%s\".", command));
 		printWriter.close();
@@ -209,6 +231,7 @@ public class GeoPictureServlet extends HttpServlet {
 
 	}
 	else {
+	    response.setContentType("text/plain");
 	    PrintWriter printWriter = response.getWriter();
 	    printWriter.println("Missing command.");
 	    printWriter.close();

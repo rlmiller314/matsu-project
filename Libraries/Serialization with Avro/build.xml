@@ -9,6 +9,7 @@
             </fileset>
             <fileset dir="./">
                 <include name="GeoPictureServlet.war"/>
+                <include name="MatsuAnalysis.war"/>
             </fileset>
         </delete>
     </target>
@@ -46,14 +47,37 @@
 
         <war destfile="GeoPictureServlet.war" webxml="WebContent/WEB-INF/web.xml">
             <fileset dir="WebContent/">
-                <include name="**/*.jsp"/>
-                <include name="**/*.css"/>
-                <include name="**/*.png"/>
-                <include name="**/*.jpg"/>
-                <include name="**/*.html"/>
+                <exclude name="**/*.jsp"/>
+                <exclude name="**/*.html"/>
+                <exclude name="**/*.js"/>
+                <exclude name="**/*.css"/>
+                <exclude name="**/*.png"/>
+                <exclude name="**/*.jpg"/>
+                <exclude name="**/*.gif"/>
 
                 <include name="WEB-INF/**/*.class"/>
                 <include name="WEB-INF/**/*.jar"/>
+
+                <exclude name="**/*~"/>
+                <exclude name="**/.svn/**"/>
+                <exclude name="src/**"/>
+            </fileset>
+        </war>
+    </target>
+
+    <target name="pages" depends="compile">
+        <war destfile="MatsuAnalysis.war" needxmlfile="false">
+            <fileset dir="WebContent/">
+                <include name="**/*.jsp"/>
+                <include name="**/*.html"/>
+                <include name="**/*.js"/>
+                <include name="**/*.css"/>
+                <include name="**/*.png"/>
+                <include name="**/*.jpg"/>
+                <include name="**/*.gif"/>
+
+                <exclude name="WEB-INF/**/*.class"/>
+                <exclude name="WEB-INF/**/*.jar"/>
 
                 <exclude name="**/*~"/>
                 <exclude name="**/.svn/**"/>

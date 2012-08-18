@@ -12,6 +12,7 @@ import org.apache.avro.io.DatumReader;
 import org.apache.avro.specific.SpecificDatumReader;
 
 import it.sauronsoftware.base64.Base64InputStream;
+import it.sauronsoftware.base64.Base64;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -280,7 +281,7 @@ class GeoPictureSerializer extends Object {
 	return stringBuilder.toString();
     }
 
-    public byte[] image(String red, String green, String blue, double min, double max) throws IOException, InvalidGeoPictureException, ScriptException {
+    public byte[] image(String red, String green, String blue, double min, double max, boolean base64) throws IOException, InvalidGeoPictureException, ScriptException {
 	if (!valid) { throw new InvalidGeoPictureException(); }
 
 	int redSimple = -1;
@@ -296,10 +297,10 @@ class GeoPictureSerializer extends Object {
 	    throw new ScriptException("Javascript is only allowed for sub-images (it's slow!)");
 	}
 
-	return image(0, 0, width, height, red, green, blue, min, max);
+	return image(0, 0, width, height, red, green, blue, min, max, base64);
     }
 
-    public byte[] image(int x1, int y1, int x2, int y2, String red, String green, String blue, double min, double max) throws IOException, InvalidGeoPictureException, ScriptException {
+    public byte[] image(int x1, int y1, int x2, int y2, String red, String green, String blue, double min, double max, boolean base64) throws IOException, InvalidGeoPictureException, ScriptException {
 	if (!valid) { throw new InvalidGeoPictureException(); }
 	if (x1 < 0) { x1 = 0; }
 	if (y1 < 0) { y1 = 0; }
@@ -419,7 +420,13 @@ class GeoPictureSerializer extends Object {
 
 	ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 	ImageIO.write(bufferedImage, "PNG", byteArrayOutputStream);
-	return byteArrayOutputStream.toByteArray();
+
+	if (base64) {
+	    return Base64.encode(byteArrayOutputStream.toByteArray());
+	}
+	else {
+	    return byteArrayOutputStream.toByteArray();
+	}
     }
 
 }
