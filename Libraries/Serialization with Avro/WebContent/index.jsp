@@ -8,6 +8,7 @@
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 
 <script type="text/javascript">
+// <![CDATA[
 
 var bandNames = [];
 var dimensions = [];
@@ -272,6 +273,7 @@ function drawScatter() {
     }
 }
 
+// ]]>
 </script>
 </head>
 <body style="width: 100%; margin: 0px;" onload="initialize();">
