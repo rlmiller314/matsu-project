@@ -175,5 +175,5 @@ class L1GPicture:
 # p = L1GPicture(open("/mnt/pictures-L1G-serialized/GobiDesertWeirdness-RGB/EO1H1370322012151110T7_L1G.serialized"))   # right image, some structure
 # p = L1GPicture(open("/mnt/pictures-L1G-serialized/GobiDesertWeirdness-RGB/EO1H1370322012154110T5_L1G.serialized"))   # right image, some structure
 
-p = L1GPicture(open("/mnt/pictures-L1G-serialized/GobiDesertWeirdness-RGB/EO1H1370322012164110T8_L1G.serialized"))   # right best
-p.googleMap("B029", "B023", "B016")
+# p = L1GPicture(open("/mnt/pictures-L1G-serialized/GobiDesertWeirdness-RGB-subset/EO1H1370322011209110T7_L1G.serialized"))   # right best
+# p.googleMap("B029", "B023", "B016")
