@@ -218,7 +218,7 @@ function drawSpectrum() {
         	    spectrum_plotter.draw(spectrumData, {"hAxis": {"title": "band names"}, "vAxis": {"title": "log(radiance)"}, "legend": "none"});
         	}
         	else {
-        	    spectrum_plotter.draw(spectrumData, {"hAxis": {"title": "band names"}, "vAxis": {"title": "radiance"}, "legend": "none"});
+        	    spectrum_plotter.draw(spectrumData, {"hAxis": {"title": "band names"}, "vAxis": {"title": "radiance", "minValue": 0.0}, "legend": "none"});
         	}
 		spectrum_working.style.display = "none";
             }
@@ -261,7 +261,7 @@ function drawScatter() {
 
 		scatter_plot.style.display = "block";
         	var scatter_plotter = new google.visualization.ScatterChart(scatter_plot);
-        	scatter_plotter.draw(scatterData, {"hAxis": {"title": horiz}, "vAxis": {"title": vert}, "legend": "none"});
+        	scatter_plotter.draw(scatterData, {"hAxis": {"title": horiz, "minValue": 0.0}, "vAxis": {"title": vert, "minValue": 0.0}, "legend": "none"});
 		scatter_working.style.display = "none";
             }
         }
