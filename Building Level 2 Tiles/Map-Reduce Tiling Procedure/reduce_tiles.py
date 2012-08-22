@@ -53,8 +53,7 @@ def tileOffset(depth, longIndex, latIndex):
     "Returns the corner this tile occupies in its parent's frame."
     return longIndex % 2, latIndex % 2
 
-def reduce_tiles(tiles, inputStream, outputDirectory=None, outputAccumulo=None, bands=["B029", "B023", "B016"], layer="RGB", minRadiance=0., maxRadiance=300.)
-:
+def reduce_tiles(tiles, inputStream, outputDirectory=None, outputAccumulo=None, bands=["B029", "B023", "B016"], layer="RGB", minRadiance=0., maxRadiance=300.):
     while True:
         line = inputStream.readline()
         if not line: break
