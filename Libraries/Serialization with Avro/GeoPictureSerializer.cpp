@@ -483,11 +483,17 @@ static PyObject *GeoPictureSerializer_GeoPicture_serialize(GeoPictureSerializer_
   if (file != NULL) { PyFile_IncUseCount((PyFileObject*)pyfile); }
 
   std::auto_ptr<MyOutputStream> out = std::auto_ptr<MyOutputStream>(new MyOutputStream(file, 4*1024));
-  avro::EncoderPtr e = avro::validatingEncoder(self->validSchema, avro::binaryEncoder());
-  e->init(*out);
-  avro::encode(*e, p);
-  out->flush();
-  out->finishUp();
+  try {
+    avro::EncoderPtr e = avro::validatingEncoder(self->validSchema, avro::binaryEncoder());
+    e->init(*out);
+    avro::encode(*e, p);
+    out->flush();
+    out->finishUp();
+  }
+  catch (avro::Exception) {
+    PyErr_SetString(PyExc_IOError, "Avro could not serialize this GeoPicture");
+    return NULL;
+  }
 
   if (file != NULL) { PyFile_DecUseCount((PyFileObject*)pyfile); }
 
@@ -525,11 +531,17 @@ static PyObject *GeoPictureSerializer_deserialize(PyObject *self, PyObject *args
   PyObject *output = PyObject_CallObject((PyObject*)(&GeoPictureSerializer_GeoPictureType), NULL);
   GeoPictureSerializer_GeoPicture *coutput = (GeoPictureSerializer_GeoPicture*)output;
 
-  avro::DecoderPtr d = avro::validatingDecoder(coutput->validSchema, avro::binaryDecoder());
-  d->init(*in);
   gpwm::GeoPictureWithMetadata p;
+  try {
+    avro::DecoderPtr d = avro::validatingDecoder(coutput->validSchema, avro::binaryDecoder());
+    d->init(*in);
 
-  avro::decode(*d, p);
+    avro::decode(*d, p);
+  }
+  catch (avro::Exception) {
+    PyErr_SetString(PyExc_IOError, "Avro could not deserialize this string");
+    return NULL;
+  }
 
   for (std::map<std::string,std::string>::const_iterator iter = p.metadata.begin();  iter != p.metadata.end();  ++iter) {
     PyObject *value = PyString_FromString(iter->second.c_str());

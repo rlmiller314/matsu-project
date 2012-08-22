@@ -64,7 +64,10 @@ def reduce_tiles(tiles, inputStream, outputDirectory=None, outputAccumulo=None, 
 
         depth, longIndex, latIndex, timestamp = map(int, key.lstrip("T").split("-"))
 
-        geoPicture = GeoPictureSerializer.deserialize(value)
+        try:
+            geoPicture = GeoPictureSerializer.deserialize(value)
+        except IOError:
+            continue
 
         if (depth, longIndex, latIndex) not in tiles:
             shape = geoPicture.picture.shape[:2]

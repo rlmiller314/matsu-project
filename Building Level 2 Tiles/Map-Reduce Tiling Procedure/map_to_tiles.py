@@ -66,7 +66,10 @@ def map_to_tiles(inputStream, outputStream, depth=10, longpixels=512, latpixels=
         if not line: break
 
         # get the Level-1 image
-        geoPicture = GeoPictureSerializer.deserialize(line)
+        try:
+            geoPicture = GeoPictureSerializer.deserialize(line)
+        except IOError:
+            continue
 
         # convert GeoTIFF coordinates into degrees
         tlx, weres, werot, tly, nsrot, nsres = json.loads(geoPicture.metadata["GeoTransform"])
@@ -160,7 +163,10 @@ def map_to_tiles(inputStream, outputStream, depth=10, longpixels=512, latpixels=
                 outputGeoPicture.bands = geoPicture.bands + ["MASK"]
 
                 outputStream.write("%s-%010d\t" % (tileName(*ti), timestamp))
-                outputGeoPicture.serialize(outputStream)
+                try:
+                    outputGeoPicture.serialize(outputStream)
+                except IOError:
+                    outputStream.write("BROKEN")
                 outputStream.write("\n")
 
 map_to_tiles(sys.stdin, sys.stdout)
