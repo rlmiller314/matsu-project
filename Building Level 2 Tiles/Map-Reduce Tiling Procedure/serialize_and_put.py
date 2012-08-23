@@ -74,9 +74,9 @@ geoPicture.bands = list(set(args.bands).intersection(tiffs.keys()))
 geoPicture.bands.sort()
 
 if args.requireAllBands and len(geoPicture.bands) != len(args.bands):
-    sys.exit(0)   # exit quietly if we require all bands but don't have them
+    raise Exception("%s is missing some of the requested bands and --requireAllBands was specified" % args.inputDirectory)
 if len(geoPicture.bands) == 0:
-    sys.exit(0)   # also exit quietly if there are no bands
+    raise Exception("%s is missing all bands" % args.inputDirectory)
 
 array = numpy.empty((sampletiff.RasterYSize, sampletiff.RasterXSize, len(geoPicture.bands)), dtype=numpy.float)
 
