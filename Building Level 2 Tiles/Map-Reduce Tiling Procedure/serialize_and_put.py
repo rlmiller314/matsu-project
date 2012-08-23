@@ -57,6 +57,11 @@ with open(l1tFileName) as l1tFile:
 tiffs = glob.glob(args.inputDirectory + "/EO1*_B[0-9][0-9]*_L1T.TIF")   # Hyperion band names have three digits, ALI have two
 
 tiffs = dict((re.search("_(B[0-9]+)_", t).group(1), gdal.Open(t, gdalconst.GA_ReadOnly)) for t in tiffs)
+
+for t in tiffs.keys():
+    if t not in args.bands:
+        del tiffs[t]
+
 try:
     sampletiff = tiffs.values()[0]
 except IndexError:
