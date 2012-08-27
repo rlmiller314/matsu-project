@@ -2,7 +2,7 @@
     <property file="../../../CONFIG.ini" />
 
     <target name="clean">
-        <delete dir="build-java" />
+        <delete dir="build" />
         <delete file="geoPictureSerializer.jar" />
 
         <delete includeEmptyDirs="true" failonerror="false">
@@ -17,8 +17,8 @@
     </target>
 
     <target name="compile">
-        <mkdir dir="build-java" />
-        <javac srcdir="src" destdir="build-java">
+        <mkdir dir="build" />
+        <javac srcdir="src" destdir="build">
             <classpath>
 		<pathelement location="${jars.servlet_api}" />
 		<fileset dir="WebContent/WEB-INF/lib">
@@ -29,7 +29,7 @@
     </target>
 
     <target name="jar" depends="compile">
-        <jar jarfile="geoPictureSerializer.jar" basedir="build-java">
+        <jar jarfile="geoPictureSerializer.jar" basedir="build">
 	    <manifest>
 		<attribute name="Main-Class" value="org.occ.matsu.GeoPictureSerializer" />
 	    </manifest>
@@ -42,7 +42,7 @@
 
     <target name="war" depends="compile">
 	<copy todir="WebContent/WEB-INF/classes">
-	    <fileset dir="build-java">
+	    <fileset dir="build">
                 <include name="**/*.class"/>
 	    </fileset>
 	</copy>	    
