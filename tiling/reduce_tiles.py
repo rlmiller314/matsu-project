@@ -5,6 +5,10 @@ import subprocess
 from io import BytesIO
 import base64
 import json
+try:
+    import ConfigParser as configparser
+except ImportError:
+    import configparser
 
 import numpy
 from PIL import Image
@@ -14,13 +18,6 @@ import jpype
 import GeoPictureSerializer
 
 from math import floor
-
-ACCUMULO_INTERFACE = "/opt/matsuAccumuloInterface.jar"
-ACCUMULO_DB_NAME = "???"
-ZOOKEEPER_LIST = "???"
-ACCUMULO_USER_NAME = "???"
-ACCUMULO_PASSWORD = "???"
-ACCUMULO_TABLE_NAME = "MatsuLevel2Tiles"
 
 def tileIndex(depth, longitude, latitude):
     "Inputs a depth and floating-point longitude and latitude, outputs a triple of index integers."
@@ -54,6 +51,22 @@ def tileOffset(depth, longIndex, latIndex):
     return longIndex % 2, latIndex % 2
 
 def reduce_tiles(tiles, inputStream, outputDirectory=None, outputAccumulo=None, bands=["B029", "B023", "B016"], layer="RGB", minRadiance=0., maxRadiance=300.):
+    """Performs the part of the reducing step of the Hadoop map-reduce job that depends on key-value input.
+
+    Reduce key: tile coordinate and timestamp
+    Reduce value: transformed picture
+    Actions: overlay images in time-order to produce one image per tile coordinate.
+
+        * tiles: dictionary of tiles built up by this procedure (this function adds to tiles)
+        * inputStream: usually sys.stdin; should be key-value pairs.
+        * outputDirectory: local filesystem directory for debugging output (usually the output goes to Accumulo)
+        * outputAccumulo: Java virtual machine containing AccumuloInterface classes
+        * bands: bands to combine as red, green, and blue
+        * layer: name of the layer
+        * minRadiance: radiance value to map to #00 (per channel)
+        * maxRadiance: radiance value to map to #FF (per channel)
+    """
+
     while True:
         line = inputStream.readline()
         if not line: break
@@ -104,6 +117,18 @@ def reduce_tiles(tiles, inputStream, outputDirectory=None, outputAccumulo=None, 
             outputAccumulo.write("%s-%s" % (tileName(depth, longIndex, latIndex), layer), "{}", buff.getvalue())
 
 def collate(depth, tiles, outputDirectory=None, outputAccumulo=None, layer="RGB", splineOrder=3):
+    """Performs the part of the reducing step of the Hadoop map-reduce job after all data have been collected.
+
+    Actions: combine deep images to produce more shallow images.
+
+        * depth: depth of input images; output images have (depth - 1)
+        * tiles: dictionary of tiles built up by this procedure (this function adds to tiles)
+        * outputDirectory: local filesystem directory for debugging output (usually the output goes to Accumulo)
+        * outputAccumulo: Java virtual machine containing AccumuloInterface classes
+        * layer: name of the layer
+        * splineOrder: order of the spline used to calculate the affine_transformation (see SciPy docs); must be between 0 and 5
+    """
+
     for depthIndex, longIndex, latIndex in tiles.keys():
         if depthIndex == depth:
             parentDepth, parentLongIndex, parentLatIndex = tileParent(depthIndex, longIndex, latIndex)
@@ -150,15 +175,26 @@ def collate(depth, tiles, outputDirectory=None, outputAccumulo=None, layer="RGB"
                 image.save(buff, "PNG", options="optimize")
                 outputAccumulo.write("%s-%s" % (tileName(parentDepth, parentLongIndex, parentLatIndex), layer), "{}", buff.getvalue())
 
-jpype.startJVM(jpype.getDefaultJVMPath(), "-Djava.class.path=%s" % ACCUMULO_INTERFACE)
-AccumuloInterface = jpype.JClass("org.occ.matsu.AccumuloInterface")
+if __name__ == "__main__":
+    config = configparser.ConfigParser()
+    config.read("../../../CONFIG.ini")
 
-AccumuloInterface.connectForWriting(ACCUMULO_DB_NAME, ZOOKEEPER_LIST, ACCUMULO_USER_NAME, ACCUMULO_PASSWORD, ACCUMULO_TABLE_NAME)
+    ACCUMULO_INTERFACE = config.get("DEFAULT", "accumulo.interface")
+    ACCUMULO_DB_NAME = config.get("DEFAULT", "accumulo.db_name")
+    ZOOKEEPER_LIST = config.get("DEFAULT", "accumulo.zookeeper_list")
+    ACCUMULO_USER_NAME = config.get("DEFAULT", "accumulo.user_name")
+    ACCUMULO_PASSWORD = config.get("DEFAULT", "accumulo.password")
+    ACCUMULO_TABLE_NAME = config.get("DEFAULT", "accumulo.table_name")
 
-tiles = {}
-reduce_tiles(tiles, sys.stdin, outputAccumulo=AccumuloInterface)
-                                   
-for depth in xrange(10, 1, -1):
-    collate(depth, tiles, outputAccumulo=AccumuloInterface)
+    jpype.startJVM(jpype.getDefaultJVMPath(), "-Djava.class.path=%s" % ACCUMULO_INTERFACE)
+    AccumuloInterface = jpype.JClass("org.occ.matsu.AccumuloInterface")
 
-AccumuloInterface.finishedWriting()
+    AccumuloInterface.connectForWriting(ACCUMULO_DB_NAME, ZOOKEEPER_LIST, ACCUMULO_USER_NAME, ACCUMULO_PASSWORD, ACCUMULO_TABLE_NAME)
+
+    tiles = {}
+    reduce_tiles(tiles, sys.stdin, outputAccumulo=AccumuloInterface)
+
+    for depth in xrange(10, 1, -1):
+        collate(depth, tiles, outputAccumulo=AccumuloInterface)
+
+    AccumuloInterface.finishedWriting()

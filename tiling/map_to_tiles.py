@@ -45,8 +45,6 @@ def tileOffset(depth, longIndex, latIndex):
     "Returns the corner this tile occupies in its parent's frame."
     return longIndex % 2, latIndex % 2
 
-osr.UseExceptions()
-
 def map_to_tiles(inputStream, outputStream, depth=10, longpixels=512, latpixels=256, numLatitudeSections=1, splineOrder=3):
     """Performs the mapping step of the Hadoop map-reduce job.
 
@@ -169,4 +167,6 @@ def map_to_tiles(inputStream, outputStream, depth=10, longpixels=512, latpixels=
                     outputStream.write("BROKEN")
                 outputStream.write("\n")
 
-map_to_tiles(sys.stdin, sys.stdout)
+if __name__ == "__main__":
+    osr.UseExceptions()
+    map_to_tiles(sys.stdin, sys.stdout)
