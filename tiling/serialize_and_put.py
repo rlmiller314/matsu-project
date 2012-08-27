@@ -108,7 +108,9 @@ if args.toLocalFile:
     output = open(args.outputFilename, "w")
     geoPicture.serialize(output)
     output.write("\n")
+    output.close()
 else:
     hadoop = subprocess.Popen([HADOOP, "dfs", "-put", "-", args.outputFilename], stdin=subprocess.PIPE)
     geoPicture.serialize(hadoop.stdin)
     hadoop.stdin.write("\n")
+    hadoop.stdin.close()
