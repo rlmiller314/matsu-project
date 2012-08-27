@@ -1,4 +1,6 @@
 <project default="war">
+    <property file="../../../CONFIG.ini" />
+
     <target name="clean">
         <delete dir="build-java" />
         <delete file="geoPictureSerializer.jar" />
@@ -18,7 +20,7 @@
         <mkdir dir="build-java" />
         <javac srcdir="src" destdir="build-java">
             <classpath>
-		<pathelement location="/usr/share/java/servlet-api-2.5.jar" />
+		<pathelement location="${jars.servlet_api}" />
 		<fileset dir="WebContent/WEB-INF/lib">
 		    <include name="**/*.jar" />
 		</fileset>
