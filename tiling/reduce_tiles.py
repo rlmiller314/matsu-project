@@ -177,7 +177,7 @@ def collate(depth, tiles, outputDirectory=None, outputAccumulo=None, layer="RGB"
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
-    config.read("reducer_CONFIG.ini")
+    config.read(["../CONFIG.ini", "CONFIG.ini"])
 
     ACCUMULO_INTERFACE = config.get("DEFAULT", "accumulo.interface")
     ACCUMULO_DB_NAME = config.get("DEFAULT", "accumulo.db_name")

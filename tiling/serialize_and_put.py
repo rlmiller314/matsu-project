@@ -21,7 +21,7 @@ import GeoPictureSerializer
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
-    config.read("../../../CONFIG.ini")
+    config.read("../CONFIG.ini")
 
     HADOOP = config.get("DEFAULT", "exe.hadoop")
 
