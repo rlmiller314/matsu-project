@@ -4,11 +4,21 @@ import os
 import sys
 import getopt
 from distutils.core import setup, Extension
+try:
+    import ConfigParser as configparser
+except ImportError:
+    import configparser
+
 import numpy
 
-AVRO_HOME = "/usr"
-BOOST_INCLUDEDIR = "/usr/include/boost"
-BOOST_LIBRARYDIR = "/usr/lib"
+config = configparser.ConfigParser()
+config.read("../../../CONFIG.ini")
+
+AVRO_HOME = config.get("DEFAULT", "env.AVRO_HOME")
+BOOST_INCLUDEDIR = config.get("DEFAULT", "env.BOOST_INCLUDEDIR")
+BOOST_LIBRARYDIR = config.get("DEFAULT", "env.BOOST_LIBRARYDIR")
+
+print AVRO_HOME
 
 otherargs = []
 for arg in sys.argv:
