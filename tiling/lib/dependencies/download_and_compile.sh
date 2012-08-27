@@ -162,7 +162,7 @@ cd ..
 wget --no-check-certificate https://github.com/opencloudconsortium/matsu-project/tarball/master -O matsu-project.tar.gz
 tar -xzvf matsu-project.tar.gz
 cd opencloudconsortium-matsu-project-*
-cd Libraries/Serialization\ with\ Avro/
+cd tiling/lib/serialization-avro-python
 python setup.py install --home=$IMAGELIBRARY_DIRECTORY --with-avro=$IMAGELIBRARY_DIRECTORY --with-boostinclude=$BOOST_INCLUDEDIR --with-boostlib=$BOOST_LIBRARYDIR
 cd ../../..
 
