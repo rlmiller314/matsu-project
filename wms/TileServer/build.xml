@@ -1,7 +1,8 @@
 <project default="link" basedir=".">
+    <property file="../../CONFIG.ini" />
 
     <path id="classpath.base">
-        <pathelement location="/usr/share/java/servlet-api-2.5.jar" />
+        <pathelement location="${jars.servlet_api}" />
         <fileset dir="WebContent/WEB-INF/lib">
             <include name="**/*.jar" />
         </fileset>
