@@ -24,7 +24,7 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 
-public class MatsuServlet { // extends HttpServlet {
+public class MatsuServlet extends HttpServlet {
     protected static String accumuloName = @ACCUMULO_DB_NAME@;
     protected static String zooKeeperList = @ACCUMULO_ZOOKEEPER_LIST@;
     protected static String userId = @ACCUMULO_USER_NAME@;
