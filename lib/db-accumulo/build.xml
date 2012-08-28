@@ -1,5 +1,5 @@
 <project default="link">
-    <property file="../../../CONFIG.ini" />
+    <property file="../../CONFIG.ini" />
 
     <target name="clean">
 	<delete dir="build" />

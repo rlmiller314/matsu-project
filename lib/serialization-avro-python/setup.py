@@ -12,7 +12,7 @@ except ImportError:
 import numpy
 
 config = configparser.ConfigParser()
-config.read("../../../CONFIG.ini")
+config.read("../../CONFIG.ini")
 
 AVRO_HOME = config.get("DEFAULT", "env.AVRO_HOME")
 BOOST_INCLUDEDIR = config.get("DEFAULT", "env.BOOST_INCLUDEDIR")
