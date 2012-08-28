@@ -1,0 +1,86 @@
+<project default="link">
+    <property file="../../CONFIG.ini" />
+
+    <target name="clean">
+	<delete dir="build" />
+	<delete file="matsuAccumuloInterface.jar" />
+    </target>
+
+    <target name="compile">
+	<echo message="${jars.accumulo.core}" />
+
+	<mkdir dir="build" />
+	<javac srcdir="src" destdir="build">
+	    <classpath>
+		<pathelement location="${jars.accumulo.core}" />
+		<pathelement location="${jars.hadoop.core}" />
+	    </classpath>
+	</javac>
+    </target>
+
+    <target name="link" depends="compile">
+	<jar jarfile="matsuAccumuloInterface.jar" basedir="build">
+	    <zipfileset src="${jars.accumulo.core}" includes="**/*.class" />
+	    <zipfileset src="${jars.hadoop.core}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.accumulo_core_javadoc}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.accumulo_server}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.accumulo_server_javadoc}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.accumulo_start}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.accumulo_start_javadoc}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.cloudtrace}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.cloudtrace_javadoc}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.commons.collections}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.commons.configuration}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.commons.io}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.commons.jci_core}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.commons.jci_fam}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.commons.lang}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.commons.logging_api}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.commons.logging}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.jline}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.libthrift}" includes="**/*.class" />
+            <zipfileset src="${jars.accumulo.log4j}" includes="**/*.class" />
+            <zipfileset src="${jars.zookeeper}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.ant}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.examples}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.aspectjrt}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.aspectjtools}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.commons.beanutils_core}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.commons.beanutils}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.commons.cli}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.commons.codec}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.commons.collections}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.commons.configuration}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.commons.daemon}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.commons.digester}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.commons.el}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.commons.httpclient}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.commons.lang}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.commons.logging_api}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.commons.logging}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.commons.math}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.commons.net}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.core}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.hsqldb}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.jackson_core_asl}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.jackson_mapper_asl}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.jasper_compiler}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.jasper_runtime}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.jets3t}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.jetty}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.jetty_util}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.jsch}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.junit}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.kfs}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.log4j}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.mockito_all}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.oro}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.servlet_api}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.slf4j_api}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.slf4j_log4j12}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.lib.xmlenc}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.test}" includes="**/*.class" />
+            <zipfileset src="${jars.hadoop.tools}" includes="**/*.class" />
+	</jar>
+    </target>
+</project>

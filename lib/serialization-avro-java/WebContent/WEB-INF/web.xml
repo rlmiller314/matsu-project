@@ -1,0 +1,15 @@
+<web-app>
+
+  <display-name>GeoPictureServlet</display-name>
+
+  <servlet>
+    <servlet-name>GetData</servlet-name>
+    <servlet-class>org.occ.matsu.GeoPictureServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>GetData</servlet-name>
+    <url-pattern>/getData</url-pattern>
+  </servlet-mapping>
+
+</web-app>

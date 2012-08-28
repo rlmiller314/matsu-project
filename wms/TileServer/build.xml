@@ -1,0 +1,64 @@
+<project default="war" basedir=".">
+    <property file="../../CONFIG.ini" />
+
+    <path id="classpath.base">
+        <pathelement location="${jars.servlet_api}" />
+        <fileset dir="WebContent/WEB-INF/lib">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <target name="clean">
+        <delete includeEmptyDirs="true" failonerror="false">
+            <fileset dir="WebContent/WEB-INF/classes">
+                <include name="**/*.class"/>
+                <include name="**/*.java"/>
+            </fileset>
+            <fileset dir="./">
+                <include name="TileServer.war"/>
+            </fileset>
+        </delete>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="WebContent/WEB-INF/classes"/>
+        <mkdir dir="WebContent/WEB-INF/classes/src"/>
+
+	<copy file="src/org/occ/matsu/MatsuServlet.java" tofile="WebContent/WEB-INF/classes/src/org/occ/matsu/MatsuServlet.java">
+	    <filterchain>
+		<replacetokens>
+		    <token key="ACCUMULO_DB_NAME" value="&quot;${accumulo.db_name}&quot;" />
+		    <token key="ACCUMULO_ZOOKEEPER_LIST" value="&quot;${accumulo.zookeeper_list}&quot;" />
+		    <token key="ACCUMULO_USER_NAME" value="&quot;${accumulo.user_name}&quot;" />
+		    <token key="ACCUMULO_PASSWORD" value="&quot;${accumulo.password}&quot;" />
+		    <token key="ACCUMULO_TABLE_NAME" value="&quot;${accumulo.table_name}&quot;" />
+		</replacetokens>
+	    </filterchain>
+	</copy>
+
+        <javac srcdir="WebContent/WEB-INF/classes/src" destdir="WebContent/WEB-INF/classes" debug="true" includeAntRuntime="false">
+            <classpath refid="classpath.base"/>
+            <include name="**/*.java"/>
+        </javac>
+    </target>
+
+    <target name="war" depends="compile">
+        <war destfile="TileServer.war" webxml="WebContent/WEB-INF/web.xml">
+            <fileset dir="WebContent/">
+                <include name="**/*.jsp"/>
+                <include name="**/*.css"/>
+                <include name="**/*.png"/>
+                <include name="**/*.jpg"/>
+                <include name="**/*.html"/>
+
+                <include name="WEB-INF/**/*.class"/>
+                <include name="WEB-INF/**/*.jar"/>
+
+                <exclude name="**/*~"/>
+                <exclude name="**/.svn/**"/>
+                <exclude name="src/**"/>
+            </fileset>
+        </war>
+    </target>
+
+</project>
