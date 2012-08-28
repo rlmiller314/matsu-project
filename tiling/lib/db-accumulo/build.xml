@@ -20,6 +20,8 @@
 
     <target name="link" depends="compile">
 	<jar jarfile="matsuAccumuloInterface.jar" basedir="build">
+	    <zipfileset src="${jars.accumulo.core}" includes="**/*.class" />
+	    <zipfileset src="${jars.hadoop.core}" includes="**/*.class" />
             <zipfileset src="${jars.accumulo.accumulo_core_javadoc}" includes="**/*.class" />
             <zipfileset src="${jars.accumulo.accumulo_examples}" includes="**/*.class" />
             <zipfileset src="${jars.accumulo.accumulo_examples_javadoc}" includes="**/*.class" />
