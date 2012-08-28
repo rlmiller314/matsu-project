@@ -179,6 +179,8 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read(["../CONFIG.ini", "CONFIG.ini"])
 
+    JAVA_VIRTUAL_MACHINE = config.get("DEFAULT", "lib.jvm")
+
     ACCUMULO_INTERFACE = config.get("DEFAULT", "accumulo.interface")
     ACCUMULO_DB_NAME = config.get("DEFAULT", "accumulo.db_name")
     ZOOKEEPER_LIST = config.get("DEFAULT", "accumulo.zookeeper_list")
@@ -186,7 +188,7 @@ if __name__ == "__main__":
     ACCUMULO_PASSWORD = config.get("DEFAULT", "accumulo.password")
     ACCUMULO_TABLE_NAME = config.get("DEFAULT", "accumulo.table_name")
 
-    jpype.startJVM(jpype.getDefaultJVMPath(), "-Djava.class.path=%s" % ACCUMULO_INTERFACE)
+    jpype.startJVM(JAVA_VIRTUAL_MACHINE, "-Djava.class.path=%s" % ACCUMULO_INTERFACE)
     AccumuloInterface = jpype.JClass("org.occ.matsu.AccumuloInterface")
 
     AccumuloInterface.connectForWriting(ACCUMULO_DB_NAME, ZOOKEEPER_LIST, ACCUMULO_USER_NAME, ACCUMULO_PASSWORD, ACCUMULO_TABLE_NAME)
