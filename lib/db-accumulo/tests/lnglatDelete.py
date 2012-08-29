@@ -5,13 +5,10 @@ jpype.startJVM("/usr/lib/jvm/java-6-sun/jre/lib/amd64/server/libjvm.so", "-Djava
 AccumuloInterface = jpype.JClass("org.occ.matsu.AccumuloInterface")
 
 AccumuloInterface.connectForReading("accumulo", "192.168.18.101:2181", "root", "password", "MatsuLevel2LngLat")
+AccumuloInterface.connectForWriting("accumulo", "192.168.18.101:2181", "root", "password", "MatsuLevel2LngLat")
 
-try:
-    lnglats = AccumuloInterface.lnglat_read("T10-01561-01481")  # 4749578852
-except jpype.JavaException, exception:
-    raise RuntimeError(str(exception) + "\n" + exception.stacktrace())
+AccumuloInterface.delete("T10-01561-01481-0000000000", "T10-01561-01481-9999999999")
 
-for lnglat in lnglats:
-    print lnglat.tileName, lnglat.timeStamp, lnglat.identifier, lnglat.longitude, lnglat.latitude, lnglat.metadata
+AccumuloInterface.finishedWriting()
 
 jpype.shutdownJVM()
