@@ -32,6 +32,7 @@
 		    <token key="ACCUMULO_USER_NAME" value="&quot;${accumulo.user_name}&quot;" />
 		    <token key="ACCUMULO_PASSWORD" value="&quot;${accumulo.password}&quot;" />
 		    <token key="ACCUMULO_TABLE_NAME" value="&quot;${accumulo.table_name}&quot;" />
+		    <token key="ACCUMULO_POINTS_TABLE_NAME" value="&quot;${accumulo.points_table_name}&quot;" />
 		</replacetokens>
 	    </filterchain>
 	</copy>
