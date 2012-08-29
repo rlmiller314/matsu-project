@@ -227,6 +227,8 @@ public class MatsuServlet extends HttpServlet {
 	output.print("{\"data\": [");
 	String comma = "";
 
+	Set<String> seen = new HashSet<String>();
+
 	for (int longIndex = longmin;  longIndex <= longmax;  longIndex++) {
 	    scanner.setRange(new Range(String.format("T10-%05d-%05d-0000000000", longIndex, latmin),
 				       String.format("T10-%05d-%05d-9999999999", longIndex, latmax)));
@@ -236,8 +238,6 @@ public class MatsuServlet extends HttpServlet {
 	    double longitude = -1000.0;
 	    double latitude = -1000.0;
 	    String metadata = "{}";
-
-	    Set<String> seen = new HashSet<String>();
 
 	    for (Entry<Key, Value> entry : scanner) {
 		String entryrow = entry.getKey().getRow().toString();
@@ -271,7 +271,7 @@ public class MatsuServlet extends HttpServlet {
 	    }
 	}
 
-	output.println("    ]}");
+	output.println("\n    ]}");
     }
 
 }
