@@ -1,5 +1,6 @@
 from math import floor
 import struct
+import json
 import random
 random.seed(12345)
 
@@ -38,8 +39,10 @@ for i in xrange(100):
 
     key = "%s-%010d-%s" % (tileName(*tileIndex(10, longitude, latitude)), timestamp, fixedWidthHex(identifier))
 
+    metadata = {"significance": random.uniform(0., 1.)}
+
     print key, longitude, latitude
-    AccumuloInterface.lnglat_write(key, longitude, latitude, "{}")
+    AccumuloInterface.lnglat_write(key, longitude, latitude, json.dumps(metadata))
 
 AccumuloInterface.finishedWriting()
 
