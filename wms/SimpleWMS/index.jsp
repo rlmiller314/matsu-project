@@ -5,6 +5,12 @@
     <style type="text/css">
       .spacer { margin-left: 10px; margin-right: 10px; }
       .layer_checkbox { margin-left: 20px; margin-top: 2px; margin-bottom: 2px; }
+      table { table-layout: fixed; } 
+      .header { font-weight: bold; border-bottom: solid 2px grey; }
+      .row { max-width: 200px; overflow: hidden; padding-left: 5px; padding-right: 5px; }
+      .even { background: #e7e7e7; }
+      .odd { background: #f3f3f3; }
+      .cell { text-align: center; }
     </style>
     <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyAVNOfpLX6KdByplQxeMH1kuPZcYWBmz3c&sensor=false"></script>
     <script type="text/javascript">
@@ -93,6 +99,8 @@ function doresize() {
 window.onresize = doresize;
 
 function initialize() {
+    getTable();
+
     var latLng = new google.maps.LatLng(lat, lng);
     var options = {zoom: z, center: latLng, mapTypeId: google.maps.MapTypeId.SATELLITE};
     map = new google.maps.Map(document.getElementById("map_canvas"), options);
@@ -106,6 +114,20 @@ function initialize() {
     sidebar = document.getElementById("sidebar");
     doresize();
     sidebar.addEventListener("DOMAttrModified", doresize);
+}
+
+function getTable() {
+    document.getElementById("table-here").innerHTML = "<table> \
+<tr class=\"row header\"><td class=\"cell\">Time</td><td class=\"cell\">Latitude</td><td class=\"cell\">Longitude</td></tr> \
+<tr class=\"row even\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
+<tr class=\"row odd\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
+<tr class=\"row even\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
+<tr class=\"row odd\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
+<tr class=\"row even\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
+<tr class=\"row odd\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
+</table>";
+
+
 }
 
 function getEverything() {
@@ -291,8 +313,8 @@ function updateStatus() {
 
 <h3 style="margin-bottom: 0px;">Points</h3>
 <form onsubmit="return false;">
-<p class="layer_checkbox" onclick="togglePoints('show-points');"><label for="show-points"><input id="show-points" type="checkbox" checked="true"> Show</label>
-
+<p class="layer_checkbox" onclick="togglePoints('show-points');"><label for="show-points"><input id="show-points" type="checkbox" checked="true"> Show points</label>
+<p id="table-here" class="layer_checkbox" style="margin-top: 10px;"></p>
 
 </form>
 
