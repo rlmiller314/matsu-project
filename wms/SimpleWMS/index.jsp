@@ -11,6 +11,9 @@
       .even { background: #e7e7e7; }
       .odd { background: #f3f3f3; }
       .cell { text-align: left; }
+      .clickableblue:hover { background: #c2d0f2; }
+      .clickablered:hover { background: #fcb4ae; }
+      .highlighted { background: #ffff00; }
     </style>
     <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyAVNOfpLX6KdByplQxeMH1kuPZcYWBmz3c&sensor=false"></script>
     <script type="text/javascript">
@@ -64,6 +67,10 @@ Object.size = function(obj) {
         if (obj.hasOwnProperty(key)) { size++; }
     }
     return size;
+};
+
+function isNumber(num) {
+    return (typeof num == "string" || typeof num == "number") && !isNaN(num - 0) && num !== "";
 };
 
 function tileIndex(depth, longitude, latitude) {
@@ -164,6 +171,7 @@ function drawTable(sortfield, numeric, increasing) {
     }
 
     var fields = ["latitude", "longitude", "acquisition time"];
+    var nonNumericFields = [];
     var rowtexts = [];
     
     for (var i in alldata) {
@@ -177,20 +185,28 @@ function drawTable(sortfield, numeric, increasing) {
 	    }
 	}
 
-	var rowtext = "<tr class=\"row " + evenOdd + "\">";
+	var func = "map.setCenter(new google.maps.LatLng(" + row["latitude"] + ", " + row["longitude"] + ")); map.setZoom(13);";
+
+	var rowtext = "<tr id=\"table-" + row["identity"] + "\" class=\"row " + evenOdd + " clickablered\" onmouseup=\"" + func + "\">";
 
 	for (var fi in fields) {
+	    var f = fields[fi];
+	    var s;
 	    if (fi < 2) {
-		rowtext += "<td class=\"cell\">" + row[fields[fi]] + "</td>";
+		s = row[f];
 	    }
 	    else if (fi == 2) {
 		var d = new Date(1000 * row["time"]);
 		d.setMinutes(d.getMinutes() + d.getTimezoneOffset());  // get rid of any local timezone correction on the client's machine!
-		var s = d.getFullYear() + "-" + (d.getMonth() + 1).pad(2) + "-" + d.getDate().pad(2) + " " + d.getHours().pad(2) + ":" + d.getMinutes().pad(2);
-		rowtext += "<td class=\"cell\">" + s + "</td>";
+		s = d.getFullYear() + "-" + (d.getMonth() + 1).pad(2) + "-" + d.getDate().pad(2) + " " + d.getHours().pad(2) + ":" + d.getMinutes().pad(2);
 	    }
 	    else {
-		rowtext += "<td class=\"cell\">" + row["metadata"][fields[fi]] + "</td>";
+		s = row["metadata"][f];
+	    }
+	    rowtext += "<td class=\"cell\">" + s + "</td>";
+
+	    if (fi != 2  &&  !isNumber(s)  &&  nonNumericFields.indexOf(f) == -1) {
+		nonNumericFields.push(f);
 	    }
 	}
 	rowtext += "</tr>";
@@ -200,7 +216,9 @@ function drawTable(sortfield, numeric, increasing) {
 
     var headerrow = "<tr class=\"row header\">";
     for (var fi in fields) {
-	headerrow += "<td class=\"cell\">" + fields[fi] + "</td>";
+	var f = fields[fi];
+	var func = "drawTable('" + f + "', " + (nonNumericFields.indexOf(f) == -1) + ", " + (!increasing) + ");";
+	headerrow += "<td class=\"cell clickableblue\" onmouseup=\"" + func + "\">" + f + "</td>";
     }
     headerrow += "</tr>\n";
     
@@ -394,7 +412,7 @@ function updateStatus() {
   <body onload="initialize();" style="width: 100%; margin: 0px;">
 
   <div id="map_canvas" style="position: fixed; top: 5px; right: 5px; width: 100px; height: 100px; float: right; border: 1px solid black;"></div>
-  <div id="sidebar" style="position: fixed; top: 5px; left: 5px; width: 400px; height: 100px; vertical-align: top; resize: horizontal; float: left; background: white; border: 1px solid black; padding: 5px; overflow-x: hidden; overflow-y: scroll;">
+  <div id="sidebar" style="position: fixed; top: 5px; left: 5px; width: 550px; height: 100px; vertical-align: top; resize: horizontal; float: left; background: white; border: 1px solid black; padding: 5px; overflow-x: hidden; overflow-y: scroll;">
 
 <h3 style="margin-top: 0px;">Layers</h3>
 <form onsubmit="return false;">
