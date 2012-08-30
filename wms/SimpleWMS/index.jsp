@@ -22,12 +22,13 @@ var layers = ["RGB"];
 var points = {};
 var oldsize;
 var crossover = 4;
+var showPoints = true;
 
 var stats;
-var stats_depth;
-var stats_numVisible;
-var stats_numInMemory;
-var stats_numPoints;
+var stats_depth = -1;
+var stats_numVisible = 0;
+var stats_numInMemory = 0;
+var stats_numPoints = 0;
 
 var map_canvas;
 var sidebar;
@@ -109,7 +110,8 @@ function initialize() {
 
 function getEverything() {
     getOverlays();
-    getLngLatPoints();
+    if (showPoints) { getLngLatPoints(); }
+    else { updateStatus(); }
 }
 
 function toggleState(name, objname) {
@@ -134,6 +136,26 @@ function toggleState(name, objname) {
     }
 
     getOverlays();
+}
+
+function togglePoints(objname) {
+    var obj = document.getElementById(objname);
+    showPoints = !(obj.checked);
+    obj.checked = showPoints;
+
+    if (showPoints) {
+	getLngLatPoints();
+    }
+    else {
+	for (var key in points) {
+	    points[key].setMap(null);
+	    delete points[key];
+	}
+	points = {};
+	oldsize = -2;
+	stats_numPoints = 0;
+	updateStatus();
+    }
 }
 
 function getOverlays() {
@@ -242,11 +264,15 @@ function getLngLatPoints() {
 	    }
 
 	    stats_numPoints = Object.size(points);
-	    stats.innerHTML = "<span class='spacer'>Zoom depth: " + stats_depth + "</span><span class='spacer'>Tiles visible: " + stats_numVisible + "</span><span class='spacer'>Tiles in your browser's memory: " + stats_numInMemory + " (counting empty tiles)</span><span class='spacer'>Points: " + stats_numPoints + "</span>";
+	    updateStatus();
 	}
     }
     xmlhttp.open("GET", url, true);
     xmlhttp.send();
+}
+
+function updateStatus() {
+    stats.innerHTML = "<span class='spacer'>Zoom depth: " + stats_depth + "</span><span class='spacer'>Tiles visible: " + stats_numVisible + "</span><span class='spacer'>Tiles in your browser's memory: " + stats_numInMemory + " (counting empty tiles)</span><span class='spacer'>Points: " + stats_numPoints + "</span>";
 }
 
 // ]]>
@@ -263,7 +289,12 @@ function getLngLatPoints() {
 <p class="layer_checkbox" onclick="toggleState('CO2', 'layer-CO2');"><label for="layer-CO2"><input id="layer-CO2" type="checkbox"> Carbon dioxide</label>
 </form>
 
-<h3>Points</h3>
+<h3 style="margin-bottom: 0px;">Points</h3>
+<form onsubmit="return false;">
+<p class="layer_checkbox" onclick="togglePoints('show-points');"><label for="show-points"><input id="show-points" type="checkbox" checked="true"> Show</label>
+
+
+</form>
 
 </div>
 
