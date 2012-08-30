@@ -187,16 +187,25 @@ public class MatsuServlet extends HttpServlet {
 	String timemax_ = request.getParameter("timemax");
 	String groupdepth_ = request.getParameter("groupdepth");
 
-    	if (longmin_ == null   ||  longmax_ == null  ||  latmin_ == null  ||  latmax_ == null) { return; }
-
 	int longmin, longmax, latmin, latmax;
-	try {
-	    longmin = Integer.parseInt(longmin_);
-	    longmax = Integer.parseInt(longmax_);
-	    latmin = Integer.parseInt(latmin_);
-	    latmax = Integer.parseInt(latmax_);
+	boolean getEverything;
+    	if (longmin_ == null   ||  longmax_ == null  ||  latmin_ == null  ||  latmax_ == null) {
+	    longmin = 0;
+	    longmax = 0;
+	    latmin = 0;
+	    latmax = 0;
+	    getEverything = true;
 	}
-	catch (NumberFormatException exception) { return; }
+	else {
+	    try {
+		longmin = Integer.parseInt(longmin_);
+		longmax = Integer.parseInt(longmax_);
+		latmin = Integer.parseInt(latmin_);
+		latmax = Integer.parseInt(latmax_);
+	    }
+	    catch (NumberFormatException exception) { return; }
+	    getEverything = false;
+	}
 
 	long timemin = 0L;
 	if (timemin_ != null) {
@@ -230,9 +239,15 @@ public class MatsuServlet extends HttpServlet {
 	Set<String> seen = new HashSet<String>();
 
 	for (int longIndex = longmin;  longIndex <= longmax;  longIndex++) {
-	    scanner.setRange(new Range(String.format("T10-%05d-%05d-0000000000", longIndex, latmin),
-				       String.format("T10-%05d-%05d-9999999999", longIndex, latmax)));
-	    
+	    if (getEverything) {
+		scanner.setRange(new Range("T10-00000-00000-0000000000", "T10-99999-99999-9999999999"));
+		groupdepth = 10;
+	    }
+	    else {
+		scanner.setRange(new Range(String.format("T10-%05d-%05d-0000000000", longIndex, latmin),
+					   String.format("T10-%05d-%05d-9999999999", longIndex, latmax)));
+	    }
+
 	    Entry<Key, Value> last = null;
 	    String lastrow = "";
 	    double longitude = -1000.0;
