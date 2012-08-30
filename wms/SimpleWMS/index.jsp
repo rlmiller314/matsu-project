@@ -13,7 +13,6 @@
       .cell { text-align: left; }
       .clickableblue:hover { background: #c2d0f2; }
       .clickablered:hover { background: #fcb4ae; }
-      .highlighted { background: #ffff00; }
     </style>
     <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyAVNOfpLX6KdByplQxeMH1kuPZcYWBmz3c&sensor=false"></script>
     <script type="text/javascript">
@@ -108,6 +107,14 @@ function doresize() {
 window.onresize = doresize;
 
 function initialize() {
+    var nodeList = document.querySelectorAll("input.layer-checkbox");
+    for (var i in nodeList) {
+	if (nodeList[i].type == "checkbox") {
+	    nodeList[i].checked = (layers.indexOf(nodeList[i].id.substring(6)) != -1);
+	}
+    }
+    document.getElementById("show-points").checked = showPoints;
+
     getTable();
 
     var latLng = new google.maps.LatLng(lat, lng);
@@ -187,7 +194,7 @@ function drawTable(sortfield, numeric, increasing) {
 
 	var func = "map.setCenter(new google.maps.LatLng(" + row["latitude"] + ", " + row["longitude"] + ")); map.setZoom(13);";
 
-	var rowtext = "<tr id=\"table-" + row["identity"] + "\" class=\"row " + evenOdd + " clickablered\" onmouseup=\"" + func + "\">";
+	var rowtext = "<tr id=\"table-" + row["identifier"] + "\" class=\"row " + evenOdd + " clickablered\" onmouseup=\"" + func + "\">";
 
 	for (var fi in fields) {
 	    var f = fields[fi];
@@ -391,6 +398,30 @@ function getLngLatPoints() {
 		var identifier = data[i]["identifier"];
 		if (!(identifier in points)) {
 		    points[identifier] = new google.maps.Marker({"position": new google.maps.LatLng(data[i]["latitude"], data[i]["longitude"]), "map": map, "flat": true, "icon": circle});
+
+		    google.maps.event.addListener(points[identifier], "click", function(ident) { return function() {
+			var obj = document.getElementById("table-" + ident);
+			obj.style.background = "#ffff00";
+			sidebar.scrollTop = obj.offsetTop;
+
+			var countdown = 10;
+			var state = true;
+			var callme = function() {
+			    if (state) {
+				obj.style.background = null;
+				state = false;
+			    }
+			    else {
+				obj.style.background = "#ffff00";
+				state = true;
+			    }
+
+			    countdown--;
+			    if (countdown >= 0) { setTimeout(callme, 200); }
+			};
+			setTimeout(callme, 200);
+
+		    } }(identifier));
 		}
 	    }
 
@@ -416,8 +447,8 @@ function updateStatus() {
 
 <h3 style="margin-top: 0px;">Layers</h3>
 <form onsubmit="return false;">
-<p class="layer_checkbox" onclick="toggleState('RGB', 'layer-RGB');"><label for="layer-RGB"><input id="layer-RGB" type="checkbox" checked="true"> Canonical RGB</label>
-<p class="layer_checkbox" onclick="toggleState('CO2', 'layer-CO2');"><label for="layer-CO2"><input id="layer-CO2" type="checkbox"> Carbon dioxide</label>
+<p class="layer_checkbox" onclick="toggleState('RGB', 'layer-RGB');"><label for="layer-RGB"><input id="layer-RGB" class="layer-checkbox" type="checkbox" checked="true"> Canonical RGB</label>
+<p class="layer_checkbox" onclick="toggleState('CO2', 'layer-CO2');"><label for="layer-CO2"><input id="layer-CO2" class="layer-checkbox" type="checkbox"> Carbon dioxide</label>
 </form>
 
 <h3 style="margin-bottom: 0px;">Points</h3>
