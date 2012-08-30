@@ -30,6 +30,8 @@ var oldsize;
 var crossover = 4;
 var showPoints = true;
 
+var alldata;
+
 var stats;
 var stats_depth = -1;
 var stats_numVisible = 0;
@@ -117,8 +119,25 @@ function initialize() {
 }
 
 function getTable() {
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function() {
+	if (xmlhttp.readyState == 4  &&  xmlhttp.status == 200) {
+	    alldata = JSON.parse(xmlhttp.responseText)["data"];
+	    drawTable();
+	}
+    }
+}
+
+function drawTable() {
+    var table = "<table>";
+    
+    
+
+
+
+
     document.getElementById("table-here").innerHTML = "<table> \
-<tr class=\"row header\"><td class=\"cell\">Time</td><td class=\"cell\">Latitude</td><td class=\"cell\">Longitude</td></tr> \
+<tr class=\"row header\"><td class=\"cell\">time</td><td class=\"cell\">latitude</td><td class=\"cell\">longitude</td></tr> \
 <tr class=\"row even\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
 <tr class=\"row odd\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
 <tr class=\"row even\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
