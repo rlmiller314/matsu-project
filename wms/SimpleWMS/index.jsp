@@ -1,9 +1,11 @@
 <html>
   <head>
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
     <title>SimpleWMS</title>
     <style type="text/css">.spacer { margin-left: 10px; margin-right: 10px; }</style>
     <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyAVNOfpLX6KdByplQxeMH1kuPZcYWBmz3c&sensor=false"></script>
     <script type="text/javascript">
+// <![CDATA[
 
 var map;
 var circle;
@@ -22,6 +24,9 @@ var stats_depth;
 var stats_numVisible;
 var stats_numInMemory;
 var stats_numPoints;
+
+var map_canvas;
+var sidebar;
 
 Number.prototype.pad = function(size) {
     if (typeof(size) !== "number") { size = 2; }
@@ -73,16 +78,29 @@ function tileCorners(depth, longIndex, latIndex) {
         new google.maps.LatLng(latmax, longmax));
 }
 
+function doresize() {
+    map_canvas.style.width = window.innerWidth - sidebar.offsetWidth - 20;
+    var height = window.innerHeight - stats.offsetHeight - 20;
+    map_canvas.style.height = height;
+    sidebar.style.height = height;
+}
+
+window.onresize = doresize;
+
 function initialize() {
     var latLng = new google.maps.LatLng(lat, lng);
     var options = {zoom: z, center: latLng, mapTypeId: google.maps.MapTypeId.SATELLITE};
     map = new google.maps.Map(document.getElementById("map_canvas"), options);
     google.maps.event.addListener(map, "bounds_changed", getEverything);
 
-    circle = new google.maps.MarkerImage("circle.png", new google.maps.Size(18, 18), new google.maps.Point(0, 0), new google.maps.Point(9, 9), new google.maps.Size(18, 18));
+    circle = new google.maps.MarkerImage("http://192.168.15.14/pivarski/matsu-wms-test/circle.png", new google.maps.Size(18, 18), new google.maps.Point(0, 0), new google.maps.Point(9, 9), new google.maps.Size(18, 18));
     oldsize = 0;
 
     stats = document.getElementById("stats");
+    map_canvas = document.getElementById("map_canvas");
+    sidebar = document.getElementById("sidebar");
+    doresize();
+    sidebar.addEventListener("DOMAttrModified", doresize);
 }
 
 function getEverything() {
@@ -203,13 +221,15 @@ function getLngLatPoints() {
     xmlhttp.send();
 }
 
+// ]]>
     </script>
   </head>
-  <body onload="initialize();">
+  <body onload="initialize();" style="width: 100%; margin: 0px;">
 
-  <div id="map_canvas" style="width: 100%; height: 97%;"></div>
+  <div id="map_canvas" style="position: fixed; top: 5px; right: 5px; width: 100%; height: 100px; float: right; border: 1px solid black;"></div>
+  <div id="sidebar" style="position: fixed; top: 5px; left: 5px; width: 400px; height: 100px; vertical-align: top; resize: horizontal; overflow: hidden; float: left; background: white; border: 1px solid black;">blah</div>
 
-  <div id="stats" style="text-align: center;"></div>
+  <div id="stats" style="position: fixed; bottom: 5px; width: 100%; text-align: center;"><span style="color: white;">No message</span></div>
 
   </body>
 </html>
