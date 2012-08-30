@@ -6,11 +6,11 @@
       .spacer { margin-left: 10px; margin-right: 10px; }
       .layer_checkbox { margin-left: 20px; margin-top: 2px; margin-bottom: 2px; }
       table { table-layout: fixed; } 
-      .header { font-weight: bold; border-bottom: solid 2px grey; }
+      .header { font-weight: bold; vertical-align: bottom; }
       .row { max-width: 200px; overflow: hidden; padding-left: 5px; padding-right: 5px; }
       .even { background: #e7e7e7; }
       .odd { background: #f3f3f3; }
-      .cell { text-align: center; }
+      .cell { text-align: left; }
     </style>
     <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyAVNOfpLX6KdByplQxeMH1kuPZcYWBmz3c&sensor=false"></script>
     <script type="text/javascript">
@@ -108,7 +108,7 @@ function initialize() {
     map = new google.maps.Map(document.getElementById("map_canvas"), options);
     google.maps.event.addListener(map, "bounds_changed", getEverything);
 
-    circle = new google.maps.MarkerImage("http://192.168.15.14/pivarski/matsu-wms-test/circle.png", new google.maps.Size(18, 18), new google.maps.Point(0, 0), new google.maps.Point(9, 9), new google.maps.Size(18, 18));
+    circle = new google.maps.MarkerImage("circle.png", new google.maps.Size(18, 18), new google.maps.Point(0, 0), new google.maps.Point(9, 9), new google.maps.Size(18, 18));
     oldsize = 0;
 
     stats = document.getElementById("stats");
@@ -126,26 +126,98 @@ function getTable() {
 	    drawTable();
 	}
     }
+    xmlhttp.open("GET", "../TileServer/getTile?command=points", true);
+    xmlhttp.send();
 }
 
-function drawTable() {
-    var table = "<table>";
+function drawTable(sortfield, numeric, increasing) {
+    if (sortfield != null) {
+	var inmetadata = (sortfield != "latitude"  &&  sortfield != "longitude"  &&  sortfield != "time");
+	alldata.sort(function(a, b) {
+	    var aa, bb;
+	    if (inmetadata) {
+		aa = a["metadata"][sortfield];
+		bb = b["metadata"][sortfield];
+	    }
+	    else {
+		aa = a[sortfield];
+		bb = b[sortfield];
+	    }
+
+	    if (numeric) {
+		if (increasing) {
+		    return aa - bb;
+		}
+		else {
+		    return bb - aa;
+		}
+	    }
+	    else {
+		if (increasing) {
+		    return aa > bb;
+		}
+		else {
+		    return bb > aa;
+		}
+	    }
+	});
+    }
+
+    var fields = ["latitude", "longitude", "acquisition time"];
+    var rowtexts = [];
     
+    for (var i in alldata) {
+	var evenOdd = "even";
+	if (i % 2 == 1) { evenOdd = "odd"; }
+
+	var row = alldata[i];
+	for (var m in row["metadata"]) {
+	    if (fields.indexOf(m) == -1) {
+		fields.push(m);
+	    }
+	}
+
+	var rowtext = "<tr class=\"row " + evenOdd + "\">";
+
+	for (var fi in fields) {
+	    if (fi < 2) {
+		rowtext += "<td class=\"cell\">" + row[fields[fi]] + "</td>";
+	    }
+	    else if (fi == 2) {
+		var d = new Date(1000 * row["time"]);
+		d.setMinutes(d.getMinutes() + d.getTimezoneOffset());  // get rid of any local timezone correction on the client's machine!
+		var s = d.getFullYear() + "-" + (d.getMonth() + 1).pad(2) + "-" + d.getDate().pad(2) + " " + d.getHours().pad(2) + ":" + d.getMinutes().pad(2);
+		rowtext += "<td class=\"cell\">" + s + "</td>";
+	    }
+	    else {
+		rowtext += "<td class=\"cell\">" + row["metadata"][fields[fi]] + "</td>";
+	    }
+	}
+	rowtext += "</tr>";
+
+	rowtexts.push(rowtext);
+    }
+
+    var headerrow = "<tr class=\"row header\">";
+    for (var fi in fields) {
+	headerrow += "<td class=\"cell\">" + fields[fi] + "</td>";
+    }
+    headerrow += "</tr>\n";
     
+    document.getElementById("table-here").innerHTML = "<table>\n" + headerrow + rowtexts.join("\n") + "\n</table>";
 
 
 
 
-    document.getElementById("table-here").innerHTML = "<table> \
-<tr class=\"row header\"><td class=\"cell\">time</td><td class=\"cell\">latitude</td><td class=\"cell\">longitude</td></tr> \
-<tr class=\"row even\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
-<tr class=\"row odd\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
-<tr class=\"row even\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
-<tr class=\"row odd\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
-<tr class=\"row even\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
-<tr class=\"row odd\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
-</table>";
-
+// "<table> \
+// <tr class=\"row header\"><td class=\"cell\">time</td><td class=\"cell\">latitude</td><td class=\"cell\">longitude</td></tr> \
+// <tr class=\"row even\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
+// <tr class=\"row odd\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
+// <tr class=\"row even\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
+// <tr class=\"row odd\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
+// <tr class=\"row even\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
+// <tr class=\"row odd\"><td class=\"cell\">1</td><td class=\"cell\">2</td><td class=\"cell\">3</td></tr> \
+// </table>";
 
 }
 
