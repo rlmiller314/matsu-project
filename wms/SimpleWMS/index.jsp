@@ -2,7 +2,10 @@
   <head>
     <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
     <title>SimpleWMS</title>
-    <style type="text/css">.spacer { margin-left: 10px; margin-right: 10px; }</style>
+    <style type="text/css">
+      .spacer { margin-left: 10px; margin-right: 10px; }
+      .layer_checkbox { margin-left: 20px; margin-top: 2px; margin-bottom: 2px; }
+    </style>
     <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyAVNOfpLX6KdByplQxeMH1kuPZcYWBmz3c&sensor=false"></script>
     <script type="text/javascript">
 // <![CDATA[
@@ -14,6 +17,7 @@ var overlays = {};
 var lat = 40.183;
 var lng = 94.312;
 var z = 9;
+var layers = ["RGB"];
 
 var points = {};
 var oldsize;
@@ -82,7 +86,7 @@ function doresize() {
     map_canvas.style.width = window.innerWidth - sidebar.offsetWidth - 20;
     var height = window.innerHeight - stats.offsetHeight - 20;
     map_canvas.style.height = height;
-    sidebar.style.height = height;
+    sidebar.style.height = height - 10;
 }
 
 window.onresize = doresize;
@@ -108,6 +112,30 @@ function getEverything() {
     getLngLatPoints();
 }
 
+function toggleState(name, objname) {
+    var obj = document.getElementById(objname);
+    var newState = !(obj.checked);
+    obj.checked = newState;
+
+    var i = layers.indexOf(name);
+
+    if (newState  &&  i == -1) {
+	layers.push(name);
+    }
+    else if (!newState  &&  i != -1) {
+	layers.splice(i, 1);
+
+	for (var key in overlays) {
+	    if (key.substring(16) == name) {
+		overlays[key].setMap(null);
+		delete overlays[key];
+	    }
+	}
+    }
+
+    getOverlays();
+}
+
 function getOverlays() {
     var bounds = map.getBounds();
     if (!bounds) { return; }
@@ -124,12 +152,10 @@ function getOverlays() {
     [depth, longmax, latmax] = tileIndex(depth, longmax, latmax);
 
     var depthPad = depth.pad(2);
-    var numDeleted = 0;
     for (var key in overlays) {
         if ((key[1] + key[2]) != depthPad) {
             overlays[key].setMap(null);
             delete overlays[key];
-            numDeleted++;
         }
     }
 
@@ -137,17 +163,19 @@ function getOverlays() {
 
     stats_numVisible = 0;
     var numAdded = 0;
-    for (var longIndex = longmin;  longIndex <= longmax;  longIndex++) {
-        for (var latIndex = latmin;  latIndex <= latmax;  latIndex++) {
-            var key = tileName(depth, longIndex, latIndex, "RGB");
-            if (!(key in overlays)) {
-                var overlay = new google.maps.GroundOverlay("../TileServer/getTile?key=" + key, tileCorners(depth, longIndex, latIndex));
-                overlay.setMap(map);
-                overlays[key] = overlay;
-                numAdded++;
+    for (var i in layers) {
+	for (var longIndex = longmin;  longIndex <= longmax;  longIndex++) {
+            for (var latIndex = latmin;  latIndex <= latmax;  latIndex++) {
+		var key = tileName(depth, longIndex, latIndex, layers[i]);
+		if (!(key in overlays)) {
+                    var overlay = new google.maps.GroundOverlay("../TileServer/getTile?key=" + key, tileCorners(depth, longIndex, latIndex));
+                    overlay.setMap(map);
+                    overlays[key] = overlay;
+                    numAdded++;
+		}
+		stats_numVisible++;
             }
-            stats_numVisible++;
-        }
+	}
     }
 
     stats_numInMemory = 0;
@@ -226,8 +254,18 @@ function getLngLatPoints() {
   </head>
   <body onload="initialize();" style="width: 100%; margin: 0px;">
 
-  <div id="map_canvas" style="position: fixed; top: 5px; right: 5px; width: 100%; height: 100px; float: right; border: 1px solid black;"></div>
-  <div id="sidebar" style="position: fixed; top: 5px; left: 5px; width: 400px; height: 100px; vertical-align: top; resize: horizontal; overflow: hidden; float: left; background: white; border: 1px solid black;">blah</div>
+  <div id="map_canvas" style="position: fixed; top: 5px; right: 5px; width: 100px; height: 100px; float: right; border: 1px solid black;"></div>
+  <div id="sidebar" style="position: fixed; top: 5px; left: 5px; width: 400px; height: 100px; vertical-align: top; resize: horizontal; float: left; background: white; border: 1px solid black; padding: 5px; overflow-x: hidden; overflow-y: scroll;">
+
+<h3 style="margin-top: 0px;">Layers</h3>
+<form onsubmit="return false;">
+<p class="layer_checkbox" onclick="toggleState('RGB', 'layer-RGB');"><label for="layer-RGB"><input id="layer-RGB" type="checkbox" checked="true"> Canonical RGB</label>
+<p class="layer_checkbox" onclick="toggleState('CO2', 'layer-CO2');"><label for="layer-CO2"><input id="layer-CO2" type="checkbox"> Carbon dioxide</label>
+</form>
+
+<h3>Points</h3>
+
+</div>
 
   <div id="stats" style="position: fixed; bottom: 5px; width: 100%; text-align: center;"><span style="color: white;">No message</span></div>
 
