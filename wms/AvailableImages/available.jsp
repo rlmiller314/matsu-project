@@ -13,9 +13,18 @@
     <script type="text/javascript" src="js/jquery-ui-1.8.23.custom.min.js"></script>
     <script type="text/javascript">
 
-var centerLat = <?php if (isset($_GET["centerLat"])) { echo $_GET["centerLat"]; } else { echo 0; } ?>;
-var centerLong = <?php if (isset($_GET["centerLong"])) { echo $_GET["centerLong"]; } else { echo 0; } ?>;
-var radius = <?php if (isset($_GET["radius"])) { echo $_GET["radius"]; } else { echo 0; } ?>;
+<%!
+public String giveMeSomething(String name, HttpServletRequest request) {
+    String x = request.getParameter(name);
+    if (x == null) { return "0"; }
+    else { return x; }
+}
+%>
+
+
+var centerLat = <%= giveMeSomething("centerLat", request) %>;
+var centerLong = <%= giveMeSomething("centerLong", request) %>;
+var radius = <%= giveMeSomething("radius", request) %>;
 
 var map;
 var hyperion;
@@ -57,7 +66,7 @@ function initialize() {
     }
     
     var latLng = new google.maps.LatLng(centerLat, centerLong);
-    var options = {zoom: <?php if (isset($_GET["radius"])) { echo "8"; } else { echo "2"; } ?>, center: latLng, mapTypeId: google.maps.MapTypeId.HYBRID};
+    var options = {zoom: <%= (request.getParameter("radius") == null) ? 2 : 8 %>, center: latLng, mapTypeId: google.maps.MapTypeId.HYBRID};
     map = new google.maps.Map(document.getElementById("map_canvas"), options);
 
     var xmlhttp = new XMLHttpRequest();
@@ -175,7 +184,7 @@ function drawData() {
 
 	    google.maps.event.addListener(polygon, "rightclick", function(lat, lng) {
 		return function() {
-		    window.location.href = "available.php?centerLat=" + lat + "&centerLong=" + lng + "&radius=1";
+		    window.location.href = "available.jsp?centerLat=" + lat + "&centerLong=" + lng + "&radius=1";
 		};
 	    }(latitude, longitude));
 
@@ -216,7 +225,7 @@ function drawData() {
 
 	    google.maps.event.addListener(polygon, "rightclick", function(lat, lng) {
 		return function() {
-		    window.location.href = "available.php?centerLat=" + lat + "&centerLong=" + lng + "&radius=1";
+		    window.location.href = "available.jsp?centerLat=" + lat + "&centerLong=" + lng + "&radius=1";
 		};
 	    }(latitude, longitude));
 
