@@ -1,0 +1,51 @@
+<project default="link" basedir=".">
+    <property file="../../CONFIG.ini" />
+
+    <path id="classpath.base">
+        <pathelement location="${jars.servlet_api}" />
+	<fileset dir="WEB-INF/lib">
+	    <include name="**/*.jar" />
+	</fileset>
+    </path>
+
+    <target name="clean">
+	<delete includeEmptyDirs="true" failonerror="false">
+	    <fileset dir="WEB-INF/classes">
+		<include name="**/*.class"/>
+	    </fileset>
+	    <fileset dir="./">
+		<include name="AvailableImages.war"/>
+	    </fileset>
+	</delete>
+    </target>
+
+    <target name="compile">
+	<mkdir dir="WEB-INF/classes"/>
+	<javac srcdir="./src" destdir="WEB-INF/classes" debug="true" includeAntRuntime="false">
+	    <classpath refid="classpath.base"/>
+	    <include name="**/*.java"/>
+	</javac>
+    </target>
+
+    <target name="link" depends="compile">
+	<war destfile="AvailableImages.war" webxml="WEB-INF/web.xml">
+	    <fileset dir="./">
+		<include name="**/*.jsp"/>
+		<include name="**/*.css"/>
+		<include name="**/*.png"/>
+		<include name="**/*.jpg"/>
+		<include name="**/*.html"/>
+		<include name="**/*.json"/>
+
+		<include name="WEB-INF/**/*.class"/>
+		<include name="WEB-INF/**/*.jar"/>
+
+		<exclude name="**/*~"/>
+		<exclude name="**/.svn/**"/>
+		<exclude name="test/**"/>
+		<exclude name="src/**"/>
+	    </fileset>
+	</war>
+    </target>
+
+</project>
