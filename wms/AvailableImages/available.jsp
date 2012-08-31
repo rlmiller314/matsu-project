@@ -21,7 +21,6 @@ public String giveMeSomething(String name, HttpServletRequest request) {
 }
 %>
 
-
 var centerLat = <%= giveMeSomething("centerLat", request) %>;
 var centerLong = <%= giveMeSomething("centerLong", request) %>;
 var radius = <%= giveMeSomething("radius", request) %>;
@@ -44,10 +43,19 @@ var radianceRange;
 var timeRange;
 var polygons = [];
 
+Number.prototype.pad = function(size) {
+    if (typeof(size) !== "number") { size = 2; }
+    var s = String(this);
+    while (s.length < size) {
+        s = "0" + s;
+    }   
+    return s;
+}   
+
 function showTime(t) {
     var d = new Date(1000 * t);
     d.setMinutes(d.getMinutes() + d.getTimezoneOffset());  // get rid of any local timezone correction on the client's machine!
-    return (d.getMonth() + 1) + "/" + (d.getYear() - 100);
+    return (d.getMonth() + 1) + "/" + (d.getYear() - 100).pad(2);
 }
 
 function aliRadiance(row) {
