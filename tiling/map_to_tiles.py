@@ -12,8 +12,6 @@ from osgeo import osr
 
 import GeoPictureSerializer
 
-from math import floor
-
 def tileIndex(depth, longitude, latitude):  
     "Inputs a depth and floating-point longitude and latitude, outputs a triple of index integers."
     if abs(latitude) > 90.: raise ValueError("Latitude cannot be %s" % str(latitude))
@@ -45,7 +43,7 @@ def tileOffset(depth, longIndex, latIndex):
     "Returns the corner this tile occupies in its parent's frame."
     return longIndex % 2, latIndex % 2
 
-def map_to_tiles(inputStream, outputStream, depth=10, longpixels=512, latpixels=256, numLatitudeSections=1, splineOrder=3):
+def map_to_tiles(inputStream, outputStream, depth=10, longpixels=512, latpixels=256, numLatitudeSections=1, splineOrder=3, modules=None):
     """Performs the mapping step of the Hadoop map-reduce job.
 
     Map: read L1G, possibly split by latitude, split by tile, transform pictures into tile coordinates, and output (tile coordinate and timestamp, transformed
@@ -57,7 +55,15 @@ def map_to_tiles(inputStream, outputStream, depth=10, longpixels=512, latpixels=
         * longpixels, latpixels: number of pixels in the output tiles
         * numLatitudeSections: number of latitude stripes to cut before splitting into tiles (reduces error due to Earth's curvature)
         * splineOrder: order of the spline used to calculate the affine_transformation (see SciPy docs); must be between 0 and 5
+        * modules: a list of external Python files to evaluate as analytics
     """
+
+    loadedModules = []
+    if modules is not None:
+        for module in modules:
+            globalVars = {}
+            exec(compile(open(module).read(), module, "exec"), globalVars)
+            loadedModules.append(globalVars["newBand"])
 
     while True:
         line = inputStream.readline()
@@ -68,6 +74,12 @@ def map_to_tiles(inputStream, outputStream, depth=10, longpixels=512, latpixels=
             geoPicture = GeoPictureSerializer.deserialize(line)
         except IOError:
             continue
+
+        inputBands = geoPicture.bands[:]
+
+        # run the external analytics
+        for newBand in loadedModules:
+            geoPicture = newBand(geoPicture)
 
         # convert GeoTIFF coordinates into degrees
         tlx, weres, werot, tly, nsrot, nsres = json.loads(geoPicture.metadata["GeoTransform"])
@@ -131,9 +143,12 @@ def map_to_tiles(inputStream, outputStream, depth=10, longpixels=512, latpixels=
 
                 # lay the GeoTIFF into the output image array
                 inputPicture = geoPicture.picture[int(floor(bottom*rasterYSize)):int(ceil(thetop*rasterYSize)),:,:]
-                inputMask = (inputPicture[:,:,0] > 0.)
-                for i in xrange(1, rasterDepth):
-                    numpy.logical_and(inputMask, (inputPicture[:,:,i] > 0.), inputMask)
+                inputMask = None
+                for band in set(inputBands).intersection(geoPicture.bands):
+                    if inputMask is None:
+                        inputMask = (inputPicture[:,:,geoPicture.bands.index(band)] > 0.)
+                    else:
+                        numpy.logical_and(inputMask, (inputPicture[:,:,geoPicture.bands.index(band)] > 0.), inputMask)
 
                 outputMask = numpy.zeros((latpixels, longpixels), dtype=geoPicture.picture.dtype)
                 affine_transform(inputMask, trans, offset, (latpixels, longpixels), outputMask, splineOrder)
@@ -169,4 +184,6 @@ def map_to_tiles(inputStream, outputStream, depth=10, longpixels=512, latpixels=
 
 if __name__ == "__main__":
     osr.UseExceptions()
-    map_to_tiles(sys.stdin, sys.stdout)
+
+    modules = sys.argv[1:]
+    map_to_tiles(sys.stdin, sys.stdout, modules=modules)

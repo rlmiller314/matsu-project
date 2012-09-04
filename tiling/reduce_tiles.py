@@ -5,6 +5,8 @@ import subprocess
 from io import BytesIO
 import base64
 import json
+import math
+from math import floor
 try:
     import ConfigParser as configparser
 except ImportError:
@@ -16,8 +18,6 @@ from scipy.ndimage.interpolation import affine_transform
 import jpype
 
 import GeoPictureSerializer
-
-from math import floor
 
 def tileIndex(depth, longitude, latitude):
     "Inputs a depth and floating-point longitude and latitude, outputs a triple of index integers."
@@ -50,7 +50,7 @@ def tileOffset(depth, longIndex, latIndex):
     "Returns the corner this tile occupies in its parent's frame."
     return longIndex % 2, latIndex % 2
 
-def reduce_tiles(tiles, inputStream, outputDirectory=None, outputAccumulo=None, bands=["B029", "B023", "B016"], layer="RGB", minRadiance=0., maxRadiance=300.):
+def reduce_tiles(tiles, inputStream, outputDirectory=None, outputAccumulo=None, layers=["RGB"], layerToBands={"RGB": ["B029", "B023", "B016"]}, layerToImageType={"RGB": "RGB"}, layerToMinRadiance={"RGB": 0.}, layerToMaxRadiance={"RGB": "95%"}):
     """Performs the part of the reducing step of the Hadoop map-reduce job that depends on key-value input.
 
     Reduce key: tile coordinate and timestamp
@@ -71,50 +71,146 @@ def reduce_tiles(tiles, inputStream, outputDirectory=None, outputAccumulo=None, 
         line = inputStream.readline()
         if not line: break
 
-        tabPosition = line.index("\t")
-        key = line[:tabPosition]
-        value = line[tabPosition+1:-1]
+        for layer in layers:
+            bands = layerToBands[layer]
+            imageType = layerToImageType[layer]
+            minRadiance = layerToMinRadiance[layer]
+            maxRadiance = layerToMaxRadiance[layer]
 
-        depth, longIndex, latIndex, timestamp = map(int, key.lstrip("T").split("-"))
+            if isinstance(minRadiance, basestring) and minRadiance[-1] == "%":
+                try:
+                    minPercent = float(minRadiance[:-1])
+                except ValueError:
+                    minPercent = 5.
+                minRadiance = None
 
-        try:
-            geoPicture = GeoPictureSerializer.deserialize(value)
-        except IOError:
-            continue
+            if isinstance(maxRadiance, basestring) and maxRadiance[-1] == "%":
+                try:
+                    maxPercent = float(maxRadiance[:-1])
+                except ValueError:
+                    maxPercent = 95.
+                maxRadiance = None
 
-        if (depth, longIndex, latIndex) not in tiles:
-            shape = geoPicture.picture.shape[:2]
-            outputRed = numpy.zeros(shape, dtype=numpy.uint8)
-            outputGreen = numpy.zeros(shape, dtype=numpy.uint8)
-            outputBlue = numpy.zeros(shape, dtype=numpy.uint8)
-            outputMask = numpy.zeros(shape, dtype=numpy.uint8)
-            tiles[depth, longIndex, latIndex] = (outputRed, outputGreen, outputBlue, outputMask)
-        outputRed, outputGreen, outputBlue, outputMask = tiles[depth, longIndex, latIndex]
+            tabPosition = line.index("\t")
+            key = line[:tabPosition]
+            value = line[tabPosition+1:-1]
 
-        red = geoPicture.picture[:,:,geoPicture.bands.index(bands[0])]
-        green = geoPicture.picture[:,:,geoPicture.bands.index(bands[1])]
-        blue = geoPicture.picture[:,:,geoPicture.bands.index(bands[2])]
+            depth, longIndex, latIndex, timestamp = map(int, key.lstrip("T").split("-"))
 
-        # TODO: divide by expected radiance based on sun's angle so that all images are equally normalized, independent of the acquisition time
+            try:
+                geoPicture = GeoPictureSerializer.deserialize(value)
+            except IOError:
+                continue
 
-        red = numpy.minimum(numpy.maximum((red - minRadiance) / (maxRadiance - minRadiance) * 255, 0), 255)
-        green = numpy.minimum(numpy.maximum((green - minRadiance) / (maxRadiance - minRadiance) * 255, 0), 255)
-        blue = numpy.minimum(numpy.maximum((blue - minRadiance) / (maxRadiance - minRadiance) * 255, 0), 255)
-        mask = numpy.minimum(numpy.maximum(geoPicture.picture[:,:,geoPicture.bands.index("MASK")] * 255, 0), 255)
+            if (depth, longIndex, latIndex, layer) not in tiles:
+                shape = geoPicture.picture.shape[:2]
+                outputRed = numpy.zeros(shape, dtype=numpy.uint8)
+                outputGreen = numpy.zeros(shape, dtype=numpy.uint8)
+                outputBlue = numpy.zeros(shape, dtype=numpy.uint8)
+                outputMask = numpy.zeros(shape, dtype=numpy.uint8)
+                tiles[depth, longIndex, latIndex, layer] = (outputRed, outputGreen, outputBlue, outputMask)
+            outputRed, outputGreen, outputBlue, outputMask = tiles[depth, longIndex, latIndex, layer]
 
-        condition = (mask > 0.5)
-        outputRed[condition] = red[condition]
-        outputGreen[condition] = green[condition]
-        outputBlue[condition] = blue[condition]
-        outputMask[condition] = mask[condition]
+            if imageType == "RGB":
+                red = geoPicture.picture[:,:,geoPicture.bands.index(bands[0])]
+                green = geoPicture.picture[:,:,geoPicture.bands.index(bands[1])]
+                blue = geoPicture.picture[:,:,geoPicture.bands.index(bands[2])]
 
-        image = Image.fromarray(numpy.dstack((outputRed, outputGreen, outputBlue, outputMask)))
-        if outputDirectory is not None:
-            image.save("%s/%s.png" % (outputDirectory, tileName(depth, longIndex, latIndex)), "PNG", options="optimize")
-        if outputAccumulo is not None:
-            buff = BytesIO()
-            image.save(buff, "PNG", options="optimize")
-            outputAccumulo.write("%s-%s" % (tileName(depth, longIndex, latIndex), layer), "{}", buff.getvalue())
+                if maxRadiance == "sun":
+                    l1t = json.loads(geoPicture.metadata["L1T"])
+                    sunAngle = math.sin(float(l1t["PRODUCT_PARAMETERS"]["SUN_ELEVATION"]) * math.pi/180.)
+                    maxRadiance = sunAngle * 500.
+                    if maxRadiance < 10.:
+                        maxRadiance = 10.
+
+                if minRadiance is None:
+                    for b in red, green, blue:
+                        bb = b[b > 10.]
+                        if len(bb) > 0:
+                            r = numpy.percentile(bb, minPercent)
+                            if minRadiance is None or r < minRadiance:
+                                minRadiance = r
+
+                    if minRadiance is None:
+                        for b in red, green, blue:
+                            r = numpy.percentile(b, minPercent)
+                            if minRadiance is None or r < minRadiance:
+                                minRadiance = r
+
+                if maxRadiance is None:
+                    for b in red, green, blue:
+                        bb = b[b > 10.]
+                        if len(bb) > 0:
+                            r = numpy.percentile(bb, maxPercent)
+                            if maxRadiance is None or r > maxRadiance:
+                                maxRadiance = r
+
+                    if maxRadiance is None:
+                        for b in red, green, blue:
+                            r = numpy.percentile(b, maxPercent)
+                            if maxRadiance is None or r > maxRadiance:
+                                maxRadiance = r
+
+                if maxRadiance == minRadiance:
+                    minRadiance = min(red.min(), green.min(), blue.min())
+                    maxRadiance = max(red.max(), green.max(), blue.max())
+                if maxRadiance == minRadiance:
+                    minRadiance, maxRadiance = 0., 1.
+
+                red = numpy.minimum(numpy.maximum((red - minRadiance) / (maxRadiance - minRadiance) * 255, 0), 255)
+                green = numpy.minimum(numpy.maximum((green - minRadiance) / (maxRadiance - minRadiance) * 255, 0), 255)
+                blue = numpy.minimum(numpy.maximum((blue - minRadiance) / (maxRadiance - minRadiance) * 255, 0), 255)
+                mask = numpy.minimum(numpy.maximum(geoPicture.picture[:,:,geoPicture.bands.index("MASK")] * 255, 0), 255)
+
+                condition = (mask > 0.5)
+                outputRed[condition] = red[condition]
+                outputGreen[condition] = green[condition]
+                outputBlue[condition] = blue[condition]
+                outputMask[condition] = mask[condition]
+
+            else:
+                b = geoPicture.picture[:,:,geoPicture.bands.index(bands[0])]
+
+                if minRadiance is None:
+                    bb = b[b > 10.]
+                    if len(bb) > 0:
+                        minRadiance = numpy.percentile(bb, minPercent)
+                    else:
+                        minRadiance = numpy.percentile(b, minPercent)
+
+                if maxRadiance is None:
+                    bb = b[b > 10.]
+                    if len(bb) > 0:
+                        maxRadiance = numpy.percentile(bb, maxPercent)
+                    else:
+                        maxRadiance = numpy.percentile(b, maxPercent)
+
+                if maxRadiance == minRadiance:
+                    minRadiance = b.min()
+                    maxRadiance = b.max()
+                if maxRadiance == minRadiance:
+                    minRadiance, maxRadiance = 0., 1.
+
+                b = numpy.minimum(numpy.maximum((b - minRadiance) / (maxRadiance - minRadiance) * 255, 0), 255)
+
+                mask = numpy.minimum(numpy.maximum(geoPicture.picture[:,:,geoPicture.bands.index("MASK")] * 255, 0), 255)
+                condition = (mask > 0.5)
+
+                if imageType == "yellow":
+                    outputRed[condition] = b[condition]
+                    outputGreen[condition] = b[condition]
+                    outputMask[condition] = b[condition]
+
+                else:
+                    raise NotImplementedError
+
+            image = Image.fromarray(numpy.dstack((outputRed, outputGreen, outputBlue, outputMask)))
+            if outputDirectory is not None:
+                image.save("%s/%s.png" % (outputDirectory, tileName(depth, longIndex, latIndex)), "PNG", options="optimize")
+            if outputAccumulo is not None:
+                buff = BytesIO()
+                image.save(buff, "PNG", options="optimize")
+                outputAccumulo.write("%s-%s" % (tileName(depth, longIndex, latIndex), layer), "{}", buff.getvalue())
 
 def collate(depth, tiles, outputDirectory=None, outputAccumulo=None, layer="RGB", splineOrder=3):
     """Performs the part of the reducing step of the Hadoop map-reduce job after all data have been collected.
@@ -129,20 +225,20 @@ def collate(depth, tiles, outputDirectory=None, outputAccumulo=None, layer="RGB"
         * splineOrder: order of the spline used to calculate the affine_transformation (see SciPy docs); must be between 0 and 5
     """
 
-    for depthIndex, longIndex, latIndex in tiles.keys():
-        if depthIndex == depth:
+    for depthIndex, longIndex, latIndex, l in tiles.keys():
+        if l == layer and depthIndex == depth:
             parentDepth, parentLongIndex, parentLatIndex = tileParent(depthIndex, longIndex, latIndex)
-            if (parentDepth, parentLongIndex, parentLatIndex) not in tiles:
-                shape = tiles[depthIndex, longIndex, latIndex][0].shape
+            if (parentDepth, parentLongIndex, parentLatIndex, layer) not in tiles:
+                shape = tiles[depthIndex, longIndex, latIndex, layer][0].shape
                 outputRed = numpy.zeros(shape, dtype=numpy.uint8)
                 outputGreen = numpy.zeros(shape, dtype=numpy.uint8)
                 outputBlue = numpy.zeros(shape, dtype=numpy.uint8)
                 outputMask = numpy.zeros(shape, dtype=numpy.uint8)
-                tiles[parentDepth, parentLongIndex, parentLatIndex] = outputRed, outputGreen, outputBlue, outputMask
-            outputRed, outputGreen, outputBlue, outputMask = tiles[parentDepth, parentLongIndex, parentLatIndex]
+                tiles[parentDepth, parentLongIndex, parentLatIndex, layer] = outputRed, outputGreen, outputBlue, outputMask
+            outputRed, outputGreen, outputBlue, outputMask = tiles[parentDepth, parentLongIndex, parentLatIndex, layer]
             rasterYSize, rasterXSize = outputRed.shape
 
-            inputRed, inputGreen, inputBlue, inputMask = tiles[depthIndex, longIndex, latIndex]
+            inputRed, inputGreen, inputBlue, inputMask = tiles[depthIndex, longIndex, latIndex, layer]
 
             trans = numpy.matrix([[2., 0.], [0., 2.]])
             offset = 0., 0.
@@ -194,9 +290,15 @@ if __name__ == "__main__":
     AccumuloInterface.connectForWriting(ACCUMULO_DB_NAME, ZOOKEEPER_LIST, ACCUMULO_USER_NAME, ACCUMULO_PASSWORD, ACCUMULO_TABLE_NAME)
 
     tiles = {}
-    reduce_tiles(tiles, sys.stdin, outputAccumulo=AccumuloInterface)
+    reduce_tiles(tiles, sys.stdin, outputAccumulo=AccumuloInterface,
+                 layers=["RGB", "CO2"],
+                 layerToBands={"RGB": ["B029", "B023", "B016"], "CO2": ["CO2"]},
+                 layerToImageType={"RGB": "RGB", "CO2": "yellow"},
+                 layerToMinRadiance={"RGB": 0., "CO2": 0.},
+                 layerToMaxRadiance={"RGB": "sun", "CO2": 80.})
 
     for depth in xrange(10, 1, -1):
-        collate(depth, tiles, outputAccumulo=AccumuloInterface)
+        collate(depth, tiles, outputAccumulo=AccumuloInterface, layer="RGB")
+        collate(depth, tiles, outputAccumulo=AccumuloInterface, layer="CO2")
 
     AccumuloInterface.finishedWriting()
