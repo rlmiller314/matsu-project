@@ -18,13 +18,21 @@
     <script type="text/javascript">
 // <![CDATA[
 
+<%! 
+public String giveMeSomething(String name, String defaultValue, HttpServletRequest request) {
+    String x = request.getParameter(name);
+    if (x == null) { return defaultValue; }
+    else { return x; }
+}   
+%>
+
 var map;
 var circle;
 
 var overlays = {};
-var lat = 40.183;
-var lng = 94.312;
-var z = 9;
+var lat = <%= giveMeSomething("lat", "40.183", request) %>;
+var lng = <%= giveMeSomething("lng", "94.312", request) %>;
+var z = <%= giveMeSomething("z", "9", request) %>;
 var layers = ["RGB"];
 
 var points = {};
