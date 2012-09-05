@@ -48,11 +48,11 @@ public class GeoPictureServlet extends HttpServlet {
 
 	if (command != null) {
 	    if (command.equals("loadSerialized")) {
-		String fileName = "/home/export/tanya/pictures-L1G-serialized/GobiDesert01-small.serialized";
+		String fileName = "/home/jpivarski/GeoPictureServlet/NamibiaFloods-EO1A1800712011089110KF.serialized";
 
 		String which = request.getParameter("which");
 		if (which != null) {
-		    fileName = String.format("/home/export/tanya/pictures-L1G-serialized/%s.serialized", which);
+		    fileName = String.format("/home/jpivarski/GeoPictureServlet/%s", which);
 		}
 		FileInputStream fileInputStream = new FileInputStream(fileName);
 
