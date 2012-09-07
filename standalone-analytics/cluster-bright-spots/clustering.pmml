@@ -1,0 +1,62 @@
+<PMML version="4.1">
+  <Header/>
+  <DataDictionary>
+    <DataField name="key" optype="categorical" dataType="string"/>
+    <DataField name="longitude" optype="continuous" dataType="double"/>
+    <DataField name="latitude" optype="continuous" dataType="double"/>
+    <DataField name="intensity" optype="continuous" dataType="double"/>
+  </DataDictionary>
+  <TransformationDictionary>
+    <DerivedField name="superintensity" optype="continuous" dataType="double">
+      <Apply function="pow">
+        <FieldRef field="intensity"/>
+	<Constant dataType="integer">2</Constant>
+      </Apply>
+    </DerivedField>
+  </TransformationDictionary>
+  <MiningModel functionName="clustering">
+    <MiningSchema>
+      <MiningField usageType="active" name="key"/>
+      <MiningField usageType="active" name="longitude"/>
+      <MiningField usageType="active" name="latitude"/>
+      <MiningField usageType="active" name="intensity"/>
+    </MiningSchema>
+    <Segmentation multipleModelMethod="selectFirst">
+      <Segment id="world">
+        <SimplePredicate field="key" operator="equal" value="world"/>
+        <ClusteringModel functionName="clustering" modelClass="centerBased" numberOfClusters="20">
+          <MiningSchema>
+            <MiningField usageType="active" name="longitude"/>
+            <MiningField usageType="active" name="latitude"/>
+            <MiningField usageType="active" name="intensity"/>
+          </MiningSchema>
+          <X-ODG-ComparisonMeasure kind="distance" compareFunction="absDiff" weightField="superintensity">
+            <euclidean/>
+          </X-ODG-ComparisonMeasure>
+          <ClusteringField field="longitude"/>
+          <ClusteringField field="latitude"/>
+          <Cluster id="c00"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c01"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c02"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c03"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c04"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c05"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c06"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c07"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c08"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c09"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c10"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c11"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c12"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c13"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c14"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c15"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c16"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c17"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c18"><Array type="real" n="2">0 0</Array></Cluster>
+          <Cluster id="c19"><Array type="real" n="2">0 0</Array></Cluster>
+        </ClusteringModel>
+      </Segment>
+    </Segmentation>
+  </MiningModel>
+</PMML>
