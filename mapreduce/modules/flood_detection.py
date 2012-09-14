@@ -1,4 +1,3 @@
-#!/usr/bin.env python
 import numpy
 
 import rpy2.robjects as robjects
@@ -9,27 +8,8 @@ rpy2.robjects.numpy2ri.activate()
 import json
 import GeoPictureSerializer
 
-import os
-import sys
-
-class RedirectStdStreams(object):
-    def __init__(self, stdout=None, stderr=None):
-        self._stdout = stdout or sys.stdout
-        self._stderr = stderr or sys.stderr
-
-    def __enter__(self):
-        self.old_stdout, self.old_stderr = sys.stdout, sys.stderr
-        self.old_stdout.flush(); self.old_stderr.flush()
-        sys.stdout, sys.stderr = self._stdout, self._stderr
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self._stdout.flush(); self._stderr.flush()
-        sys.stdout = self.old_stdout
-        sys.stderr = self.old_stderr
-
 
 def newBand(geoPicture):
-
     #load the image into an array
     imageArray = geoPicture.picture
 
@@ -85,53 +65,36 @@ def newBand(geoPicture):
     #Concatenate array
     imageArray = numpy.concatenate((rcIndex, imageArray), axis=1)
 
-    #classify this image
-    imageArray = classify(imageArray, presentBandsNum)
-
-    #Enumerate the classes contained in this vector
-    classVector = imageArray[:,imageArray.shape[1]-1]
-    U, Uindices = numpy.unique(classVector, return_inverse=True)
-
-    #Create a rectangular array into which the parallelogram will be placed
-    imageArrayFinal = numpy.zeros((geoPicture.picture.shape[0],geoPicture.picture.shape[1],U.size), dtype=numpy.uint8)
-    for i in numpy.arange(imageArray.shape[0]):
-        imageArrayFinal[imageArray[i,0],imageArray[i,1],Uindices[i]] = imageArray[i,imageArray.shape[1]-1]
-
-    for i in numpy.arange(U.size):
-        imageArrayFinal[:,:,i] = imageArrayFinal[:,:,i] * 255. / numpy.square(imageArrayFinal[:,:,i].max())
-
-    if U.size > 3:
-        imageArrayFinal[:,:,1] = imageArrayFinal[:,:,1] + imageArrayFinal[:,:,3] #Since bands are orthogonally zero, summing combines land bands
-
-    imageArrayFinal = numpy.array(imageArrayFinal[:,:,0:3], dtype=numpy.uint8)  #Compress to 3 bands for RGB image
-
-    imageArrayFinal = numpy.concatenate( (geoPicture.picture, imageArrayFinal), axis=2)
-
-    presentBands.extend(["CLOUD","LAND","WATER"])
-
-    geoPictureOutput = GeoPictureSerializer.GeoPicture()
-    geoPictureOutput.metadata = geoPicture.metadata
-    geoPictureOutput.bands = presentBands
-    geoPictureOutput.picture = imageArrayFinal
-    return geoPictureOutput
-
-
-def classify(imgArray, availableBandsNum):
-
-    with RedirectStdStreams(stdout=sys.stderr, stderr=sys.stderr):
-        robjects.r('library("e1071")')
-
+    #move some data to R
     #trainingSet
     robjects.r('trainingSet <- read.table("trainingSet.txt")')
-    #select class column
-    robjects.r('trainingClass <- trainingSet[ , 10]')
+    #select class column - always column 10 of training set 
+    robjects.r('trainingClass <- trainingSet[ ,10]')
     #data columns
-    dataColumns = numpy.array(availableBandsNum - 1, dtype=numpy.uint8)
+    dataColumns = numpy.array(presentBandsNum - 1, dtype=numpy.uint8)
     dataColumnNames = 'c' + str( tuple( dataColumns ) )
     robjects.r('trainingData <- trainingSet[ ,' + dataColumnNames + ']')
     #construct svm from training data
     robjects.r('svm.model <- svm(trainingData, trainingClass, type = "C", kernel = "linear")')
 
+    #classify this image
+    classVector = classify(imageArray, presentBandsNum)
+
+    #Create a rectangular array into which the parallelogram will be placed
+    imageArrayClass = numpy.zeros((geoPicture.picture.shape[0],geoPicture.picture.shape[1],1), dtype=numpy.uint8)
+    for i in numpy.arange(imageArray.shape[0]):
+        imageArrayClass[imageArray[i,0],imageArray[i,1],0] = 255. / classVector[i]
+
+    presentBands.extend(["FLOOD"])
+
+    geoPictureOutput = GeoPictureSerializer.GeoPicture()
+    geoPictureOutput.metadata = geoPicture.metadata
+    geoPictureOutput.bands = presentBands
+    geoPictureOutput.picture = numpy.concatenate( (geoPicture.picture, imageArrayClass), axis=2 )
+    return geoPictureOutput
+
+
+def classify(imgArray, availableBandsNum):
     #ship image array into R
     robjects.r.assign('testData',imgArray[:,2:])
     #classify image using svm
@@ -139,10 +102,8 @@ def classify(imgArray, availableBandsNum):
     #process class prediction
     svmPredict = tuple(svmPredict)
     svmPredict = numpy.asarray(svmPredict)
-    svmPredict = numpy.reshape(svmPredict,(imgArray.shape[0],1))
-    #append classification vector to image array
-    imgArray = numpy.concatenate( (imgArray,svmPredict), axis=1)
-    return imgArray
+    classVector = numpy.reshape(svmPredict,(imgArray.shape[0],1))
+    return classVector
 
 
 def binBands(imgArray, availableBandsNum):
@@ -150,60 +111,41 @@ def binBands(imgArray, availableBandsNum):
     #and average the radiance of those bands to create 9 bands which correspond 
     #to the wavelengths of ALI bands.   
 
+    #all possible ALI bands
+    possibleBands = ['B02', 'B03', 'B04', 'B05', 'B06', 'B07', 'B08', 'B09', 'B10']
+
     #These are the numbers of the Ali-equivalent Hyperion band limits.
-    hypStartVec = numpy.array([9, 11, 18, 28, 42, 49, 106, 141, 193], dtype=numpy.uint8)
-    hypStopVec = numpy.array([10, 16, 25, 33, 45, 53, 115, 160, 219], dtype=numpy.uint8)
+    hypBandsNum = numpy.array([[11,12,13,14,15,16],                         
+                [9,10],
+                [18,19,20,21,22,23,24,25],                      
+                [28,29,30,31,32,33],
+                [42,43,44,45],
+                [49,50,51,52,53],
+                [106,107,108,109,110,111,112,113,114,115],
+                [141,142,143,144,145,146,147,148,149,150,
+                 151,152,153,154,155,156,157,158,159,160], 
+                [193,194,195,196,197,198,199,200,201,202,
+                 203,204,205,206,207,208,209,210,211,212,
+                             213,214,215,216,217,218,219]])
 
-    #
-    aliStopVec = numpy.zeros(hypStartVec.size, dtype = numpy.int32)
-    hypAux = numpy.arange(availableBandsNum.size)
-    for i in numpy.arange(hypStartVec.size):
-        while (hypStopVec[i]!=availableBandsNum).all():
-            hypStopVec[i] -= 1
-        aliMask = hypStopVec[i]==availableBandsNum
-        aliStopVec[i] = (hypAux[aliMask])[0] + 1
+   
+    hypBands = numpy.zeros(9)
+    bandsPresent = []
+    finalImage = numpy.zeros( (imgArray.shape[0],imgArray.shape[1],1), dtype=numpy.float )
+    for i in numpy.arange(9):
+        finalArray = numpy.zeros((imgArray.shape[0],imgArray.shape[1],1), dtype=numpy.float)
+        for band in hypBandsNum[i]:
+            if (band==availableBandsNum).any():
+                finalArray[:,:,0] =  finalArray[:,:,0] + imgArray[:,:,list(availableBandsNum).index(band)]
+                bandsPresent.append(possibleBands[i])
+                hypBands[i] = hypBands[i] + 1
+        finalImage = numpy.concatenate( (finalImage,finalArray), axis=2)
+        if hypBands[i] > 0:
+            finalImage[:,:,i+1] = finalImage[:,:,i+1] / hypBands[i] #the "+1" is because the first band is a place holder
 
-    bandsPresent = ['B02', 'B03', 'B04', 'B05', 'B06', 'B07', 'B08', 'B09', 'B10']
-    xsize, ysize, zsize = imgArray.shape
-
-    img3 = imgArray[:,:,0:aliStopVec[0]]
-    Img3 = img3.sum(2)/aliStopVec[0]
-
-    img2 = imgArray[:,:,aliStopVec[0]:aliStopVec[1]]
-    Img2 = img2.sum(2)/(aliStopVec[1]-aliStopVec[0])
-
-    img4 = imgArray[:,:,aliStopVec[1]:aliStopVec[2]]
-    Img4 = img4.sum(2)/(aliStopVec[2]-aliStopVec[1])
-
-    img5 = imgArray[:,:,aliStopVec[2]:aliStopVec[3]]
-    Img5 = img5.sum(2)/(aliStopVec[3]-aliStopVec[2])
-
-    img6 = imgArray[:,:,aliStopVec[3]:aliStopVec[4]]
-    Img6 = img6.sum(2)/(aliStopVec[4]-aliStopVec[3])
-
-    img7 = imgArray[:,:,aliStopVec[4]:aliStopVec[5]]
-    Img7 = img7.sum(2)/(aliStopVec[5]-aliStopVec[4])
-
-    img8 = imgArray[:,:,aliStopVec[5]:aliStopVec[6]]
-    Img8 = img8.sum(2)/(aliStopVec[6]-aliStopVec[5])
-
-    img9 = imgArray[:,:,aliStopVec[6]:aliStopVec[7]]
-    Img9 = img9.sum(2)/(aliStopVec[7]-aliStopVec[6])
-
-    img10 = imgArray[:,:,aliStopVec[7]:aliStopVec[8]]
-    Img10 = img10.sum(2)/(aliStopVec[8]-aliStopVec[7])
-
-    finalImage = numpy.ndarray(shape=[xsize, ysize, 9], dtype = 'float')
-    finalImage[:,:,0] = Img2
-    finalImage[:,:,1] = Img3
-    finalImage[:,:,2] = Img4
-    finalImage[:,:,3] = Img5
-    finalImage[:,:,4] = Img6
-    finalImage[:,:,5] = Img7
-    finalImage[:,:,6] = Img8
-    finalImage[:,:,7] = Img9
-    finalImage[:,:,8] = Img10
-
+    finalImage = finalImage[:,:,1:]
+    bandsPresent = numpy.unique(bandsPresent)
+    bandsPresent = list(bandsPresent) 
     return finalImage, bandsPresent
 
 
@@ -211,15 +153,15 @@ def rescaleALI(metaData, imgArray, availableBandsNum):
 
     #Rescale ALI image data
     radianceScaling = metaData['RADIANCE_SCALING']
-    bandScaling = numpy.zeros(len(availableBandsNum))
-    bandOffset = numpy.zeros(len(availableBandsNum))
+    bandScaling = zeros(len(availableBandsNum))
+    bandOffset = zeros(len(availableBandsNum))
 
-    for i in numpy.arange(availableBandsNum.size):
+    for i in arange(availableBandsNum.size):
         bandScaling[i] = float(radianceScaling['BAND' + str(availableBandsNum[i]) + '_SCALING_FACTOR'])
         bandOffset[i] = float(radianceScaling['BAND' + str(availableBandsNum[i]) + '_OFFSET'])
 
     #scaling and offset
-    return (imgArray * 300. * bandScaling) + bandOffset
+    imgArray = (imgArray * 300. * bandScaling) + bandOffset
 
 
 def sunCorrection(imgArray, metaData):
