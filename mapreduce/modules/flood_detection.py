@@ -85,11 +85,11 @@ def newBand(geoPicture):
     for i in numpy.arange(imageArray.shape[0]):
         imageArrayClass[imageArray[i,0],imageArray[i,1],0] = 255. / classVector[i]
 
-    presentBands.extend(["FLOOD"])
+    geoPicture.bands.extend(["FLOOD"])
 
     geoPictureOutput = GeoPictureSerializer.GeoPicture()
     geoPictureOutput.metadata = geoPicture.metadata
-    geoPictureOutput.bands = presentBands
+    geoPictureOutput.bands = geoPicture.bands
     geoPictureOutput.picture = numpy.concatenate( (geoPicture.picture, imageArrayClass), axis=2 )
     return geoPictureOutput
 
