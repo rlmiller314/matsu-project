@@ -78,7 +78,7 @@ def newBand(geoPicture):
     robjects.r('svm.model <- svm(trainingData, trainingClass, type = "C", kernel = "linear")')
 
     #classify this image
-    classVector = classify(imageArray, presentBandsNum)
+    classVector = classify(imageArray[:,2:], presentBandsNum)
 
     #Create a rectangular array into which the parallelogram will be placed
     imageArrayClass = numpy.zeros((geoPicture.picture.shape[0],geoPicture.picture.shape[1],1), dtype=numpy.uint8)
@@ -96,7 +96,7 @@ def newBand(geoPicture):
 
 def classify(imgArray, availableBandsNum):
     #ship image array into R
-    robjects.r.assign('testData',imgArray[:,2:])
+    robjects.r.assign('testData',imgArray)
     #classify image using svm
     svmPredict = robjects.r('svm.predict <- predict(svm.model,testData)')
     #process class prediction
