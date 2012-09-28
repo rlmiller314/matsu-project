@@ -88,26 +88,15 @@ def newBand(geoPicture):
     #classify this image 1=cloud, 2=land(desert), 3=water, 4=land(vegetation)
     classVector = classify(imageArray[:,2:], presentBandsNum)
 
-
     #Enumerate the classes contained in this vector
     U, Uindices = numpy.unique(classVector, return_inverse=True)
 
     #Create a rectangular array into which the parallelogram will be placed
-    imageArrayFinal = numpy.zeros((geoPicture.picture.shape[0],geoPicture.picture.shape[1],max(U.size,3)), dtype=numpy.uint8)
+    imageArrayFinal = numpy.zeros((geoPicture.picture.shape[0],geoPicture.picture.shape[1],U.size), dtype=numpy.uint8)
     for i in numpy.arange(imageArray.shape[0]):
-        imageArrayFinal[imageArray[i,0],imageArray[i,1],Uindices[i]] = 255. / classVector[i]
+        imageArrayFinal[imageArray[i,0],imageArray[i,1],Uindices[i]] = 1
 
-    for i in numpy.arange(3,U.size):                                               #any band index 3 or above 
-        imageArrayFinal[:,:,1] = imageArrayFinal[:,:,1] + imageArrayFinal[:,:,i]   #(corresponding to class label 4 or above), 
-                                                                                   #is placed into "land" band, i.e., green band,
-                                                                                   # which is python index 1.                                                                               
-                                                                                   #since bands are never non-zero in same location, 
-                                                                                   #summing compresses multiple bands into one, 
-                                                                                   #without losing information.
-
-    imageArrayFinal = numpy.array(imageArrayFinal[:,:,0:3], dtype=numpy.uint8)     #keep bands 0-2
-
-    geoPicture.bands.extend(["CLOUDS","LAND","WATER"])
+    geoPicture.bands.extend(["CLOUD","LAND","WATER","FOREST"])
 
     geoPictureOutput = GeoPictureSerializer.GeoPicture()
     geoPictureOutput.metadata = geoPicture.metadata

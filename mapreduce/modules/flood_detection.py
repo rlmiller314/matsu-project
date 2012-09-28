@@ -90,9 +90,9 @@ def newBand(geoPicture):
 
 
     #Create a rectangular array into which the parallelogram will be placed
-    imageArrayClass = numpy.zeros((geoPicture.picture.shape[0],geoPicture.picture.shape[1],1), dtype=numpy.uint8)
+    imageArrayClass = numpy.zeros((geoPicture.picture.shape[0],geoPicture.picture.shape[1],1), dtype=numpy.float)
     for i in numpy.arange(imageArray.shape[0]):
-        imageArrayClass[imageArray[i,0],imageArray[i,1],0] = 255. / classVector[i]
+        imageArrayClass[imageArray[i,0],imageArray[i,1],0] = 1. / classVector[i]
 
     geoPicture.bands.extend(["FLOOD"])
 
