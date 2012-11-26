@@ -26,7 +26,7 @@ rpy2.robjects.numpy2ri.activate()
 import json
 import GeoPictureSerializer
 
-def newBand(geoPicture):
+def newBand(geoPicture, classificationType=1, dataType=1):
   with RedirectStdStreams(stdout=sys.stderr, stderr=sys.stderr):
 
     #load the image into an array
@@ -88,21 +88,49 @@ def newBand(geoPicture):
     #Concatenate array
     imageArray = numpy.concatenate((rcIndex, imageArray), axis=1)
 
-    #load svm library
-    robjects.r.library("e1071")
-
     #move some data to R
     #trainingSet
-    trainingSet = numpy.loadtxt('trainingSet.txt')
-    trainingSet = trainingSet[:,numpy.append(presentBandsNum-2,9)]
+    training = numpy.loadtxt('trainingSet.txt')
+    trainingSet = training[:,presentBandsNum-2]
+    if dataType==2:
+        trainingSet_ratio = numpy.zeros((trainingSet.shape[0],presentBandsNum.size*(presentBandsNum.size-1)/2))
+        ij = -1
+        for i in numpy.arange(trainingSet.shape[1]-1):
+            for j in numpy.arange(i+1,trainingSet.shape[1]):
+                ij = ij+1
+                trainingSet_ratio[:,ij] = trainingSet[:,i] / trainingSet[:,j]
+        trainingSet = trainingSet_ratio
+    trainingSet = numpy.concatenate((trainingSet,training[:,-1:]),axis=1)
     robjects.r.assign('trainingSet',trainingSet)
     robjects.r('trainingSet <- as.data.frame(trainingSet)')
-    #construct svm from training data
-    # robjects.r('class.model <- svm(V10 ~ ., data = trainingSet, type = "C", cost = 10000, gamma = 0.001)')
-    robjects.r('class.model <- svm(V' + str(trainingSet.shape[1]) + ' ~ ., data = trainingSet, type = "C", cost = 1000, kernel = "linear")')
+
+
+    #construct classifier from training data
+    if classificationType==1:
+        print('using SVM as classifier')
+        robjects.r.library("e1071")
+        robjects.r('class.model <- svm(V' + str(trainingSet.shape[1]) + ' ~ ., data = trainingSet, type = "C", cost = 1000, kernel = "linear")')
+    elif classificationType==2:
+        print('using Naive Bayes as classifier')
+        robjects.r.library("e1071")
+        robjects.r('class.model <- naiveBayes(V' + str(trainingSet.shape[1]) + ' ~ ., data = trainingSet)')
+    else:
+        robjects.r.library("rpart")
+        robjects.r('class.model <- rpart(V' + str(trainingSet.shape[1]) + ' ~ ., method = "class", data = trainingSet)')
 
     #classify this image 1=cloud, 2=land(desert), 3=water, 4=land(vegetation)
-    classVector = classify(imageArray[:,2:], presentBandsNum)
+    if dataType==2:
+        print('using ratios to classify')
+        imgArray1 = numpy.zeros((imageArray.shape[0],presentBandsNum.size*(presentBandsNum.size-1)/2))
+        ij = -1
+        for i in numpy.arange(2,imageArray.shape[1]-1):
+            for j in numpy.arange(i+1,imageArray.shape[1]):
+                ij = ij+1
+                imgArray1[:,ij] = imageArray[:,i] / imageArray[:,j]
+        classVector = classify(imgArray1, presentBandsNum, classificationType)
+    else:
+        classVector = classify(imageArray[:,2:], presentBandsNum, classificationType)
+#
 
     #Enumerate the classes contained in this vector
     U, Uindices = numpy.unique(classVector, return_inverse=True)
@@ -131,14 +159,25 @@ def newBand(geoPicture):
     return geoPictureOutput
 
 
-def classify(imgArray, availableBandsNum):
-    #image array into R
+def classify(imgArray, availableBandsNum, classType):
+    #ship image array into R
     robjects.r.assign('testData',imgArray)
     robjects.r('testData <- as.data.frame(testData)')
-    #classify image using svm
-    classPredict = robjects.r('class.predict <- predict(class.model,testData)')
+    if classType==3:
+        classPredict = robjects.r('class.predict <- predict(class.model,testData,type="class")')
+    elif classType==2:
+        robjects.r('class.predict <- predict(class.model,testData,type="raw")')
+        m = imgArray.shape[0]
+        robjects.r( 'n <- dim(trainingSet)[2]' )
+        robjects.r('classMatrix <- matrix( seq(1, length(unique(trainingSet[ ,n])), length = length(unique(trainingSet[ ,n]))),' + str(m) + ',length(unique(trainingSet[ ,n])), byrow=T)')
+        classPredict = robjects.r('class.predict <- apply(classMatrix*round(class.predict),1,sum)')
+    else:
+        classPredict = robjects.r('class.predict <- predict(class.model,testData)')
     #process class prediction
-    classPredict = numpy.asarray(classPredict)
+    classVector = numpy.asarray( tuple(classPredict) ) 
+    if numpy.not_equal(classType,2):
+        classPredict = numpy.asarray(tuple(classPredict.levels))[classVector-1]
+        classPredict = map(int, classPredict)
     classVector = numpy.reshape(classPredict,(imgArray.shape[0],1))
     return classVector
 
@@ -220,8 +259,7 @@ def geometricCorrection(imgArray, metaData):
 
 def aliSolarIrradiance(imgArray, availableBandsNum):
     Esun_ali = numpy.array([ [2,1851.8], [3, 1967.6], [4, 1837.2], [5,1551.47], [6, 1164.53], [7,957.46], [8, 451.37], [9, 230.03], [10, 79.61] ])
-    Esun_ali = numpy.reshape(Esun_ali[availableBandsNum-2,1],(1,1,Esun_ali.shape[0] ))
-    imgArray = imgArray / Esun_ali
+    imgArray = imgArray / numpy.reshape(Esun_ali[availableBandsNum-2,1],(1,1,availableBandsNum.size))
     return imgArray
 
 def hypSolarIrradiance(imgArray, availableBandsNum):

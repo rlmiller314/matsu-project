@@ -26,7 +26,7 @@ class RedirectStdStreams(object):
 import json
 import GeoPictureSerializer
 
-def newBand(geoPicture):
+def newBand(geoPicture, classificationType=1, dataType=1):
   with RedirectStdStreams(stdout=sys.stderr, stderr=sys.stderr):
 
     #load the image into an array
@@ -89,14 +89,47 @@ def newBand(geoPicture):
     imageArray = numpy.concatenate((rcIndex, imageArray), axis=1)
 
     #trainingSet
-    trainingSet = numpy.loadtxt('trainingSet.txt')
-    trainingSet = trainingSet[:,numpy.append(presentBandsNum-2,9)]
-    #construct svm from training data
-    clf = svm.SVC(C=100.0, kernel='rbf',gamma=0.01)
+    training = numpy.loadtxt('trainingSet.txt')
+    trainingSet = training[:,presentBandsNum-2]
+    if dataType==2:
+        trainingSet_ratio = numpy.zeros((trainingSet.shape[0],presentBandsNum.size*(presentBandsNum.size-1)/2))
+        ij = -1
+        for i in numpy.arange(trainingSet.shape[1]-1):
+            for j in numpy.arange(i+1,trainingSet.shape[1]):
+                ij = ij+1
+                trainingSet_ratio[:,ij] = trainingSet[:,i] / trainingSet[:,j]
+        trainingSet = trainingSet_ratio
+    trainingSet = numpy.concatenate((trainingSet,training[:,-1:]),axis=1)
+
+
+    #construct classifier from training data
+    if classificationType==1:
+        print('using SVM as classifier')
+        clf = svm.SVC(C=1000.0, kernel='linear')
+    elif classificationType==2:
+        print('using Naive Bayes as Classifier')
+        clf = GaussianNB()
+    else:
+        print('using Trees as classifier')
+        clf = tree.DecisionTreeClassifier()
+
+    classMmodel = clf.fit(trainingSet[:,:-1],numpy.reshape(trainingSet[:,-1:],trainingSet.shape[0]))
 
     #classify this image 1=cloud, 2=land(desert), 3=water, 4=land(vegetation)
-    classMmodel = clf.fit(trainingSet[:,:-1],numpy.reshape(trainingSet[:,-1:],trainingSet.shape[0]))
-    classVector = numpy.reshape(clf.predict(imageArray[:,2:]),(imageArray.shape[0],1))
+    if dataType==2:
+        print('using ratios to classify')
+        imgArray1 = numpy.zeros((imageArray.shape[0],presentBandsNum.size*(presentBandsNum.size-1)/2))
+        ij = -1
+        for i in numpy.arange(2,imageArray.shape[1]-1):
+            for j in numpy.arange(i+1,imageArray.shape[1]):
+                ij = ij+1
+                imgArray1[:,ij] = imageArray[:,i] / imageArray[:,j]
+        classPredict = clf.predict(imgArray1)
+    else:
+        classPredict = clf.predict(imageArray[:,2:])
+
+    #process class prediction
+    classVector = numpy.reshape(classPredict,(imageArray.shape[0],1))
 
     #Enumerate the classes contained in this vector
     U, Uindices = numpy.unique(classVector, return_inverse=True)
