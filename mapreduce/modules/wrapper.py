@@ -1,6 +1,5 @@
 import numpy
 import types
-import os
 
 import rpy2.robjects as robjects
 import rpy2.robjects.numpy2ri
@@ -17,9 +16,7 @@ def main(inputFile, classificationType=1, dataType=1, programType=1):
     #dataType is 1 = magnitudes of band reflectivity, 2 = ratios of band reflectivity
     #programType is 1 = R code, 2 = Python code
 
-    cwd = os.getcwd()
-
-    inputFile = cwd + '/' + inputFile
+    inputFile =  inputFile
     geoPicture = GeoPictureSerializer.deserialize(open(inputFile))
 
     if programType==1: 
@@ -50,6 +47,6 @@ def main(inputFile, classificationType=1, dataType=1, programType=1):
     #class image
     imageArrayClass = numpy.array(geoPicture.picture[:,:,-3:]*255, dtype=numpy.uint8)  #Compress to 3 bands for RGB image
     imageClass = Image.fromarray(imageArrayClass)
-    imageClass.save( cwd + "/" + "tmpClass" + ".png", "PNG", option="optimize")
+    imageClass.save( "tmpClass" + ".png", "PNG", option="optimize")
 
     return geoPicture
