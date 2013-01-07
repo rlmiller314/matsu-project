@@ -9,14 +9,21 @@ rpy2.robjects.numpy2ri.activate()
 from PIL import Image
 
 import GeoPictureSerializer
+import trainingSet
 
-def main(inputFile, classificationType=1, dataType=1, programType=1):
+def main(inputFile, classificationType=1, dataType=1, programType=1,Train=False):
     #inputFile is full path + file name as a string
     #classificationType is 1=support vector machine, 2 = naive Bayes, 3 = trees
     #dataType is 1 = magnitudes of band reflectivity, 2 = ratios of band reflectivity
-    #programType is 1 = R code, 2 = Python code
+    #programType is 1 = R, 2 = Python
 
-    inputFile =  inputFile
+
+    #The first input of trainingSet.main is a string containing the full path to training image data
+    #The second input of trainingSet.main is a list of names corresponding to land cover types, which 
+    #need to be the names of sub-directories in the training image data directory.
+    if Train:
+        trainingSet.main('/Users/ryanmiller/amazon/mnt2/training_serialized',['cloud','land_dry','water','land_veg'])
+
     geoPicture = GeoPictureSerializer.deserialize(open(inputFile))
 
     if programType==1: 
