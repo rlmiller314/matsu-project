@@ -45,7 +45,7 @@ def newBand(geoPicture1, geoPicture2):
         presentBands = geoPicture.bands
 
         #create a numerical vector corresponding to bands present
-        presentBandsNum = numpy.zeros(len(presentBands), dtype=numpy.uint8)
+        presentBandsNum = numpy.zeros(len(presentBands))
         for i in numpy.arange(len(presentBands)):
             presentBandsNum[i] = int( presentBands[i].lstrip('B') )
 
@@ -74,7 +74,7 @@ def newBand(geoPicture1, geoPicture2):
 
 
         #There are too many points to calculate all lat/long.  Will calculate some, then interpolate.
-        interpSize = 500j
+        interpSize = 100j
         yy, xx = numpy.mgrid[0:(rasterYsize-1):(3*interpSize), 0:(rasterXsize-1):interpSize]
         yy = yy.reshape(-1,1)                                                              
         xx = xx.reshape(-1,1)
@@ -92,7 +92,20 @@ def newBand(geoPicture1, geoPicture2):
         imageIndices['image' + str(zi)] = numpy.dstack( (rowIndex, colIndex, yLat, xLong, alphaBand, p1, imageArray) )
         imageIndices['bound' + str(zi)] = [boxLatMin,boxLatMax,boxLongMin,boxLongMax]
 
-
+        #clear some variables from memory
+        imageArray = []
+        presentBands = []
+        presentBandsNum = []
+        alphaBand = []
+        rowIndex = []
+        colIndex = []
+        polygons = []
+        p1 = []
+        yy = []
+        xx = []
+        yLat = []
+        xLong = []
+                
     boundBox1 = imageIndices['bound1'] 
     boundBox2 = imageIndices['bound2']     
 
@@ -109,130 +122,123 @@ def newBand(geoPicture1, geoPicture2):
         polygon2 = imageIndices['image2']
         imageIndices = [] 
 
-        #
+        polyRC = polygon2[:,:,5].reshape(-1,)
         
-        p2xy = [0,rasterYsize-1,0,rasterXsize-1]
-        y2Min = numpy.maximum(boundBox1[1] - polygon2[:,:,2][:,0],0)
-        y2Min = y2Min[y2Min>0] 
-        y2Max = numpy.maximum(polygon2[:,:,2][:,0] - boundBox1[0],0)
-        y2Max = y2Max[y2Max>0] 
-        x2Min = numpy.maximum(polygon2[:,:,3][0,:] - boundBox1[2],0)
-        x2Min = x2Min[x2Min>0] 
-        x2Max = numpy.maximum(boundBox1[3] - polygon2[:,:,3][0,:],0)
-        x2Max = x2Max[x2Max>0] 
+        yLat2 = polygon2[:,:,2].reshape(-1,1)
+        xLong2 = polygon2[:,:,3].reshape(-1,1)       
 
-        if y2Min != []:
-            y2Min = numpy.amin(y2Min)
-            y2MinIndex = list(boundBox1[1] - polygon2[:,:,2][:,0]).index(y2Min)
-            p2xy[0] = y2MinIndex  
-        if y2Max != []:        
-            y2Max = numpy.amin(y2Max)
-            y2MaxIndex = list(polygon2[:,:,2][:,0] - boundBox1[0]).index(y2Max)
-            p2xy[1] = y2MaxIndex 
-        if x2Min != []:
-            x2Min = numpy.amin(x2Min)
-            x2MinIndex = list(polygon2[:,:,3][0,:] - boundBox1[2]).index(x2Min)
-            p2xy[2] = x2MinIndex 
-        if x2Max != []:
-            x2Max = numpy.amin(x2Max)
-            x2MaxIndex = list(boundBox1[3] - polygon2[:,:,3][0,:]).index(x2Max)
-            p2xy[3] = x2MaxIndex 
-
-        yLat2 = polygon2[p2xy[0]:p2xy[1]+1,p2xy[2]:p2xy[3]+1,2].reshape(-1,1)
-        xLong2 = polygon2[p2xy[0]:p2xy[1]+1,p2xy[2]:p2xy[3]+1,3].reshape(-1,1)
-         
-        polyRC = numpy.array(polygon2[p2xy[0]:p2xy[1],p2xy[2]:p2xy[3],5],dtype=bool).reshape(-1,)
-        
-
-        interpSize = 500j
-        yy, xx = numpy.uint(numpy.around(numpy.mgrid[0:(polygon1[:,:,0].shape[0]-1):(3*interpSize),0:(polygon1[:,:,0].shape[1]-1):interpSize]))
+        interpSize = 100j
+        yy, xx = numpy.array(numpy.around(numpy.mgrid[0:(polygon1[:,:,0].shape[0]-1):(3*interpSize),0:(polygon1[:,:,0].shape[1]-1):interpSize]),dtype=int)
         #
         yLat = polygon1[yy.reshape(-1,1),xx.reshape(-1,1),2]
         xLong = polygon1[yy.reshape(-1,1),xx.reshape(-1,1),3]
         #
         rowInd = polygon1[yy.reshape(-1,1),xx.reshape(-1,1),0]
         colInd = polygon1[yy.reshape(-1,1),xx.reshape(-1,1),1]
-        xx = []
-        yy = []
         #
         #
-        rowInd2 = numpy.array(numpy.around(scipy.interpolate.griddata( numpy.hstack((xLong,yLat)),rowInd,(xLong2,yLat2),method='cubic')),dtype=int)
-        colInd2 = numpy.array(numpy.around(scipy.interpolate.griddata( numpy.hstack((xLong,yLat)),colInd,(xLong2,yLat2),method='cubic')),dtype=int)
-        rowInd2 = rowInd2.reshape(-1,1)
-        colInd2 = colInd2.reshape(-1,1)
+        rowInd2 = numpy.array(numpy.around(scipy.interpolate.griddata( numpy.hstack((xLong,yLat)),rowInd,(xLong2,yLat2),method='cubic',fill_value=-1.0)),dtype=int)
+        colInd2 = numpy.array(numpy.around(scipy.interpolate.griddata( numpy.hstack((xLong,yLat)),colInd,(xLong2,yLat2),method='cubic',fill_value=-1.0)),dtype=int)
+        rowInd2 = rowInd2.reshape(-1,)
+        colInd2 = colInd2.reshape(-1,)
+        posInd = numpy.ones((rowInd2.size))
+        posInd[rowInd2<0] = 0
+        posInd[colInd2<0] = 0
         #
-        #pR2 = rowInd2[polyRC]
-        #pC2 = colInd2[polyRC]
-        #pR2 = pR2[pR2 > 0]
-        
-
+        #
         alpha1 = numpy.array(polygon1[:,:,4].reshape(-1,),dtype=bool)
-        alpha2 = numpy.array(polygon2[p2xy[0]:p2xy[1],p2xy[2]:p2xy[3],4].reshape(-1,),dtype=bool)
-        
+        alpha2 = polygon2[:,:,4].reshape(-1,)
+        polyRC = polyRC*alpha2
+        alpha2 = numpy.array(alpha2*posInd,dtype=bool)
+        polyRC = numpy.array(polyRC,dtype=bool)
+        #
         rowInd = polygon1[:,:,0].reshape(-1,1) 
         colInd = polygon1[:,:,1].reshape(-1,1)    
         rowInd = rowInd[alpha1]
         colInd = colInd[alpha1] 
-        rowInd2 = rowInd2[alpha2]
-        colInd2 = colInd2[alpha2]
-        #pR2 = rowInd2[polyRC]
-        #pC2 = colInd2[polyRC]
+        rowInd2 = rowInd2.reshape(-1,1)
+        colInd2 = colInd2.reshape(-1,1)
+        pR2 = rowInd2[polyRC]
+        pC2 = colInd2[polyRC]
+        rowInd2 = rowInd2[alpha2,:]
+        colInd2 = colInd2[alpha2,:]
+
+        #
+
         interBand = map(list,set( map(tuple,numpy.hstack((rowInd2,colInd2)) )) & set( map(tuple,numpy.hstack((rowInd,colInd)) )) )
         interBand.sort()
+
+        #clear more variables
         rowInd = []
         colInd = []
         rowInd2 = []
         colInd2 = []
+        yLat = []
+        yLat2 = []
+        xLong = []
+        xLong2 = []
         alpha1 = []
         alpha2 = []
+        xx = []
+        yy = []
+        polyRC = []
         #
         #
-        interBand = numpy.array(interBand)
-        imageArray1 = numpy.zeros((1,polygon1[:,:,6:].shape[2]))
-        imageArray2 = numpy.zeros((1,polygon2[:,:,6:].shape[2]))
-        for ij in numpy.arange(interBand.shape[0]):
-            imageArray1 = numpy.append(imageArray1,numpy.array([polygon1[interBand[ij,0],interBand[ij,1],6:]]),axis=0)
-            imageArray2 = numpy.append(imageArray2,numpy.array([polygon2[interBand[ij,0],interBand[ij,1],6:]]),axis=0)  
-        imageArray1 = imageArray1[1:,:]
-        imageArray2 = imageArray2[1:,:]
-        p1Shape0 = polygon1[:,:,0].shape[0]
-        p2Shape1 = polygon2[:,:,0].shape[1]
-        #polygon1 = []
+        imageAddress1 = numpy.zeros((polygon1.shape[0]*polygon1.shape[1]),dtype=bool)
+        imageAddress2 = numpy.zeros((polygon2.shape[0]*polygon2.shape[1]),dtype=bool)
+        imageAddress1[numpy.array(numpy.array(interBand)[:,0]*polygon1.shape[1]+numpy.array(interBand)[:,1],dtype=int)] = True
+        imageAddress2[numpy.array(numpy.array(interBand)[:,0]*polygon2.shape[1]+numpy.array(interBand)[:,1],dtype=int)] = True
+        imageArray1 = polygon1[:,:,6:].reshape(polygon1.shape[0]*polygon1.shape[1],polygon1.shape[2] - 6)[imageAddress1]
+        imageArray2 = polygon2[:,:,6:].reshape(polygon2.shape[0]*polygon2.shape[1],polygon2.shape[2] - 6)[imageAddress2]
+
+
+        #clear polygon2 array
         polygon2 = []
       
-
         #Find cloud pixels from both images to eliminate from change test
         nonCloudAddress1 = cloudFilter(imageArray1,[])
         nonCloudAddress2 = cloudFilter(imageArray2,nonCloudAddress1)
 
-        interBand = interBand[numpy.array(nonCloudAddress2.reshape(-1,1),dtype=bool)]
+        #interBand1 = numpy.array(interBand)
+        #interBand1 = interBand1[numpy.array(nonCloudAddress2.reshape(-1,),dtype=bool),:]
 
         Image1Sigma, Image2Sigma = pixelStats(imageArray1,imageArray2)
         change_prob = changeProb(imageArray1,imageArray2,Image1Sigma)
-        change_prob = change_prob[numpy.array(nonCloudAddress2.reshape(-1,1),dtype=bool)]            
- 
+        change_prob = change_prob[numpy.array(nonCloudAddress2.reshape(-1,),dtype=bool)]            
+
+
+        
         #Create a rectangular array into which the parallelogram will be placed
-        imageArrayFinal2 = numpy.zeros((p1Shape0,p1Shape1,3), dtype=numpy.float)
-        for ij in numpy.arange(interBand.shape[0]):
-            imageArrayFinal2[interBand[ij,0],interBand[ij,1],0] = 1 - change_prob[ij]
-            imageArrayFinal2[interBand[ij,0],interBand[ij,1],1] = 1 - change_prob[ij]
-            imageArrayFinal2[interBand[ij,0],interBand[ij,1],0] = 1 
+        imageArrayFinal2 = numpy.zeros((polygon1[:,:,0].shape[0],polygon1[:,:,0].shape[1],3), dtype=numpy.float)
+        for iB in interBand:
+            imageArrayFinal2[iB[0],iB[1],0] = 1
+            imageArrayFinal2[iB[0],iB[1],1] = 1-.4*change_prob[ij]
+            imageArrayFinal2[iB[0],iB[1],2] = 1-.6*change_prob[ij] 
+        #for ij in numpy.arange(rowInd2.shape[0]):
+        #    imageArrayFinal2[rowInd2[ij,0],colInd2[ij,0],:] = 1     
+
+
 
         imageArrayFinal2 = imageArrayFinal2 + polygon1[:,:,5].reshape(polygon1[:,:,0].shape[0],polygon1[:,:,0].shape[1],1)    
 
-        #for i in numpy.arange(pR2.shape[0]):
-        #    imageArrayFinal2[pR2[i],pC2[i],0] = 1
-
-
-        #imageArray1 = iamgeArray.reshape(-1,polygon1.shape[2])
-        #imageArray1 = imageArray[numpy.array(nonCloudAddress2.reshape(-1,1),dtype=bool)]
- 
-        #imageArray2 = polygon2[:,:,6:].reshape(polygon2.shape[0]*polygon2.shape[1],polygon2.shape[2])
-        #imageArray2 = imageArray2[numpy.array(nonCloudAddress2.reshape(-1,1),dtype=bool)]
+        for i in numpy.arange(pR2.shape[0]):
+            imageArrayFinal2[pR2[i],pC2[i],0] = 1
 
 
         geoPicture.bands.extend(["CHANGE_BAND"])
-        geoPicture.picture = imageArrayFinal2
+        geoPicture.picture = numpy.dstack((polygon1[:,:,6:],imageArrayFinal2))
+
+        #clear variables
+        
+        nonCloudAddress1 = []
+        nonCloudAddress2 = []
+        Image1Sigma = []
+        Image2Sigma = []
+        interBand = []
+        imageArrayFinal2 = []
+
+
+
 
 
     else:
@@ -280,11 +286,11 @@ def pixelStats(imageOne, imageTwo):
     return Xsigma, Ysigma
 
 def changeProb(Ypixel, Xpixel, Xsigma):
-    #T1 = ((Ypixel*Ypixel).sum(1))**2 * ((Xpixel*Xpixel).sum(1))**2 - ((Xpixel*Ypixel).sum(1))**2
-    #T2 = Xsigma**2 * ((Xpixel*Xpixel).sum(1))**2 + ((Ypixel*Ypixel).sum(1))**2
-    T1 = numpy.square(numpy.dot(Ypixel,Ypixel.T).diagonal()) * numpy.square(numpy.dot(Xpixel,Xpixel.T).diagonal()) - numpy.square(numpy.dot(Xpixel,Ypixel.T).diagonal())
-    T2 = numpy.square(Xsigma) * numpy.square(numpy.dot(Xpixel,Xpixel.T).diagonal()) + numpy.square(numpy.dot(YPixel,YPixel.T).diagonal())
-    T = T1/T2
+    T = numpy.zeros((Ypixel.shape[0]))
+    for ij in numpy.arange(Ypixel.shape[0]):
+        T1 = numpy.vdot(Ypixel[ij,:],Ypixel[ij,:]) * numpy.vdot(Xpixel[ij,:],Xpixel[ij,:]) - numpy.vdot(Xpixel[ij,:],Ypixel[ij,:])**2
+        T2 = Xsigma[ij]**2 * (numpy.vdot(Xpixel[ij,:],Xpixel[ij,:]) + numpy.vdot(Ypixel[ij,:],Ypixel[ij,:]))
+        T[ij] = ((1/(numpy.sqrt(2*numpy.pi)*T2))**(Xpixel.shape[1]-1))*numpy.exp(-(1/2)*(T1/T2))    
     return T
 
 
