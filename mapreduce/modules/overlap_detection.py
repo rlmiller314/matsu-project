@@ -64,10 +64,8 @@ def changeProb(Xpixel, Ypixel, Xsigma, Ysigma):
         x2 = numpy.vdot(Xpixel[ij,:],Xpixel[ij,:])
         xy = numpy.vdot(Xpixel[ij,:],Ypixel[ij,:])
         T1 = y2 * x2 - xy**2
-        T2 = Xsigma[ij,0]**2 * (x2 + y2)
-        T3 = (numpy.sqrt(2*numpy.pi*(Xsigma[ij,0]**2 + Ysigma[ij,0]**2)))**(Xpixel.shape[1]-1)
-        T3 = 1
-        T[ij] = (1/T3)*numpy.exp(-(1/2)*(T1/T2))    
+        T2 = x2 * y2
+        T[ij] = T1/T2
     return T
 
 def interpImage(poly1, poly2):
